@@ -1,0 +1,21 @@
+*,
+*::before,
+*::after {
+  @apply m0
+  box-border;
+}
+
+html, body {
+  @apply min-w-screen
+  min-h-screen;
+}
+
+#root {
+  @apply min-w-screen
+  min-h-screen
+  font-synthesis-none;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

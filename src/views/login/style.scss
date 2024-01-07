@@ -1,0 +1,33 @@
+.login-container {
+  @apply w-screen
+  h-screen
+  flex
+  justify-center;
+
+  background-image: url("@/assets/images/login-bg.png");
+  background-size: 100% 100%;
+
+  .content {
+    @apply flex
+    justify-center;
+
+    .ant-pro-form-login-header {
+      @apply flex
+      items-center;
+
+      .ant-pro-form-login-logo {
+        @apply flex
+        items-center;
+      }
+
+      .ant-pro-form-login-title {
+        inset-block-start: inherit;
+      }
+    }
+
+    .ant-pro-form-login-top {
+      @apply m-b-70px
+      m-t-50px;
+    }
+  }
+}
