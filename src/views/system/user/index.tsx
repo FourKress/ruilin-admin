@@ -4,11 +4,13 @@ import {
   ActionType,
   ModalForm,
   ProColumns,
+  ProFormSelect,
   ProFormText,
   ProTable
 } from '@ant-design/pro-components'
 import { Badge, Button, Form, message, Select } from 'antd'
 import lodash from 'lodash'
+import md5 from 'md5'
 
 import axios from '@/utils/axios.ts'
 
@@ -16,8 +18,10 @@ import './style.scss'
 
 function SystemUser() {
   const actionRef = useRef<ActionType>()
-  const [openModal, setOpenModal] = useState(false)
-  const [currentItem, setCurrentItem] = useState<any>({})
+  const [modalInfo, setModalInfo] = useState<Record<string, any>>({
+    open: false,
+    title: '修改用户'
+  })
   const [form] = Form.useForm()
 
   const columns: ProColumns[] = [
@@ -72,8 +76,13 @@ function SystemUser() {
           <a
             key="modify"
             onClick={() => {
-              setCurrentItem(record)
-              setOpenModal(true)
+              form.setFieldsValue({
+                ...record
+              })
+              setModalInfo({
+                open: true,
+                title: '修改用户'
+              })
             }}
           >
             修改
@@ -100,15 +109,31 @@ function SystemUser() {
   ]
 
   const handleUpdate = (data: any) => {
-    axios
-      .post('/user/update', {
-        id: currentItem.id,
+    const id = form.getFieldValue('id')
+    let params = {}
+    if (id) {
+      params = {
+        id,
         ...data
+      }
+    } else {
+      const { firstPassword, secondPassword, ...other } = data
+      params = {
+        ...other,
+        password: md5(firstPassword).substring(8, 26)
+      }
+    }
+    axios
+      .post(`/user/${id ? 'update' : 'register'}`, {
+        id: id || undefined,
+        ...params
       })
       .then(async () => {
         message.success('用户修改成功')
         actionRef.current?.reloadAndRest?.()
-        setOpenModal(false)
+        setModalInfo({
+          open: false
+        })
       })
   }
 
@@ -135,7 +160,7 @@ function SystemUser() {
     <>
       <ProTable
         rowKey="id"
-        headerTitle="查询表格"
+        headerTitle="用户列表"
         actionRef={actionRef}
         columns={columns}
         search={{
@@ -146,7 +171,17 @@ function SystemUser() {
             type="primary"
             key="primary"
             onClick={() => {
-              console.log('toolBarRender')
+              form.setFieldsValue({
+                username: '',
+                phoneNum: '',
+                remark: '',
+                id: '',
+                password: ''
+              })
+              setModalInfo({
+                open: true,
+                title: '新建用户'
+              })
             }}
           >
             <PlusOutlined /> 新建
@@ -159,7 +194,7 @@ function SystemUser() {
             {
               size: pageSize,
               current,
-              ...lodash.pickBy(other, lodash.isEmpty)
+              ...lodash.omitBy(other, lodash.isEmpty)
             }
           )
           return {
@@ -179,18 +214,16 @@ function SystemUser() {
         phoneNum: string
         remark: string
       }>
-        open={openModal}
-        initialValues={{
-          ...currentItem
-        }}
-        title="修改用户"
+        open={modalInfo.open}
+        initialValues={{}}
+        title={modalInfo.title}
         form={form}
         autoFocusFirstInput
-        width={500}
+        width={400}
         submitTimeout={2000}
         modalProps={{
           destroyOnClose: true,
-          onCancel: () => setOpenModal(false)
+          onCancel: () => setModalInfo({ open: false })
         }}
         onFinish={async (values) => {
           handleUpdate(values)
@@ -199,16 +232,16 @@ function SystemUser() {
         <ProFormText
           name="username"
           label="用户名"
-          placeholder={'请输入2-10位用户名'}
+          placeholder={'请输入1-10位用户名'}
           rules={[
             {
               required: true,
-              message: '请输入2-10位用户名'
+              message: '请输入1-10位用户名'
             },
             () => ({
               validator(_, value) {
                 if (value && value.length > 10) {
-                  return Promise.reject(new Error('请输入2-10位用户名'))
+                  return Promise.reject(new Error('请输入1-10位用户名'))
                 }
                 return Promise.resolve()
               }
@@ -235,6 +268,48 @@ function SystemUser() {
             })
           ]}
         />
+        {!form.getFieldValue('id') && (
+          <>
+            <ProFormText.Password
+              name="firstPassword"
+              label="密码"
+              placeholder={'请输入6-10位密码'}
+              rules={[
+                {
+                  required: true
+                },
+                () => ({
+                  validator(_, value) {
+                    if (value && (value.length < 6 || value.length > 10)) {
+                      return Promise.reject(new Error('请输入6-10位密码'))
+                    }
+                    return Promise.resolve()
+                  }
+                })
+              ]}
+            />
+            <ProFormText.Password
+              name="secondPassword"
+              label="确认密码"
+              placeholder={'请输入确认密码'}
+              dependencies={['firstPassword']}
+              rules={[
+                {
+                  required: true
+                },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue('firstPassword') === value) {
+                      return Promise.resolve()
+                    }
+                    return Promise.reject(new Error('两次密码输入不匹配'))
+                  }
+                })
+              ]}
+            />
+            <ProFormSelect name="roles" label="角色" placeholder={'请选择角色'}></ProFormSelect>
+          </>
+        )}
         <ProFormText
           name="remark"
           label="描述"
