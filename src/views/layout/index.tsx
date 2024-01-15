@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { LogoutOutlined } from '@ant-design/icons'
+import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import { PageContainer, ProLayout } from '@ant-design/pro-components'
 import { useSessionStorageState } from 'ahooks'
 import { Dropdown } from 'antd'
@@ -15,6 +15,7 @@ function MyLayout() {
     defaultValue: '/dashboard'
   })
   console.log(pathname)
+  const userInfo = JSON.parse(localStorage.getItem('userInfo')!)
 
   return (
     <ProLayout
@@ -27,8 +28,9 @@ function MyLayout() {
         pathname
       }}
       avatarProps={{
-        src: 'https://gw.alipayobjects.com/zos/antfincdn/efFD%24IOql2/weixintupian_20170331104822.jpg',
-        title: '测试',
+        icon: <UserOutlined />,
+        style: { backgroundColor: '#87d068' },
+        title: userInfo.username,
         size: 'small',
         render: (_props, defaultDom) => {
           const items = [
