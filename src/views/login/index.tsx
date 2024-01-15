@@ -1,12 +1,31 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons'
 import { LoginForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-components'
+import md5 from 'md5'
 
 import Logo from '@/assets/images/react.svg'
+import axios from '@/utils/axios.ts'
 
 import './style.scss'
 
-const handleSubmit = () => {
-  console.log('12')
+interface ILoginForm {
+  username: number
+  password: string
+}
+
+const handleSubmit = (data: ILoginForm) => {
+  const { password, username } = data
+  axios
+    .post('/auth/login', {
+      username,
+      password: md5(password).substring(8, 32)
+    })
+    .then(() => {
+      // console.log(res)
+    })
+
+  axios.get('user/delete/8/2').then((res) => {
+    console.log(res)
+  })
 }
 
 function Login() {
@@ -18,11 +37,11 @@ function Login() {
         <div className="content">
           <LoginForm
             logo={<img alt="logo" src={Logo} />}
-            title="睿琳商城管理系统"
+            title="Ant Design Pro"
             initialValues={{
               autoLogin: true
             }}
-            onFinish={async () => handleSubmit()}
+            onFinish={async (data: ILoginForm) => handleSubmit(data)}
           >
             <ProFormText
               name="username"

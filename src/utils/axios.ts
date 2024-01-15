@@ -4,7 +4,7 @@ import axios from 'axios'
 import { closeLoading, createLoading } from '@/components/loading/utils.tsx'
 
 const Axios = axios.create({
-  baseURL: `${process.env.REACT_APP_BASE_URL}/api`,
+  baseURL: `${import.meta.env.VITE_APP_BASE_URL}/api/v1`,
   timeout: 30000
 })
 

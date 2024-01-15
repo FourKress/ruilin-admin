@@ -6,7 +6,7 @@ import zhCN from 'antd/lib/locale/zh_CN'
 import { Loading } from '@/components/loading'
 
 const Login = lazy(() => import('@/views/login'))
-const MyLayout = lazy(() => import('@/views/layout/index.js'))
+const MyLayout = lazy(() => import('@/views/layout'))
 
 function App() {
   return (

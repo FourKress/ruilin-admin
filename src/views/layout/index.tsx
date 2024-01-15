@@ -1,7 +1,7 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LogoutOutlined } from '@ant-design/icons'
-import { PageContainer, ProCard, ProLayout } from '@ant-design/pro-components'
+import { PageContainer, ProLayout } from '@ant-design/pro-components'
+import { useSessionStorageState } from 'ahooks'
 import { Dropdown } from 'antd'
 
 import Logo from '@/assets/images/react.svg'
@@ -11,8 +11,10 @@ import menuConfig from '@/routes/menuConfig.tsx'
 import './style.scss'
 
 function MyLayout() {
-  const [pathname, setPathname] = useState('/')
-  console.log(123)
+  const [pathname, setPathname] = useSessionStorageState('pathname', {
+    defaultValue: '/dashboard'
+  })
+  console.log(pathname)
 
   return (
     <ProLayout
@@ -62,14 +64,9 @@ function MyLayout() {
       {...menuConfig}
     >
       <PageContainer breadcrumbRender={false}>
-        <ProCard
-          style={{
-            height: '100vh',
-            minHeight: '100vh'
-          }}
-        >
+        <div className={'page-container'}>
           <AuthRoute />
-        </ProCard>
+        </div>
       </PageContainer>
     </ProLayout>
   )
