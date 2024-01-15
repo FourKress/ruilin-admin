@@ -139,7 +139,7 @@ function SystemPerm() {
         isActive: !data.isActive
       })
       .then(async () => {
-        message.success('状态修改成功')
+        message.success('权限状态修改成功')
         actionRef.current?.reloadAndRest?.()
       })
   }

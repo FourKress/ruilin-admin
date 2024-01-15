@@ -20,7 +20,8 @@ const { confirm } = Modal
 const getPermList = (): Promise<any> => {
   return axios.post('/perm/page', {
     size: 10000,
-    current: 1
+    current: 1,
+    isActive: true
   })
 }
 
@@ -152,7 +153,7 @@ function SystemRole() {
         isActive: !data.isActive
       })
       .then(async () => {
-        message.success('状态修改成功')
+        message.success('角色状态修改成功')
         actionRef.current?.reloadAndRest?.()
       })
   }

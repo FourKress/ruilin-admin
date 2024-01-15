@@ -21,7 +21,8 @@ const { confirm } = Modal
 const getRoleList = (): Promise<any> => {
   return axios.post('/role/page', {
     size: 10000,
-    current: 1
+    current: 1,
+    isActive: true
   })
 }
 
