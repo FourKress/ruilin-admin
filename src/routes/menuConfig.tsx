@@ -1,4 +1,4 @@
-import { BookTwoTone, ControlOutlined, LineChartOutlined, SmileOutlined } from '@ant-design/icons'
+import { BookTwoTone, LineChartOutlined, SmileOutlined } from '@ant-design/icons'
 
 export default {
   route: {
@@ -7,74 +7,31 @@ export default {
       {
         path: '/dashboard',
         name: '仪表盘',
-        icon: <LineChartOutlined />,
-        component: '@/views/dashboard'
+        icon: <LineChartOutlined />
       },
       {
         path: '/order',
         name: '欢迎',
-        icon: <SmileOutlined />,
-        component: '@/views/order'
+        icon: <SmileOutlined />
       },
+
       {
-        path: '/admin',
-        name: '管理页',
+        path: '/system',
+        name: '系统管理',
         icon: <BookTwoTone />,
-        access: 'canAdmin',
+        access: 'admin',
         routes: [
           {
-            path: '/admin/Welcome',
-            name: '一级页面',
-            component: '@/views/Welcome'
+            path: '/system/user',
+            name: '用户管理'
           },
           {
-            path: '/admin/sub-page2',
-            name: '二级页面',
-            component: './Welcome'
+            path: '/system/role',
+            name: '角色管理'
           },
           {
-            path: '/admin/sub-page3',
-            name: '三级页面',
-            component: './Welcome'
-          }
-        ]
-      },
-      {
-        name: '列表页',
-        icon: <ControlOutlined />,
-        path: '/list',
-        component: './ListTableList',
-        routes: [
-          {
-            path: '/list/sub-page',
-            name: '列表页面',
-            routes: [
-              {
-                path: 'sub-sub-page1',
-                name: '一一级列表页面',
-                component: './Welcome'
-              },
-              {
-                path: 'sub-sub-page2',
-                name: '一二级列表页面',
-                component: './Welcome'
-              },
-              {
-                path: 'sub-sub-page3',
-                name: '一三级列表页面',
-                component: './Welcome'
-              }
-            ]
-          },
-          {
-            path: '/list/sub-page2',
-            name: '二级列表页面',
-            component: './Welcome'
-          },
-          {
-            path: '/list/sub-page3',
-            name: '三级列表页面',
-            component: './Welcome'
+            path: '/system/perm',
+            name: '权限管理'
           }
         ]
       }

@@ -49,6 +49,8 @@ module.exports = {
         args: 'after-used',
         argsIgnorePattern: '^_'
       }
-    ]
+    ],
+
+    '@typescript-eslint/no-explicit-any': 'off'
   },
 }

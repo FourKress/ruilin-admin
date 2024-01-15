@@ -11,6 +11,10 @@
     @apply flex
     justify-center;
 
+    .ant-pro-form-login-container {
+      @apply justify-center;
+    }
+
     .ant-pro-form-login-header {
       @apply flex
       items-center;

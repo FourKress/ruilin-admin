@@ -54,7 +54,7 @@ Axios['interceptors'].request.use(
 
 // 返回后拦截
 Axios['interceptors'].response.use(
-  (res) => {
+  async (res) => {
     const { data, config } = res
     const { code } = data
     if (config.headers.isLoading !== false) {
@@ -64,7 +64,7 @@ Axios['interceptors'].response.use(
       return data.data
     } else {
       if (code === 10100) {
-        message.warning(data.message)
+        await message.warning(data.message)
       }
       if (data) return Promise.reject(data)
     }

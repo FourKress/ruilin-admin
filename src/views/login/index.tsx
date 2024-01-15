@@ -1,5 +1,8 @@
-import { LockOutlined, UserOutlined } from '@ant-design/icons'
-import { LoginForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-components'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { LockOutlined, PhoneOutlined } from '@ant-design/icons'
+import { LoginForm, ModalForm, ProFormText } from '@ant-design/pro-components'
+import { Form, message } from 'antd'
 import md5 from 'md5'
 
 import Logo from '@/assets/images/react.svg'
@@ -12,24 +15,46 @@ interface ILoginForm {
   password: string
 }
 
-const handleSubmit = (data: ILoginForm) => {
-  const { password, username } = data
-  axios
-    .post('/auth/login', {
-      username,
-      password: md5(password).substring(8, 32)
-    })
-    .then(() => {
-      // console.log(res)
-    })
-
-  axios.get('user/delete/8/2').then((res) => {
-    console.log(res)
-  })
-}
-
 function Login() {
-  // const [count, setCount] = useState(0)
+  const [form] = Form.useForm<{ firstPassword: string; secondPassword: string }>()
+  const [openModal, setOpenModal] = useState(false)
+  const [userId, setUserId] = useState('')
+
+  const navigate = useNavigate()
+
+  const handleLogin = (data: ILoginForm) => {
+    const { password, username } = data
+    axios
+      .post('/auth/login', {
+        username,
+        password: md5(password).substring(8, 26)
+      })
+      .then((res: any) => {
+        const { token, ...other } = res
+        localStorage.setItem('token', token)
+        localStorage.setItem('userInfo', JSON.stringify(other))
+        navigate('/')
+      })
+      .catch((err) => {
+        const { code, data }: { code: number; data: { userId: string } } = err
+        if (code === 11000) {
+          setUserId(data.userId)
+          setOpenModal(true)
+        }
+      })
+  }
+
+  const handleModifyPwd = (password: string) => {
+    axios
+      .post('/user/modifyPwd', {
+        id: userId,
+        password: md5(password).substring(8, 26)
+      })
+      .then(async () => {
+        message.success('提交成功')
+        setOpenModal(false)
+      })
+  }
 
   return (
     <>
@@ -41,19 +66,19 @@ function Login() {
             initialValues={{
               autoLogin: true
             }}
-            onFinish={async (data: ILoginForm) => handleSubmit(data)}
+            onFinish={async (data: ILoginForm) => handleLogin(data)}
           >
             <ProFormText
               name="username"
               fieldProps={{
                 size: 'large',
-                prefix: <UserOutlined className={'styles.prefixIcon'} />
+                prefix: <PhoneOutlined />
               }}
-              placeholder={'用户名: admin'}
+              placeholder={'请输入手机号'}
               rules={[
                 {
                   required: true,
-                  message: '请输入用户名'
+                  message: '请输入手机号'
                 }
               ]}
             />
@@ -61,9 +86,9 @@ function Login() {
               name="password"
               fieldProps={{
                 size: 'large',
-                prefix: <LockOutlined className={'styles.prefixIcon'} />
+                prefix: <LockOutlined />
               }}
-              placeholder={'密码: ant.design'}
+              placeholder={'请输入密码'}
               rules={[
                 {
                   required: true,
@@ -72,23 +97,77 @@ function Login() {
               ]}
             />
 
-            <div
-              style={{
-                marginBottom: 24
-              }}
-            >
-              <ProFormCheckbox noStyle name="autoLogin">
-                自动登录
-              </ProFormCheckbox>
-              <a
-                style={{
-                  float: 'right'
-                }}
-              >
-                忘记密码
-              </a>
-            </div>
+            {/*<div*/}
+            {/*  style={{*/}
+            {/*    marginBottom: 24*/}
+            {/*  }}*/}
+            {/*>*/}
+            {/*  <a*/}
+            {/*    style={{*/}
+            {/*      float: 'right'*/}
+            {/*    }}*/}
+            {/*  >*/}
+            {/*    忘记密码*/}
+            {/*  </a>*/}
+            {/*</div>*/}
           </LoginForm>
+
+          <ModalForm<{
+            firstPassword: string
+            secondPassword: string
+          }>
+            open={openModal}
+            title="修改密码"
+            form={form}
+            autoFocusFirstInput
+            width={500}
+            submitTimeout={2000}
+            modalProps={{
+              destroyOnClose: true,
+              onCancel: () => setOpenModal(false)
+            }}
+            onFinish={async (values) => {
+              handleModifyPwd(values.firstPassword)
+            }}
+          >
+            <ProFormText.Password
+              name="firstPassword"
+              label="新密码"
+              placeholder={'请输入6-10位的新密码'}
+              rules={[
+                {
+                  required: true
+                },
+                () => ({
+                  validator(_, value) {
+                    if (value && (value.length < 6 || value.length > 10)) {
+                      return Promise.reject(new Error('请输入6-10位的新密码'))
+                    }
+                    return Promise.resolve()
+                  }
+                })
+              ]}
+            />
+            <ProFormText.Password
+              name="secondPassword"
+              label="确认密码"
+              placeholder={'请输入确认密码'}
+              dependencies={['firstPassword']}
+              rules={[
+                {
+                  required: true
+                },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue('firstPassword') === value) {
+                      return Promise.resolve()
+                    }
+                    return Promise.reject(new Error('两次密码输入不匹配'))
+                  }
+                })
+              ]}
+            />
+          </ModalForm>
         </div>
       </div>
     </>
