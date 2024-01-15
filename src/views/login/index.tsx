@@ -19,11 +19,12 @@ function Login() {
   const [form] = Form.useForm<{ firstPassword: string; secondPassword: string }>()
   const [openModal, setOpenModal] = useState(false)
   const [userId, setUserId] = useState('')
-
+  const [phoneNum, setPhoneNum] = useState<number>(0)
   const navigate = useNavigate()
 
   const handleLogin = (data: ILoginForm) => {
     const { password, username } = data
+    setPhoneNum(username)
     axios
       .post('/auth/login', {
         username,
@@ -44,14 +45,18 @@ function Login() {
       })
   }
 
-  const handleModifyPwd = (password: string) => {
+  const handleModifyPwd = (value: string) => {
     axios
       .post('/user/modifyPwd', {
         id: userId,
-        password: md5(password).substring(8, 26)
+        password: md5(value).substring(8, 26)
       })
       .then(async () => {
-        message.success('提交成功')
+        message.success('修改成功')
+        handleLogin({
+          username: phoneNum,
+          password: value
+        })
         setOpenModal(false)
       })
   }

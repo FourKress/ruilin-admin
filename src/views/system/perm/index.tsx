@@ -7,18 +7,20 @@ import {
   ProFormText,
   ProTable
 } from '@ant-design/pro-components'
-import { Badge, Button, Form, message, Select } from 'antd'
+import { Badge, Button, Form, message, Modal, Select } from 'antd'
 import lodash from 'lodash'
 
 import axios from '@/utils/axios.ts'
 
 import './style.scss'
 
+const { confirm } = Modal
+
 function SystemPerm() {
   const actionRef = useRef<ActionType>()
   const [modalInfo, setModalInfo] = useState<Record<string, any>>({
     open: false,
-    title: '修改权限'
+    title: '编辑权限'
   })
   const [form] = Form.useForm()
 
@@ -33,11 +35,11 @@ function SystemPerm() {
     },
     {
       title: '状态',
-      dataIndex: 'isDelete',
+      dataIndex: 'isActive',
       defaultFilteredValue: null,
       render: (status) => {
-        const color = status ? 'red' : 'blue'
-        return [<Badge key={color} color={color} text={status ? '已停用' : '使用中'} />]
+        const color = status ? 'blue' : 'red'
+        return [<Badge key={color} color={color} text={status ? '使用中' : '已停用'} />]
       },
       renderFormItem: () => {
         return (
@@ -46,8 +48,8 @@ function SystemPerm() {
               clearIcon: <CloseCircleFilled />
             }}
             options={[
-              { value: false, label: '使用中' },
-              { value: true, label: '已停用' }
+              { value: true, label: '使用中' },
+              { value: false, label: '已停用' }
             ]}
           />
         )
@@ -73,19 +75,39 @@ function SystemPerm() {
               })
               setModalInfo({
                 open: true,
-                title: '修改权限'
+                title: '编辑权限'
               })
             }}
           >
-            修改
+            编辑
           </a>,
           <a
             key="active"
             onClick={() => {
-              handleActive(record)
+              confirm({
+                title: '确认操作',
+                content: '确认更改权限状态吗?',
+                onOk() {
+                  handleActive(record)
+                }
+              })
             }}
           >
-            {record.isDelete ? '启用' : '停用'}
+            {record.isActive ? '停用' : '启用'}
+          </a>,
+          <a
+            key="delete"
+            onClick={() => {
+              confirm({
+                title: '确认操作',
+                content: '确认删除权限吗?',
+                onOk() {
+                  handleDelete(record)
+                }
+              })
+            }}
+          >
+            删除
           </a>
         ]
       }
@@ -102,7 +124,7 @@ function SystemPerm() {
         ...data
       })
       .then(async () => {
-        message.success('权限修改成功')
+        message.success('权限编辑成功')
         actionRef.current?.reloadAndRest?.()
         setModalInfo({
           open: false
@@ -114,12 +136,19 @@ function SystemPerm() {
     axios
       .post(`/perm/active`, {
         id: data.id,
-        isDelete: !data.isDelete
+        isActive: !data.isActive
       })
       .then(async () => {
         message.success('状态修改成功')
         actionRef.current?.reloadAndRest?.()
       })
+  }
+
+  const handleDelete = (data: any) => {
+    axios.get(`/perm/delete/${data.id}`).then(async () => {
+      message.success('删除权限成功')
+      actionRef.current?.reloadAndRest?.()
+    })
   }
 
   return (
@@ -160,7 +189,7 @@ function SystemPerm() {
             {
               size: pageSize,
               current,
-              ...lodash.omitBy(other, lodash.isEmpty)
+              ...lodash.pickBy(other, lodash.isEmpty)
             }
           )
           return {

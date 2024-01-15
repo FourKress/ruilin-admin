@@ -12,7 +12,7 @@
     justify-center;
 
     .ant-pro-form-login-container {
-      @apply justify-center;
+      @apply m-t-30%;
     }
 
     .ant-pro-form-login-header {
@@ -22,6 +22,11 @@
       .ant-pro-form-login-logo {
         @apply flex
         items-center;
+
+        img {
+          @apply h-40px
+          block;
+        }
       }
 
       .ant-pro-form-login-title {

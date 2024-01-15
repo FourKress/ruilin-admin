@@ -8,7 +8,7 @@ import {
   ProFormText,
   ProTable
 } from '@ant-design/pro-components'
-import { Badge, Button, Form, message, Select } from 'antd'
+import { Badge, Button, Form, message, Modal, Select } from 'antd'
 import lodash from 'lodash'
 import md5 from 'md5'
 
@@ -16,12 +16,26 @@ import axios from '@/utils/axios.ts'
 
 import './style.scss'
 
+const { confirm } = Modal
+
+const getRoleList = (): Promise<any> => {
+  return axios.post('/role/page', {
+    size: 10000,
+    current: 1
+  })
+}
+
+const getUserDetails = (id: string): Promise<any> => {
+  return axios.get(`/user/details/${id}`)
+}
+
 function SystemUser() {
   const actionRef = useRef<ActionType>()
   const [modalInfo, setModalInfo] = useState<Record<string, any>>({
     open: false,
-    title: '修改用户'
+    title: '编辑用户'
   })
+  const [roleList, setRoleList] = useState<any[]>([])
   const [form] = Form.useForm()
 
   const columns: ProColumns[] = [
@@ -35,11 +49,11 @@ function SystemUser() {
     },
     {
       title: '状态',
-      dataIndex: 'isDelete',
+      dataIndex: 'isActive',
       defaultFilteredValue: null,
       render: (status) => {
-        const color = status ? 'red' : 'blue'
-        return [<Badge key={color} color={color} text={status ? '已停用' : '使用中'} />]
+        const color = status ? 'blue' : 'red'
+        return [<Badge key={color} color={color} text={status ? '使用中' : '已停用'} />]
       },
       renderFormItem: () => {
         return (
@@ -48,8 +62,8 @@ function SystemUser() {
               clearIcon: <CloseCircleFilled />
             }}
             options={[
-              { value: false, label: '使用中' },
-              { value: true, label: '已停用' }
+              { value: true, label: '使用中' },
+              { value: false, label: '已停用' }
             ]}
           />
         )
@@ -70,38 +84,69 @@ function SystemUser() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 160,
+      width: 180,
       render: (_, record) => {
         return [
           <a
             key="modify"
-            onClick={() => {
+            onClick={async () => {
+              const { records } = await getRoleList()
+              setRoleList(records)
+
+              const details = await getUserDetails(record.id)
               form.setFieldsValue({
-                ...record
+                ...details,
+                roles: details.roles.map((d: any) => d.id)
               })
               setModalInfo({
                 open: true,
-                title: '修改用户'
+                title: '编辑用户'
               })
             }}
           >
-            修改
+            编辑
           </a>,
           <a
             key="active"
             onClick={() => {
-              handleActive(record)
+              confirm({
+                title: '确认操作',
+                content: '确认更改用户状态吗?',
+                onOk() {
+                  handleActive(record)
+                }
+              })
             }}
           >
-            {record.isDelete ? '启用' : '停用'}
+            {record.isActive ? '停用' : '启用'}
           </a>,
           <a
             key="resetPwd"
             onClick={() => {
-              handleResetPwd(record)
+              confirm({
+                title: '确认操作',
+                content: '确认重置用户密码吗?',
+                onOk() {
+                  handleResetPwd(record)
+                }
+              })
             }}
           >
             重置密码
+          </a>,
+          <a
+            key="delete"
+            onClick={() => {
+              confirm({
+                title: '确认操作',
+                content: '确认删除该用户吗?',
+                onOk() {
+                  handleDelete(record)
+                }
+              })
+            }}
+          >
+            删除
           </a>
         ]
       }
@@ -117,7 +162,7 @@ function SystemUser() {
         ...data
       }
     } else {
-      const { firstPassword, secondPassword, ...other } = data
+      const { firstPassword, secondPassword: _, ...other } = data
       params = {
         ...other,
         password: md5(firstPassword).substring(8, 26)
@@ -129,7 +174,7 @@ function SystemUser() {
         ...params
       })
       .then(async () => {
-        message.success('用户修改成功')
+        message.success('用户编辑成功')
         actionRef.current?.reloadAndRest?.()
         setModalInfo({
           open: false
@@ -141,17 +186,24 @@ function SystemUser() {
     axios
       .post(`/user/active`, {
         id: data.id,
-        isDelete: !data.isDelete
+        isActive: !data.isActive
       })
       .then(async () => {
-        message.success('状态修改成功')
+        message.success('用户状态修改成功')
         actionRef.current?.reloadAndRest?.()
       })
   }
 
   const handleResetPwd = (data: any) => {
     axios.get(`/user/resetPwd/${data.id}`).then(async () => {
-      message.success('重置成功')
+      message.success('重置密码成功')
+      actionRef.current?.reloadAndRest?.()
+    })
+  }
+
+  const handleDelete = (data: any) => {
+    axios.get(`/user/delete/${data.id}`).then(async () => {
+      message.success('删除用户成功')
       actionRef.current?.reloadAndRest?.()
     })
   }
@@ -170,14 +222,19 @@ function SystemUser() {
           <Button
             type="primary"
             key="primary"
-            onClick={() => {
+            onClick={async () => {
               form.setFieldsValue({
                 username: '',
                 phoneNum: '',
                 remark: '',
                 id: '',
-                password: ''
+                password: '',
+                roles: []
               })
+
+              const { records } = await getRoleList()
+              setRoleList(records)
+
               setModalInfo({
                 open: true,
                 title: '新建用户'
@@ -194,7 +251,7 @@ function SystemUser() {
             {
               size: pageSize,
               current,
-              ...lodash.omitBy(other, lodash.isEmpty)
+              ...lodash.pickBy(other, lodash.isEmpty)
             }
           )
           return {
@@ -307,9 +364,26 @@ function SystemUser() {
                 })
               ]}
             />
-            <ProFormSelect name="roles" label="角色" placeholder={'请选择角色'}></ProFormSelect>
           </>
         )}
+        <ProFormSelect
+          name="roles"
+          label="角色"
+          mode="multiple"
+          options={roleList.map((d) => {
+            return {
+              label: d.name,
+              value: d.id
+            }
+          })}
+          rules={[
+            {
+              required: true,
+              message: '请选择角色'
+            }
+          ]}
+          placeholder={'请选择角色'}
+        ></ProFormSelect>
         <ProFormText
           name="remark"
           label="描述"
