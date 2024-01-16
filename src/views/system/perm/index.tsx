@@ -200,6 +200,7 @@ function SystemPerm() {
         }}
         pagination={{
           pageSize: 20,
+          hideOnSinglePage: true,
           onChange: (page) => console.log(page)
         }}
       />

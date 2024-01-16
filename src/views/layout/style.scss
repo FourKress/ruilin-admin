@@ -5,3 +5,20 @@
 .page-container {
   height: calc(100vh - 160px);
 }
+
+.layout-avatar {
+  height: 36px;
+  line-height: 36px;
+  display: flex;
+  align-items: center;
+
+  .ant-space-item {
+    height: 28px;
+    line-height: 28px;
+  }
+
+  &.ant-space {
+    height: 36px;
+    padding: 4px 6px !important;
+  }
+}

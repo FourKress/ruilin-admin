@@ -78,6 +78,7 @@ function SystemUser() {
     },
     {
       title: '描述',
+      width: 360,
       dataIndex: 'remark'
     },
     {
@@ -263,6 +264,7 @@ function SystemUser() {
         }}
         pagination={{
           pageSize: 20,
+          hideOnSinglePage: true,
           onChange: (page) => console.log(page)
         }}
       />
