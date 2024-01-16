@@ -64,7 +64,7 @@ function SystemPerm() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 160,
+      width: 130,
       render: (_, record) => {
         return [
           <a
@@ -108,6 +108,20 @@ function SystemPerm() {
             }}
           >
             删除
+          </a>,
+          <a
+            key="delete"
+            onClick={() => {
+              confirm({
+                title: '确认操作',
+                content: '确认删除权限吗?',
+                onOk() {
+                  handleDelete(record)
+                }
+              })
+            }}
+          >
+            新建
           </a>
         ]
       }

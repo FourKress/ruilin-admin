@@ -86,7 +86,7 @@ function SystemUser() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 180,
+      width: 160,
       render: (_, record) => {
         return [
           <a

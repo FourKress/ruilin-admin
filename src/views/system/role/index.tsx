@@ -74,7 +74,7 @@ function SystemRole() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 160,
+      width: 100,
       render: (_, record) => {
         return [
           <a
