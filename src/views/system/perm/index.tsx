@@ -97,7 +97,7 @@ function SystemPerm() {
           </a>,
 
           <a
-            key="delete"
+            key="create"
             onClick={() => {
               form.setFieldsValue({
                 name: '',

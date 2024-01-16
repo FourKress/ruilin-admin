@@ -15,7 +15,7 @@ function MyLayout() {
     defaultValue: '/dashboard'
   })
   console.log(pathname)
-  const userInfo = JSON.parse(localStorage.getItem('userInfo')!)
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 
   return (
     <ConfigProvider theme={{ algorithm: [theme.compactAlgorithm] }}>
@@ -48,7 +48,7 @@ function MyLayout() {
                   <Avatar
                     style={{
                       backgroundColor: '#87d068',
-                      lineHeight: '28px',
+                      lineHeight: '24px',
                       verticalAlign: 'unset'
                     }}
                     icon={<UserOutlined />}

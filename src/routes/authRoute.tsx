@@ -6,6 +6,11 @@ import SystemPerm from '@/views/system/perm'
 import SystemRole from '@/views/system/role'
 import SystemUser from '@/views/system/user'
 
+const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+const { perms = [] } = userInfo
+
+const checkAuthCode = (authCode: string) => perms.includes(authCode)
+
 const AuthRoute = () => {
   const auth = localStorage.getItem('token') || ''
   return auth ? (
@@ -13,9 +18,9 @@ const AuthRoute = () => {
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/order" element={<Order />} />
-      <Route path="/system/user" element={<SystemUser />} />
-      <Route path="/system/role" element={<SystemRole />} />
-      <Route path="/system/perm" element={<SystemPerm />} />
+      {checkAuthCode('code2') && <Route path="/system/user" element={<SystemUser />} />}
+      {checkAuthCode('code2') && <Route path="/system/role" element={<SystemRole />} />}
+      {checkAuthCode('code2') && <Route path="/system/perm" element={<SystemPerm />} />}
     </Routes>
   ) : (
     <Navigate to="/login" />
