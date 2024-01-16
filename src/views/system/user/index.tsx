@@ -176,7 +176,7 @@ function SystemUser() {
         ...params
       })
       .then(async () => {
-        message.success('用户编辑成功')
+        message.success(`用户${id ? '编辑' : '新建'}成功`)
         actionRef.current?.reloadAndRest?.()
         setModalInfo({
           open: false

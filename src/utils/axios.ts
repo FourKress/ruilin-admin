@@ -86,12 +86,8 @@ Axios['interceptors'].response.use(
           href: '/#/login'
         }
       })
-    } else if (statusCode === 400) {
+    } else {
       await message.warning(msg)
-    } else if (err.message === 'Network Error') {
-      await message.warning('网络连接异常！')
-    } else if (err.code === 'ECONNABORTED') {
-      await message.warning('请求超时，请重试')
     }
     return Promise.reject(err)
   }

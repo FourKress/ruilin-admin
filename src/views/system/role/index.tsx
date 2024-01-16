@@ -138,7 +138,7 @@ function SystemRole() {
         ...data
       })
       .then(async () => {
-        message.success('角色编辑成功')
+        message.success(`角色${id ? '编辑' : '新建'}成功`)
         actionRef.current?.reloadAndRest?.()
         setModalInfo({
           open: false

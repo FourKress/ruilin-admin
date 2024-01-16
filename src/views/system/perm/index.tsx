@@ -14,7 +14,7 @@ import axios from '@/utils/axios.ts'
 
 import './style.scss'
 
-const { confirm } = Modal
+const { confirm, warning } = Modal
 
 function SystemPerm() {
   const actionRef = useRef<ActionType>()
@@ -95,9 +95,34 @@ function SystemPerm() {
           >
             {record.isActive ? '停用' : '启用'}
           </a>,
+
           <a
             key="delete"
             onClick={() => {
+              form.setFieldsValue({
+                name: '',
+                code: '',
+                desc: '',
+                id: '',
+                pid: record.id
+              })
+              setModalInfo({
+                open: true,
+                title: '新建权限'
+              })
+            }}
+          >
+            新建
+          </a>,
+          <a
+            key="delete"
+            onClick={() => {
+              if (record?.children) {
+                return warning({
+                  title: '确认操作',
+                  content: '请先删除下级权限！'
+                })
+              }
               confirm({
                 title: '确认操作',
                 content: '确认删除权限吗?',
@@ -108,20 +133,6 @@ function SystemPerm() {
             }}
           >
             删除
-          </a>,
-          <a
-            key="delete"
-            onClick={() => {
-              confirm({
-                title: '确认操作',
-                content: '确认删除权限吗?',
-                onOk() {
-                  handleDelete(record)
-                }
-              })
-            }}
-          >
-            新建
           </a>
         ]
       }
@@ -138,7 +149,7 @@ function SystemPerm() {
         ...data
       })
       .then(async () => {
-        message.success('权限编辑成功')
+        message.success(`权限${id ? '编辑' : '新建'}成功`)
         actionRef.current?.reloadAndRest?.()
         setModalInfo({
           open: false
