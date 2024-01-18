@@ -18,6 +18,9 @@ import './style.scss'
 
 const { confirm } = Modal
 
+const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+const { perms = [] } = userInfo
+
 const getRoleList = (): Promise<any> => {
   return axios.post('/role/page', {
     size: 10000,
@@ -89,67 +92,75 @@ function SystemUser() {
       width: 160,
       render: (_, record) => {
         return [
-          <a
-            key="modify"
-            onClick={async () => {
-              const { records } = await getRoleList()
-              setRoleList(records)
+          perms.includes('edit-user') && (
+            <a
+              key="modify"
+              onClick={async () => {
+                const { records } = await getRoleList()
+                setRoleList(records)
 
-              const details = await getUserDetails(record.id)
-              form.setFieldsValue({
-                ...details,
-                roles: details.roles.map((d: any) => d.id)
-              })
-              setModalInfo({
-                open: true,
-                title: '编辑用户'
-              })
-            }}
-          >
-            编辑
-          </a>,
-          <a
-            key="active"
-            onClick={() => {
-              confirm({
-                title: '确认操作',
-                content: '确认更改用户状态吗?',
-                onOk() {
-                  handleActive(record)
-                }
-              })
-            }}
-          >
-            {record.isActive ? '停用' : '启用'}
-          </a>,
-          <a
-            key="resetPwd"
-            onClick={() => {
-              confirm({
-                title: '确认操作',
-                content: '确认重置用户密码吗?',
-                onOk() {
-                  handleResetPwd(record)
-                }
-              })
-            }}
-          >
-            重置密码
-          </a>,
-          <a
-            key="delete"
-            onClick={() => {
-              confirm({
-                title: '确认操作',
-                content: '确认删除该用户吗?',
-                onOk() {
-                  handleDelete(record)
-                }
-              })
-            }}
-          >
-            删除
-          </a>
+                const details = await getUserDetails(record.id)
+                form.setFieldsValue({
+                  ...details,
+                  roles: details.roles.map((d: any) => d.id)
+                })
+                setModalInfo({
+                  open: true,
+                  title: '编辑用户'
+                })
+              }}
+            >
+              编辑
+            </a>
+          ),
+          perms.includes('edit-user') && (
+            <a
+              key="active"
+              onClick={() => {
+                confirm({
+                  title: '确认操作',
+                  content: '确认更改用户状态吗?',
+                  onOk() {
+                    handleActive(record)
+                  }
+                })
+              }}
+            >
+              {record.isActive ? '停用' : '启用'}
+            </a>
+          ),
+          perms.includes('edit-user') && (
+            <a
+              key="resetPwd"
+              onClick={() => {
+                confirm({
+                  title: '确认操作',
+                  content: '确认重置用户密码吗?',
+                  onOk() {
+                    handleResetPwd(record)
+                  }
+                })
+              }}
+            >
+              重置密码
+            </a>
+          ),
+          perms.includes('delete-user') && (
+            <a
+              key="delete"
+              onClick={() => {
+                confirm({
+                  title: '确认操作',
+                  content: '确认删除该用户吗?',
+                  onOk() {
+                    handleDelete(record)
+                  }
+                })
+              }}
+            >
+              删除
+            </a>
+          )
         ]
       }
     }
@@ -221,30 +232,32 @@ function SystemUser() {
           labelWidth: 'auto'
         }}
         toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={async () => {
-              form.setFieldsValue({
-                username: '',
-                phoneNum: '',
-                remark: '',
-                id: '',
-                password: '',
-                roles: []
-              })
+          perms.includes('add-user') && (
+            <Button
+              type="primary"
+              key="primary"
+              onClick={async () => {
+                form.setFieldsValue({
+                  username: '',
+                  phoneNum: '',
+                  remark: '',
+                  id: '',
+                  password: '',
+                  roles: []
+                })
 
-              const { records } = await getRoleList()
-              setRoleList(records)
+                const { records } = await getRoleList()
+                setRoleList(records)
 
-              setModalInfo({
-                open: true,
-                title: '新建用户'
-              })
-            }}
-          >
-            <PlusOutlined /> 新建
-          </Button>
+                setModalInfo({
+                  open: true,
+                  title: '新建用户'
+                })
+              }}
+            >
+              <PlusOutlined /> 新建
+            </Button>
+          )
         ]}
         request={async (params) => {
           const { pageSize, current, ...other } = params

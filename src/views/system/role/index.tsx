@@ -17,6 +17,9 @@ import './style.scss'
 
 const { confirm } = Modal
 
+const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+const { perms = [] } = userInfo
+
 const getPermList = (): Promise<any> => {
   return axios.post('/perm/page', {
     size: 10000,
@@ -77,54 +80,60 @@ function SystemRole() {
       width: 100,
       render: (_, record) => {
         return [
-          <a
-            key="modify"
-            onClick={async () => {
-              const { records } = await getPermList()
-              setPermList(records)
+          perms.includes('edit-role') && (
+            <a
+              key="modify"
+              onClick={async () => {
+                const { records } = await getPermList()
+                setPermList(records)
 
-              const details = await getRoleDetails(record.id)
-              form.setFieldsValue({
-                ...details,
-                perms: details.perms.map((d: any) => d.id)
-              })
+                const details = await getRoleDetails(record.id)
+                form.setFieldsValue({
+                  ...details,
+                  perms: details.perms.map((d: any) => d.id)
+                })
 
-              setModalInfo({
-                open: true,
-                title: '编辑角色'
-              })
-            }}
-          >
-            编辑
-          </a>,
-          <a
-            key="active"
-            onClick={() => {
-              confirm({
-                title: '确认操作',
-                content: '确认更改角色状态吗?',
-                onOk() {
-                  handleActive(record)
-                }
-              })
-            }}
-          >
-            {record.isActive ? '停用' : '启用'}
-          </a>,
-          <a
-            key="delete"
-            onClick={() => {
-              confirm({
-                title: '确认操作',
-                content: '确认删除角色吗?',
-                onOk() {
-                  handleDelete(record)
-                }
-              })
-            }}
-          >
-            删除
-          </a>
+                setModalInfo({
+                  open: true,
+                  title: '编辑角色'
+                })
+              }}
+            >
+              编辑
+            </a>
+          ),
+          perms.includes('edit-role') && (
+            <a
+              key="active"
+              onClick={() => {
+                confirm({
+                  title: '确认操作',
+                  content: '确认更改角色状态吗?',
+                  onOk() {
+                    handleActive(record)
+                  }
+                })
+              }}
+            >
+              {record.isActive ? '停用' : '启用'}
+            </a>
+          ),
+          perms.includes('delete-role') && (
+            <a
+              key="delete"
+              onClick={() => {
+                confirm({
+                  title: '确认操作',
+                  content: '确认删除角色吗?',
+                  onOk() {
+                    handleDelete(record)
+                  }
+                })
+              }}
+            >
+              删除
+            </a>
+          )
         ]
       }
     }
@@ -178,28 +187,30 @@ function SystemRole() {
           labelWidth: 'auto'
         }}
         toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={async () => {
-              form.setFieldsValue({
-                name: '',
-                code: '',
-                id: '',
-                perms: []
-              })
+          perms.includes('add-role') && (
+            <Button
+              type="primary"
+              key="primary"
+              onClick={async () => {
+                form.setFieldsValue({
+                  name: '',
+                  code: '',
+                  id: '',
+                  perms: []
+                })
 
-              const { records } = await getPermList()
-              setPermList(records)
+                const { records } = await getPermList()
+                setPermList(records)
 
-              setModalInfo({
-                open: true,
-                title: '新建角色'
-              })
-            }}
-          >
-            <PlusOutlined /> 新建
-          </Button>
+                setModalInfo({
+                  open: true,
+                  title: '新建角色'
+                })
+              }}
+            >
+              <PlusOutlined /> 新建
+            </Button>
+          )
         ]}
         request={async (params) => {
           console.log(params)

@@ -16,6 +16,9 @@ import './style.scss'
 
 const { confirm, warning } = Modal
 
+const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+const { perms = [] } = userInfo
+
 function SystemPerm() {
   const actionRef = useRef<ActionType>()
   const [modalInfo, setModalInfo] = useState<Record<string, any>>({
@@ -67,73 +70,81 @@ function SystemPerm() {
       width: 130,
       render: (_, record) => {
         return [
-          <a
-            key="modify"
-            onClick={() => {
-              form.setFieldsValue({
-                ...record
-              })
-              setModalInfo({
-                open: true,
-                title: '编辑权限'
-              })
-            }}
-          >
-            编辑
-          </a>,
-          <a
-            key="active"
-            onClick={() => {
-              confirm({
-                title: '确认操作',
-                content: '确认更改权限状态吗?',
-                onOk() {
-                  handleActive(record)
-                }
-              })
-            }}
-          >
-            {record.isActive ? '停用' : '启用'}
-          </a>,
-
-          <a
-            key="create"
-            onClick={() => {
-              form.setFieldsValue({
-                name: '',
-                code: '',
-                desc: '',
-                id: '',
-                pid: record.id
-              })
-              setModalInfo({
-                open: true,
-                title: '新建权限'
-              })
-            }}
-          >
-            新建
-          </a>,
-          <a
-            key="delete"
-            onClick={() => {
-              if (record?.children) {
-                return warning({
-                  title: '确认操作',
-                  content: '请先删除下级权限！'
+          perms.includes('edit-perm') && (
+            <a
+              key="modify"
+              onClick={() => {
+                form.setFieldsValue({
+                  ...record
                 })
-              }
-              confirm({
-                title: '确认操作',
-                content: '确认删除权限吗?',
-                onOk() {
-                  handleDelete(record)
+                setModalInfo({
+                  open: true,
+                  title: '编辑权限'
+                })
+              }}
+            >
+              编辑
+            </a>
+          ),
+          perms.includes('edit-perm') && (
+            <a
+              key="active"
+              onClick={() => {
+                confirm({
+                  title: '确认操作',
+                  content: '确认更改权限状态吗?',
+                  onOk() {
+                    handleActive(record)
+                  }
+                })
+              }}
+            >
+              {record.isActive ? '停用' : '启用'}
+            </a>
+          ),
+
+          perms.includes('add-perm') && (
+            <a
+              key="create"
+              onClick={() => {
+                form.setFieldsValue({
+                  name: '',
+                  code: '',
+                  desc: '',
+                  id: '',
+                  pid: record.id
+                })
+                setModalInfo({
+                  open: true,
+                  title: '新建权限'
+                })
+              }}
+            >
+              新建
+            </a>
+          ),
+          perms.includes('delete-perm') && (
+            <a
+              key="delete"
+              onClick={() => {
+                if (record?.children) {
+                  return warning({
+                    title: '确认操作',
+                    content: '请先删除下级权限！'
+                  })
                 }
-              })
-            }}
-          >
-            删除
-          </a>
+                confirm({
+                  title: '确认操作',
+                  content: '确认删除权限吗?',
+                  onOk() {
+                    handleDelete(record)
+                  }
+                })
+              }}
+            >
+              删除
+            </a>
+          )
         ]
       }
     }
@@ -187,25 +198,27 @@ function SystemPerm() {
           labelWidth: 'auto'
         }}
         toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              form.setFieldsValue({
-                name: '',
-                code: '',
-                desc: '',
-                id: '',
-                pid: '0'
-              })
-              setModalInfo({
-                open: true,
-                title: '新建权限'
-              })
-            }}
-          >
-            <PlusOutlined /> 新建
-          </Button>
+          perms.includes('add-perm') && (
+            <Button
+              type="primary"
+              key="primary"
+              onClick={() => {
+                form.setFieldsValue({
+                  name: '',
+                  code: '',
+                  desc: '',
+                  id: '',
+                  pid: '0'
+                })
+                setModalInfo({
+                  open: true,
+                  title: '新建权限'
+                })
+              }}
+            >
+              <PlusOutlined /> 新建
+            </Button>
+          )
         ]}
         request={async (params) => {
           const { pageSize, current, ...other } = params
