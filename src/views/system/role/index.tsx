@@ -4,8 +4,8 @@ import {
   ActionType,
   ModalForm,
   ProColumns,
-  ProFormSelect,
   ProFormText,
+  ProFormTreeSelect,
   ProTable
 } from '@ant-design/pro-components'
 import { Badge, Button, Form, message, Modal, Select } from 'antd'
@@ -131,11 +131,13 @@ function SystemRole() {
   ]
 
   const handleUpdate = (data: any) => {
+    const { perms } = data
     const id = form.getFieldValue('id')
     axios
       .post(`/role/${id ? 'update' : 'create'}`, {
         id: id || undefined,
-        ...data
+        ...data,
+        perms: perms.map((d: any) => d.value)
       })
       .then(async () => {
         message.success(`角色${id ? '编辑' : '新建'}成功`)
@@ -273,16 +275,23 @@ function SystemRole() {
             }
           ]}
         />
-        <ProFormSelect
+        <ProFormTreeSelect
           name="perms"
           label="权限"
-          mode="multiple"
-          options={permList.map((d) => {
-            return {
-              label: d.name,
-              value: d.id
-            }
-          })}
+          allowClear
+          fieldProps={{
+            fieldNames: {
+              label: 'name',
+              value: 'id',
+              children: 'children'
+            },
+            treeCheckable: true,
+            treeCheckStrictly: true,
+            showCheckedStrategy: 'SHOW_ALL'
+          }}
+          request={async () => {
+            return permList
+          }}
           rules={[
             {
               required: true,
@@ -290,7 +299,7 @@ function SystemRole() {
             }
           ]}
           placeholder={'请选择权限'}
-        ></ProFormSelect>
+        ></ProFormTreeSelect>
       </ModalForm>
     </>
   )

@@ -7,29 +7,28 @@ const menuList = [
   {
     path: '/dashboard',
     name: '仪表盘',
-    icon: <LineChartOutlined />,
-    authCode: 'code1'
+    icon: <LineChartOutlined />
   },
   {
     path: '/system',
     name: '系统管理',
     icon: <BookTwoTone />,
-    authCode: 'code2',
+    authCode: 'sys-manager',
     routes: [
       {
         path: '/system/user',
         name: '用户管理',
-        authCode: 'code3'
+        authCode: 'sys-user-manager'
       },
       {
         path: '/system/role',
         name: '角色管理',
-        authCode: 'code3'
+        authCode: 'sys-role-manager'
       },
       {
         path: '/system/perm',
         name: '权限管理',
-        authCode: 'code3'
+        authCode: 'sys-perm-manager'
       }
     ]
   }

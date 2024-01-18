@@ -18,9 +18,9 @@ const AuthRoute = () => {
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/order" element={<Order />} />
-      {checkAuthCode('code2') && <Route path="/system/user" element={<SystemUser />} />}
-      {checkAuthCode('code2') && <Route path="/system/role" element={<SystemRole />} />}
-      {checkAuthCode('code2') && <Route path="/system/perm" element={<SystemPerm />} />}
+      {checkAuthCode('sys-user-manager') && <Route path="/system/user" element={<SystemUser />} />}
+      {checkAuthCode('sys-role-manager') && <Route path="/system/role" element={<SystemRole />} />}
+      {checkAuthCode('sys-perm-manager') && <Route path="/system/perm" element={<SystemPerm />} />}
     </Routes>
   ) : (
     <Navigate to="/login" />
