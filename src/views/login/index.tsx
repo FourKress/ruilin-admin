@@ -77,14 +77,24 @@ function Login() {
               name="username"
               fieldProps={{
                 size: 'large',
-                prefix: <PhoneOutlined />
+                prefix: <PhoneOutlined />,
+                maxLength: 11
               }}
               placeholder={'请输入手机号'}
               rules={[
                 {
                   required: true,
                   message: '请输入手机号'
-                }
+                },
+                () => ({
+                  validator(_, value) {
+                    const reg = /^1[3-9]\d{9}$/
+                    if (value && !reg.test(value)) {
+                      return Promise.reject(new Error('请输入11位的手机号'))
+                    }
+                    return Promise.resolve()
+                  }
+                })
               ]}
             />
             <ProFormText.Password
@@ -96,9 +106,16 @@ function Login() {
               placeholder={'请输入密码'}
               rules={[
                 {
-                  required: true,
-                  message: '请输入密码！'
-                }
+                  required: true
+                },
+                () => ({
+                  validator(_, value) {
+                    if (value && (value.length < 6 || value.length > 10)) {
+                      return Promise.reject(new Error('请输入6-10位密码'))
+                    }
+                    return Promise.resolve()
+                  }
+                })
               ]}
             />
 

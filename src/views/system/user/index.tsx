@@ -306,6 +306,9 @@ function SystemUser() {
           name="username"
           label="用户名"
           placeholder={'请输入1-10位用户名'}
+          fieldProps={{
+            maxLength: 10
+          }}
           rules={[
             {
               required: true,
@@ -325,6 +328,9 @@ function SystemUser() {
           name="phoneNum"
           label="手机号"
           placeholder={'请输入手机号'}
+          fieldProps={{
+            maxLength: 11
+          }}
           rules={[
             {
               required: true,
@@ -347,6 +353,9 @@ function SystemUser() {
               name="firstPassword"
               label="密码"
               placeholder={'请输入6-10位密码'}
+              fieldProps={{
+                maxLength: 10
+              }}
               rules={[
                 {
                   required: true
@@ -366,6 +375,9 @@ function SystemUser() {
               label="确认密码"
               placeholder={'请输入确认密码'}
               dependencies={['firstPassword']}
+              fieldProps={{
+                maxLength: 10
+              }}
               rules={[
                 {
                   required: true
@@ -404,6 +416,9 @@ function SystemUser() {
           name="remark"
           label="描述"
           placeholder={'请输入描述'}
+          fieldProps={{
+            maxLength: 50
+          }}
           rules={[
             () => ({
               validator(_, value) {

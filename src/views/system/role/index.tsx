@@ -259,16 +259,19 @@ function SystemRole() {
         <ProFormText
           name="name"
           label="角色名"
-          placeholder={'请输入1-50位角色名'}
+          placeholder={'请输入1-20位角色名'}
+          fieldProps={{
+            maxLength: 20
+          }}
           rules={[
             {
               required: true,
-              message: '请输入1-50位角色名'
+              message: '请输入1-20位角色名'
             },
             () => ({
               validator(_, value) {
                 if (value && value.length > 10) {
-                  return Promise.reject(new Error('请输入1-50位角色名'))
+                  return Promise.reject(new Error('请输入1-20位角色名'))
                 }
                 return Promise.resolve()
               }
@@ -279,6 +282,9 @@ function SystemRole() {
           name="code"
           label="角色CODE"
           placeholder={'请输入角色code'}
+          fieldProps={{
+            maxLength: 20
+          }}
           rules={[
             {
               required: true,

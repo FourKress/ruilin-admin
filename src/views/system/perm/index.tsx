@@ -267,16 +267,19 @@ function SystemPerm() {
         <ProFormText
           name="name"
           label="权限名"
-          placeholder={'请输入1-50位权限名'}
+          placeholder={'请输入1-20位权限名'}
+          fieldProps={{
+            maxLength: 20
+          }}
           rules={[
             {
               required: true,
-              message: '请输入1-50位权限名'
+              message: '请输入1-20位权限名'
             },
             () => ({
               validator(_, value) {
                 if (value && value.length > 10) {
-                  return Promise.reject(new Error('请输入1-50位权限名'))
+                  return Promise.reject(new Error('请输入1-20位权限名'))
                 }
                 return Promise.resolve()
               }
@@ -287,6 +290,9 @@ function SystemPerm() {
           name="code"
           label="权限CODE"
           placeholder={'请输入权限code'}
+          fieldProps={{
+            maxLength: 20
+          }}
           rules={[
             {
               required: true,
@@ -298,6 +304,9 @@ function SystemPerm() {
           name="desc"
           label="描述"
           placeholder={'请输入描述'}
+          fieldProps={{
+            maxLength: 50
+          }}
           rules={[
             () => ({
               validator(_, value) {
