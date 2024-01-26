@@ -35,7 +35,7 @@ Axios['interceptors'].request.use(
     const { url, headers } = config
 
     if (url && !whitelist.includes(url)) {
-      config.headers.Authorization = localStorage.getItem('token')
+      config.headers.Authorization = `Bearer ${localStorage.getItem('token')}`
     }
 
     if (headers.isLoading !== false) {
@@ -76,6 +76,7 @@ Axios['interceptors'].response.use(
     }
     if (statusCode === 401) {
       localStorage.clear()
+      sessionStorage.clear()
       Modal.error({
         centered: true,
         content: '登录失效，请重新登录',

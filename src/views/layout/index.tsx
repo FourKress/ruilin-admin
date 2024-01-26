@@ -7,6 +7,7 @@ import { Avatar, ConfigProvider, Dropdown, Space, theme } from 'antd'
 import Logo from '@/assets/images/react.svg'
 import AuthRoute from '@/routes/authRoute.tsx'
 import menuConfig from '@/routes/menuConfig.tsx'
+import axios from '@/utils/axios.ts'
 
 import './style.scss'
 
@@ -14,8 +15,14 @@ function MyLayout() {
   const [pathname, setPathname] = useSessionStorageState('pathname', {
     defaultValue: '/dashboard'
   })
-  console.log(pathname)
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+
+  const handleLogout = () => {
+    axios.get(`/auth/logout/${userInfo.userId}`).finally(() => {
+      localStorage.clear()
+      sessionStorage.clear()
+    })
+  }
 
   return (
     <ConfigProvider theme={{ algorithm: [theme.compactAlgorithm] }}>
@@ -38,7 +45,11 @@ function MyLayout() {
             const items = [
               {
                 key: 'logout',
-                label: <Link to={'/login'}>退出登录</Link>,
+                label: (
+                  <Link to={'/login'} onClick={() => handleLogout()}>
+                    退出登录
+                  </Link>
+                ),
                 icon: <LogoutOutlined />
               }
             ]
