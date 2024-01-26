@@ -23,7 +23,6 @@ function MyLayout() {
       sessionStorage.clear()
     })
   }
-  console.log(12)
 
   return (
     <ConfigProvider theme={{ algorithm: [theme.compactAlgorithm] }}>
