@@ -38,14 +38,14 @@ Axios['interceptors'].request.use(
       config.headers.Authorization = `Bearer ${localStorage.getItem('token')}`
     }
 
-    if (headers.isLoading !== false) {
+    if (headers.isLoading) {
       showLoading()
     }
 
     return config
   },
   (err) => {
-    if (err.config.headers['isLoading'] !== false) {
+    if (err.config.headers['isLoading']) {
       hideLoading()
     }
     return Promise.reject(err)
@@ -57,7 +57,7 @@ Axios['interceptors'].response.use(
   async (res) => {
     const { data, config } = res
     const { code } = data
-    if (config.headers.isLoading !== false) {
+    if (config.headers.isLoading) {
       hideLoading()
     }
     if (code === 10000) {

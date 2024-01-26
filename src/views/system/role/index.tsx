@@ -21,11 +21,7 @@ const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
 
 const getPermList = (): Promise<any> => {
-  return axios.post('/perm/page', {
-    size: 10000,
-    current: 1,
-    isActive: true
-  })
+  return axios.get('/perm/tree')
 }
 
 const getRoleDetails = (id: string): Promise<any> => {
@@ -84,8 +80,8 @@ function SystemRole() {
             <a
               key="modify"
               onClick={async () => {
-                const { records } = await getPermList()
-                setPermList(records)
+                const permTree = await getPermList()
+                setPermList(permTree)
 
                 const details = await getRoleDetails(record.id)
                 form.setFieldsValue({
@@ -220,7 +216,7 @@ function SystemRole() {
             {
               size: pageSize,
               current,
-              ...lodash.pickBy(other, lodash.isEmpty)
+              ...lodash.omitBy(other, lodash.isEmpty)
             }
           )
           return {

@@ -1,4 +1,4 @@
-import { BookTwoTone, LineChartOutlined } from '@ant-design/icons'
+import { AppstoreOutlined, DashboardOutlined, SettingOutlined } from '@ant-design/icons'
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
@@ -7,12 +7,30 @@ const menuList = [
   {
     path: '/dashboard',
     name: '仪表盘',
-    icon: <LineChartOutlined />
+    icon: <DashboardOutlined />
+  },
+  {
+    path: '/product',
+    name: '产品管理',
+    icon: <AppstoreOutlined />,
+    authCode: 'product-manager',
+    routes: [
+      {
+        path: '/product/series',
+        name: '产品系列管理',
+        authCode: 'product-series-manager'
+      },
+      {
+        path: '/product/sku',
+        name: 'SKU管理',
+        authCode: 'product-sku-manager'
+      }
+    ]
   },
   {
     path: '/system',
     name: '系统管理',
-    icon: <BookTwoTone />,
+    icon: <SettingOutlined />,
     authCode: 'sys-manager',
     routes: [
       {
@@ -36,28 +54,27 @@ const menuList = [
 
 const checkAuthCode = (authCode: string) => perms.includes(authCode)
 
-const routes: any = []
-menuList.forEach((menu) => {
-  if (!menu?.authCode) {
-    routes.push(menu)
-  } else if (checkAuthCode(menu.authCode)) {
-    routes.push(menu)
-  }
-  if (menu?.routes?.length) {
-    menu.routes = menu.routes.filter((d) => {
-      if (!d?.authCode) {
-        return true
-      } else if (checkAuthCode(d.authCode)) {
-        return true
-      }
-      return false
-    })
-  }
-})
+const getMenuConfig = (): any[] => {
+  const routes: any[] = []
+  menuList.forEach((menu) => {
+    if (!menu?.authCode) {
+      routes.push(menu)
+    } else if (checkAuthCode(menu.authCode)) {
+      routes.push(menu)
+    }
+    if (menu?.routes?.length) {
+      menu.routes = menu.routes.filter((d) => {
+        if (!d?.authCode) {
+          return true
+        } else if (checkAuthCode(d.authCode)) {
+          return true
+        }
+        return false
+      })
+    }
+  })
 
-export default {
-  route: {
-    path: '/',
-    routes
-  }
+  return routes
 }
+
+export default getMenuConfig

@@ -6,7 +6,7 @@ import { Avatar, ConfigProvider, Dropdown, Space, theme } from 'antd'
 
 import Logo from '@/assets/images/react.svg'
 import AuthRoute from '@/routes/authRoute.tsx'
-import menuConfig from '@/routes/menuConfig.tsx'
+import getMenuConfig from '@/routes/menuConfig.tsx'
 import axios from '@/utils/axios.ts'
 
 import './style.scss'
@@ -23,6 +23,7 @@ function MyLayout() {
       sessionStorage.clear()
     })
   }
+  console.log(12)
 
   return (
     <ConfigProvider theme={{ algorithm: [theme.compactAlgorithm] }}>
@@ -81,11 +82,14 @@ function MyLayout() {
               }}
               to={item.path}
             >
-              {dom}
+              {item.path === '/dashboard' ? dom : item.name}
             </Link>
           )
         }}
-        {...menuConfig}
+        route={{
+          path: '/',
+          routes: getMenuConfig()
+        }}
       >
         <PageContainer breadcrumbRender={false}>
           <div className={'page-container'}>

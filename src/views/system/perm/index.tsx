@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons'
+import { PlusOutlined } from '@ant-design/icons'
 import {
   ActionType,
   ModalForm,
@@ -7,8 +7,7 @@ import {
   ProFormText,
   ProTable
 } from '@ant-design/pro-components'
-import { Badge, Button, Form, message, Modal, Select } from 'antd'
-import lodash from 'lodash'
+import { Badge, Button, Form, message, Modal } from 'antd'
 
 import axios from '@/utils/axios.ts'
 
@@ -39,23 +38,9 @@ function SystemPerm() {
     {
       title: '状态',
       dataIndex: 'isActive',
-      defaultFilteredValue: null,
       render: (status) => {
         const color = status ? 'blue' : 'red'
         return [<Badge key={color} color={color} text={status ? '使用中' : '已停用'} />]
-      },
-      renderFormItem: () => {
-        return (
-          <Select
-            allowClear={{
-              clearIcon: <CloseCircleFilled />
-            }}
-            options={[
-              { value: true, label: '使用中' },
-              { value: false, label: '已停用' }
-            ]}
-          />
-        )
       }
     },
     {
@@ -190,13 +175,11 @@ function SystemPerm() {
   return (
     <>
       <ProTable
+        search={false}
         rowKey="id"
         headerTitle="权限列表"
         actionRef={actionRef}
         columns={columns}
-        search={{
-          labelWidth: 'auto'
-        }}
         toolBarRender={() => [
           perms.includes('add-perm') && (
             <Button
@@ -220,26 +203,13 @@ function SystemPerm() {
             </Button>
           )
         ]}
-        request={async (params) => {
-          const { pageSize, current, ...other } = params
-          const { records, total }: { records: any; total: number } = await axios.post(
-            '/perm/page',
-            {
-              size: pageSize,
-              current,
-              ...lodash.pickBy(other, lodash.isEmpty)
-            }
-          )
+        pagination={false}
+        request={async () => {
+          const data: any[] = await axios.get('/perm/tree')
           return {
-            data: records,
-            total,
+            data,
             success: true
           }
-        }}
-        pagination={{
-          pageSize: 20,
-          hideOnSinglePage: true,
-          onChange: (page) => console.log(page)
         }}
       />
 
@@ -291,7 +261,7 @@ function SystemPerm() {
           label="权限CODE"
           placeholder={'请输入权限code'}
           fieldProps={{
-            maxLength: 20
+            maxLength: 50
           }}
           rules={[
             {
