@@ -50,7 +50,7 @@ function SystemPerm() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 130,
+      width: 140,
       render: (_, record) => {
         return [
           perms.includes('edit-perm') && (

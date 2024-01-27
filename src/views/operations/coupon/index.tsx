@@ -95,7 +95,7 @@ function OperationsCoupon() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 70,
+      width: 80,
       render: (_, record) => {
         return [
           perms.includes('edit-coupon') && (

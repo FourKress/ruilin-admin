@@ -60,7 +60,7 @@ function ProductSeries() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 100,
+      width: 110,
       render: (_, record) => {
         return [
           perms.includes('edit-series') && (
