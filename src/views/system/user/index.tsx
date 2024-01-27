@@ -14,8 +14,6 @@ import md5 from 'md5'
 
 import axios from '@/utils/axios.ts'
 
-import './style.scss'
-
 const { confirm } = Modal
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
@@ -62,6 +60,7 @@ function SystemUser() {
       renderFormItem: () => {
         return (
           <Select
+            placeholder={'请选择'}
             allowClear={{
               clearIcon: <CloseCircleFilled />
             }}
@@ -82,6 +81,7 @@ function SystemUser() {
     {
       title: '描述',
       width: 360,
+      hideInSearch: true,
       dataIndex: 'remark'
     },
     {

@@ -13,8 +13,6 @@ import lodash from 'lodash'
 
 import axios from '@/utils/axios.ts'
 
-import './style.scss'
-
 const { confirm } = Modal
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
@@ -57,6 +55,7 @@ function SystemRole() {
       renderFormItem: () => {
         return (
           <Select
+            placeholder={'请选择'}
             allowClear={{
               clearIcon: <CloseCircleFilled />
             }}

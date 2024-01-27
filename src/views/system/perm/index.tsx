@@ -11,8 +11,6 @@ import { Badge, Button, Form, message, Modal } from 'antd'
 
 import axios from '@/utils/axios.ts'
 
-import './style.scss'
-
 const { confirm, warning } = Modal
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')

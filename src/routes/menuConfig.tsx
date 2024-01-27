@@ -1,4 +1,9 @@
-import { AppstoreOutlined, DashboardOutlined, SettingOutlined } from '@ant-design/icons'
+import {
+  AppstoreOutlined,
+  CarryOutOutlined,
+  DashboardOutlined,
+  SettingOutlined
+} from '@ant-design/icons'
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
@@ -8,6 +13,24 @@ const menuList = [
     path: '/dashboard',
     name: '仪表盘',
     icon: <DashboardOutlined />
+  },
+  {
+    path: '/operations',
+    name: '运营管理',
+    icon: <CarryOutOutlined />,
+    authCode: 'operations-manager',
+    routes: [
+      {
+        path: '/operations/coupon',
+        name: '优惠码管理',
+        authCode: 'operations-coupon-manager'
+      },
+      {
+        path: '/operations/rule',
+        name: '满减规则管理',
+        authCode: 'operations-rule-manager'
+      }
+    ]
   },
   {
     path: '/product',

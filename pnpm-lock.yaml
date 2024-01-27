@@ -23,6 +23,9 @@ dependencies:
   axios:
     specifier: ^1.6.5
     version: 1.6.5
+  dayjs:
+    specifier: ^1.11.10
+    version: 1.11.10
   lodash:
     specifier: ^4.17.21
     version: 4.17.21
