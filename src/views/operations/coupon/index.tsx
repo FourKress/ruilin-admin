@@ -95,7 +95,7 @@ function OperationsCoupon() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 80,
+      width: 130,
       render: (_, record) => {
         return [
           perms.includes('edit-coupon') && (
@@ -112,6 +112,16 @@ function OperationsCoupon() {
               }}
             >
               编辑
+            </a>
+          ),
+          perms.includes('edit-coupon') && (
+            <a
+              key="modify"
+              onClick={() => {
+                console.log('使用记录')
+              }}
+            >
+              使用记录
             </a>
           ),
           perms.includes('delete-coupon') && (
