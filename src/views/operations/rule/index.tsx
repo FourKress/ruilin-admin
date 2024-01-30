@@ -6,7 +6,6 @@ import {
   ProColumns,
   ProFormDateRangePicker,
   ProFormDigit,
-  ProFormText,
   ProTable
 } from '@ant-design/pro-components'
 import { Badge, Button, DatePicker, Form, message, Modal, Select } from 'antd'
@@ -20,19 +19,15 @@ const { confirm } = Modal
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
 
-function OperationsCoupon() {
+function OperationsRule() {
   const actionRef = useRef<ActionType>()
   const [modalInfo, setModalInfo] = useState<Record<string, any>>({
     open: false,
-    title: '编辑优惠码'
+    title: '编辑满减规则'
   })
   const [form] = Form.useForm()
 
   const columns: ProColumns[] = [
-    {
-      title: 'CODE',
-      dataIndex: 'code'
-    },
     {
       title: '面值',
       dataIndex: 'faceValue'
@@ -40,25 +35,6 @@ function OperationsCoupon() {
     {
       title: '门槛',
       dataIndex: 'thresholdValue'
-    },
-    {
-      title: '有效次数',
-      hideInSearch: true,
-      dataIndex: 'validCount'
-    },
-    {
-      title: '使用次数',
-      hideInSearch: true,
-      dataIndex: 'usageCount'
-    },
-    {
-      title: '剩余次数',
-      hideInSearch: true,
-      dataIndex: 'lastCount',
-      render: (_, row: any) => {
-        const { validCount, usageCount } = row
-        return validCount - usageCount
-      }
     },
     {
       title: '有效期',
@@ -100,10 +76,10 @@ function OperationsCoupon() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 130,
+      width: 80,
       render: (_, record) => {
         return [
-          perms.includes('edit-coupon') && (
+          perms.includes('edit-rule') && (
             <a
               key="modify"
               onClick={() => {
@@ -121,17 +97,7 @@ function OperationsCoupon() {
               编辑
             </a>
           ),
-          perms.includes('edit-coupon') && (
-            <a
-              key="modify"
-              onClick={() => {
-                console.log('使用记录')
-              }}
-            >
-              使用记录
-            </a>
-          ),
-          perms.includes('delete-coupon') && (
+          perms.includes('delete-rule') && (
             <a
               key="delete"
               onClick={() => {
@@ -156,14 +122,14 @@ function OperationsCoupon() {
     const id = form.getFieldValue('id')
     const { validDate, ...other } = data
     axios
-      .post(`/coupon/${id ? 'update' : 'create'}`, {
+      .post(`/rule/${id ? 'update' : 'create'}`, {
         id: id || undefined,
         ...other,
         validStartDate: dayjs(validDate[0]).valueOf(),
         validEndDate: dayjs(validDate[1]).valueOf()
       })
       .then(async () => {
-        message.success(`优惠码${id ? '编辑' : '新建'}成功`)
+        message.success(`满减规则${id ? '编辑' : '新建'}成功`)
         actionRef.current?.reloadAndRest?.()
         setModalInfo({
           open: false
@@ -172,8 +138,8 @@ function OperationsCoupon() {
   }
 
   const handleDelete = (data: any) => {
-    axios.get(`/coupon/delete/${data.id}`).then(async () => {
-      message.success('删除优惠码成功')
+    axios.get(`/rule/delete/${data.id}`).then(async () => {
+      message.success('删除满减规则成功')
       actionRef.current?.reloadAndRest?.()
     })
   }
@@ -185,26 +151,23 @@ function OperationsCoupon() {
           labelWidth: 'auto'
         }}
         rowKey="id"
-        headerTitle="优惠码列表"
+        headerTitle="满减规则列表"
         actionRef={actionRef}
         columns={columns}
         toolBarRender={() => [
-          perms.includes('add-coupon') && (
+          perms.includes('add-rule') && (
             <Button
               type="primary"
               key="primary"
               onClick={() => {
                 form.setFieldsValue({
-                  code: '',
                   faceValue: '',
                   thresholdValue: '',
-                  validCount: '',
-                  usageCount: '',
                   validDate: ''
                 })
                 setModalInfo({
                   open: true,
-                  title: '新建优惠码'
+                  title: '新建满减规则'
                 })
               }}
             >
@@ -214,9 +177,8 @@ function OperationsCoupon() {
         ]}
         request={async (params) => {
           const { pageSize, current, validStartDate, validEndDate, ...other } = params
-          console.log(other)
           const { records, total }: { records: any; total: number } = await axios.post(
-            '/coupon/page',
+            '/rule/page',
             {
               size: pageSize,
               current,
@@ -239,11 +201,8 @@ function OperationsCoupon() {
       />
 
       <ModalForm<{
-        code: string
         faceValue: number
         thresholdValue: number
-        validCount: number
-        usageCount: number
         validDate: number
       }>
         open={modalInfo.open}
@@ -262,28 +221,6 @@ function OperationsCoupon() {
           handleUpdate(values)
         }}
       >
-        <ProFormText
-          name="code"
-          label="CODE"
-          placeholder={'请输入1-50位CODE'}
-          fieldProps={{
-            maxLength: 50
-          }}
-          rules={[
-            {
-              required: true,
-              message: '请输入1-50位CODE'
-            },
-            () => ({
-              validator(_, value) {
-                if (value && value.length > 10) {
-                  return Promise.reject(new Error('请输入1-50位CODE'))
-                }
-                return Promise.resolve()
-              }
-            })
-          ]}
-        />
         <ProFormDigit
           min={1}
           name="faceValue"
@@ -327,30 +264,6 @@ function OperationsCoupon() {
             })
           ]}
         />
-        <ProFormDigit
-          min={1}
-          max={99}
-          name="validCount"
-          label="有效次数"
-          placeholder={'请输入有效次数'}
-          rules={[
-            {
-              required: true,
-              message: '请输入有效次数'
-            },
-            () => ({
-              validator(_, value) {
-                if (value < 0 || isNaN(value)) {
-                  return Promise.reject(new Error('请输入正整数有效次数'))
-                }
-                if (value > 99) {
-                  return Promise.reject(new Error('有效次数最大不能超过99'))
-                }
-                return Promise.resolve()
-              }
-            })
-          ]}
-        />
         <ProFormDateRangePicker
           width={368}
           name="validDate"
@@ -372,4 +285,4 @@ function OperationsCoupon() {
   )
 }
 
-export default OperationsCoupon
+export default OperationsRule

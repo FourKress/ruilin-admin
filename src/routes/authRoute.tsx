@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import Dashboard from '@/views/dashboard'
 import OperationsCoupon from '@/views/operations/coupon'
+import OperationsRule from '@/views/operations/rule'
 import Order from '@/views/order'
 import ProductSeries from '@/views/product/series'
 import SystemPerm from '@/views/system/perm'
@@ -28,6 +29,9 @@ const AuthRoute = () => {
       )}
       {checkAuthCode('operations-coupon-manager') && (
         <Route path="/operations/coupon" element={<OperationsCoupon />} />
+      )}
+      {checkAuthCode('operations-rule-manager') && (
+        <Route path="/operations/rule" element={<OperationsRule />} />
       )}
     </Routes>
   ) : (
