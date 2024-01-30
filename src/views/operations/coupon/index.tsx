@@ -4,13 +4,13 @@ import {
   ActionType,
   ModalForm,
   ProColumns,
-  ProFormDatePicker,
+  ProFormDateRangePicker,
   ProFormDigit,
   ProFormText,
   ProTable
 } from '@ant-design/pro-components'
 import { Badge, Button, DatePicker, Form, message, Modal, Select } from 'antd'
-import * as dayjs from 'dayjs'
+import dayjs from 'dayjs'
 import lodash from 'lodash'
 
 import axios from '@/utils/axios.ts'
@@ -54,18 +54,14 @@ function OperationsCoupon() {
     {
       title: '有效期',
       dataIndex: 'validDate',
-      render: (date: any) => {
-        return dayjs(date).format('YYYY-MM-DD')
+      render: (_, row: any) => {
+        const { validStartDate, validEndDate } = row
+        return `${dayjs(Number(validStartDate)).format('YYYY-MM-DD')} - ${dayjs(
+          Number(validEndDate)
+        ).format('YYYY-MM-DD')}`
       },
       renderFormItem: () => {
-        return (
-          <DatePicker
-            inputReadOnly
-            disabledDate={(current) => {
-              return current && current < dayjs().endOf('day')
-            }}
-          />
-        )
+        return <DatePicker.RangePicker inputReadOnly />
       }
     },
     {
@@ -147,13 +143,13 @@ function OperationsCoupon() {
 
   const handleUpdate = (data: any) => {
     const id = form.getFieldValue('id')
-    const { validDate, ...ohter } = data
-    console.log(id, data)
+    const { validDate, ...other } = data
     axios
       .post(`/coupon/${id ? 'update' : 'create'}`, {
         id: id || undefined,
-        ...ohter,
-        validDate: dayjs(validDate).valueOf()
+        ...other,
+        validStartDate: dayjs(validDate[0]).valueOf(),
+        validEndDate: dayjs(validDate[1]).valueOf()
       })
       .then(async () => {
         message.success(`优惠码${id ? '编辑' : '新建'}成功`)
@@ -205,12 +201,15 @@ function OperationsCoupon() {
           )
         ]}
         request={async (params) => {
-          const { pageSize, current, ...other } = params
+          const { pageSize, current, validStartDate, validEndDate, ...other } = params
+          console.log(other)
           const { records, total }: { records: any; total: number } = await axios.post(
             '/coupon/page',
             {
               size: pageSize,
               current,
+              validStartDate: dayjs(validStartDate).valueOf(),
+              validEndDate: dayjs(validEndDate).valueOf(),
               ...lodash.omitBy(other, lodash.isEmpty)
             }
           )
@@ -340,11 +339,10 @@ function OperationsCoupon() {
             })
           ]}
         />
-        <ProFormDatePicker
+        <ProFormDateRangePicker
           width={368}
           name="validDate"
           label="有效期"
-          placeholder={'请选择有效期'}
           rules={[
             {
               required: true,
