@@ -27,15 +27,16 @@ const hideLoading = () => {
   }
 }
 
-const whitelist = '/auth/adminLogin'
+const whitelist = ['/auth/adminLogin', ':9000/dev']
 
 // 请求前拦截
 Axios['interceptors'].request.use(
   (config) => {
     const { url, headers } = config
 
-    if (url && !whitelist.includes(url)) {
-      config.headers.Authorization = `Bearer ${localStorage.getItem('token')}`
+    const token = localStorage.getItem('token')
+    if (url && token && !whitelist.some((w) => url.includes(w))) {
+      config.headers.Authorization = `Bearer ${token}`
     }
 
     if (headers.isLoading) {
