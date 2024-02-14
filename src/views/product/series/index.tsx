@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons'
 import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components'
 import { Badge, Button, message, Modal, Select } from 'antd'
@@ -13,6 +14,7 @@ const { perms = [] } = userInfo
 
 function ProductSeries() {
   const actionRef = useRef<ActionType>()
+  const navigate = useNavigate()
 
   const columns: ProColumns[] = [
     {
@@ -67,7 +69,7 @@ function ProductSeries() {
             <a
               key="modify"
               onClick={async () => {
-                console.log('详情')
+                navigate('/product/series/details')
               }}
             >
               详情

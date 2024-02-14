@@ -29,7 +29,7 @@ function MyLayout() {
       <ProLayout
         siderWidth={180}
         disableMobile={true}
-        title={'Ant Design Pro'}
+        title={'睿琳商城管理系统'}
         layout="mix"
         logo={Logo}
         location={{
