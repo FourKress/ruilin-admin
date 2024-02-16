@@ -26,43 +26,6 @@ function Login() {
     const { password, username } = data
     setPhoneNum(username)
 
-    // const fileInput: any = document.querySelector('.file')!
-    // const file = fileInput.files[0]
-    //
-    // axios
-    //   .post('/file/preview', {
-    //     bucketKey: 'dev',
-    //     objectKey: 'Logo.png'
-    //   })
-    //   .then((a: any) => {
-    //     console.log(a)
-    //   })
-    //
-    // axios
-    //   .post('/file/auth', {
-    //     bucketKey: 'dev',
-    //     objectKey: file.name
-    //   })
-    //   .then((res: Record<string, any>) => {
-    //     const formData = new FormData()
-    //     console.log(res, file, fileInput)
-    //     for (const key in res.formData) {
-    //       formData.append(key, res.formData[key])
-    //     }
-    //     formData.append('file', file)
-    //
-    //     axios({
-    //       method: 'post',
-    //       url: res.postURL,
-    //       data: formData,
-    //       headers: {
-    //         'Content-Type': 'multipart/form-data'
-    //       }
-    //     }).then((a: any) => {
-    //       console.log(a)
-    //     })
-    //   })
-
     axios
       .post('/auth/login', {
         username,

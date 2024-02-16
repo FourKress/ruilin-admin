@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import Dashboard from '@/views/dashboard'
+import OperationsBanner from '@/views/operations/banner'
 import OperationsCoupon from '@/views/operations/coupon'
 import OperationsRule from '@/views/operations/rule'
 import Order from '@/views/order'
@@ -36,6 +37,9 @@ const AuthRoute = () => {
       )}
       {checkAuthCode('operations-rule-manager') && (
         <Route path="/operations/rule" element={<OperationsRule />} />
+      )}
+      {checkAuthCode('operations-banner-manager') && (
+        <Route path="/operations/banner" element={<OperationsBanner />} />
       )}
     </Routes>
   ) : (

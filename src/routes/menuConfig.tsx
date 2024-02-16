@@ -29,6 +29,11 @@ const menuList = [
         path: '/operations/rule',
         name: '满减规则管理',
         authCode: 'operations-rule-manager'
+      },
+      {
+        path: '/operations/banner',
+        name: '首页轮播图管理',
+        authCode: 'operations-banner-manager'
       }
     ]
   },
