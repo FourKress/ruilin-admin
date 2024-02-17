@@ -8,7 +8,7 @@ import {
   ProFormUploadDragger,
   ProTable
 } from '@ant-design/pro-components'
-import { Badge, Button, Form, message, Modal } from 'antd'
+import { Badge, Button, Form, Image, message, Modal } from 'antd'
 
 import axios from '@/utils/axios.ts'
 import { uploadFile } from '@/utils/fileUtils.ts'
@@ -26,6 +26,10 @@ function Banner() {
   })
   const [fileList, setFileList] = useState<any>([])
   const [form] = Form.useForm()
+  const [previewInfo, setPreviewInfo] = useState({
+    visible: false,
+    url: ''
+  })
 
   const columns: ProColumns[] = [
     {
@@ -53,7 +57,7 @@ function Banner() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 110,
+      width: 140,
       render: (_, record) => {
         return [
           perms.includes('edit-perm') && (
@@ -98,6 +102,18 @@ function Banner() {
               {record.isActive ? '停用' : '启用'}
             </a>
           ),
+
+          <a
+            key="preview"
+            onClick={() => {
+              setPreviewInfo({
+                visible: true,
+                url: record.url
+              })
+            }}
+          >
+            预览
+          </a>,
 
           perms.includes('delete-banner') && (
             <a
@@ -330,6 +346,22 @@ function Banner() {
           }}
         />
       </ModalForm>
+
+      <Image
+        width={200}
+        style={{ display: 'none' }}
+        preview={{
+          visible: previewInfo.visible,
+          src: previewInfo.url,
+          onVisibleChange: (value) => {
+            setPreviewInfo({
+              visible: value,
+              url: ''
+            })
+          },
+          toolbarRender: () => <span></span>
+        }}
+      />
     </>
   )
 }
