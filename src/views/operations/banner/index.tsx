@@ -285,20 +285,7 @@ function Banner() {
             })
           ]}
         />
-        <ProFormText
-          name="link"
-          label="跳转链接"
-          placeholder={'请输入跳转链接'}
-          fieldProps={{
-            maxLength: 50
-          }}
-          rules={[
-            {
-              required: true,
-              message: '请输入跳转链接'
-            }
-          ]}
-        />
+        <ProFormText name="link" label="跳转链接" placeholder={'请输入跳转链接'} />
         <ProFormText
           name="desc"
           label="描述"

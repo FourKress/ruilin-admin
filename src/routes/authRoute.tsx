@@ -7,6 +7,7 @@ import OperationsRule from '@/views/operations/rule'
 import Order from '@/views/order'
 import ProductSeries from '@/views/product/series'
 import ProductSeriesDetails from '@/views/product/series/details'
+import ProductUnit from '@/views/product/unit'
 import SystemPerm from '@/views/system/perm'
 import SystemRole from '@/views/system/role'
 import SystemUser from '@/views/system/user'
@@ -31,6 +32,9 @@ const AuthRoute = () => {
       )}
       {checkAuthCode('product-series-manager') && (
         <Route path="/product/series/details" element={<ProductSeriesDetails />} />
+      )}
+      {checkAuthCode('product-unit-manager') && (
+        <Route path="/product/unit" element={<ProductUnit />} />
       )}
       {checkAuthCode('operations-coupon-manager') && (
         <Route path="/operations/coupon" element={<OperationsCoupon />} />

@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import { FC } from 'react'
 import {
   EditableProTable,
   FooterToolbar,
@@ -215,7 +215,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
         </Card>
 
         <Card title="颜色管理" className={'card'} bordered={false}>
-          <ProFormItem name="members">
+          <ProFormItem name="colors">
             <EditableProTable<TableFormDateType>
               recordCreatorProps={{
                 record: () => {
@@ -229,22 +229,6 @@ const SeriesDetails: FC<Record<string, any>> = () => {
               pagination={{
                 pageSize: 20
               }}
-            />
-          </ProFormItem>
-        </Card>
-
-        <Card title="规格管理" bordered={true}>
-          <ProFormItem name="members">
-            <EditableProTable<TableFormDateType>
-              recordCreatorProps={{
-                record: () => {
-                  return {
-                    key: `0${Date.now()}`
-                  }
-                }
-              }}
-              columns={columns}
-              rowKey="key"
             />
           </ProFormItem>
         </Card>
