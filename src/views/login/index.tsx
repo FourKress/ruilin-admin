@@ -107,7 +107,8 @@ function Login() {
               placeholder={'请输入密码'}
               rules={[
                 {
-                  required: true
+                  required: true,
+                  message: '请输入密码'
                 },
                 () => ({
                   validator(_, value) {
