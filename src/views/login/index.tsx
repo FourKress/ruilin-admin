@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LockOutlined, PhoneOutlined } from '@ant-design/icons'
 import { LoginForm, ModalForm, ProFormText } from '@ant-design/pro-components'
-import { Form, message } from 'antd'
+import { ConfigProvider, Form, message, theme } from 'antd'
 import md5 from 'md5'
 
-import Logo from '@/assets/images/react.svg'
+import Logo from '@/assets/images/Logo.png'
 import axios from '@/utils/axios.ts'
 
 import './style.scss'
@@ -63,12 +63,12 @@ function Login() {
   }
 
   return (
-    <>
+    <ConfigProvider theme={{ algorithm: [theme.compactAlgorithm] }}>
       <div className="login-container">
         <div className="content">
           <LoginForm
             logo={<img alt="logo" src={Logo} />}
-            title="Ant Design Pro"
+            title="睿琳商城系统"
             initialValues={{
               autoLogin: true
             }}
@@ -179,7 +179,7 @@ function Login() {
           </ModalForm>
         </div>
       </div>
-    </>
+    </ConfigProvider>
   )
 }
 

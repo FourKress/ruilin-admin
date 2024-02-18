@@ -17,7 +17,8 @@
 
     .ant-pro-form-login-header {
       @apply flex
-      items-center;
+      items-center
+      justify-around;
 
       .ant-pro-form-login-logo {
         @apply flex
@@ -25,6 +26,7 @@
 
         img {
           @apply h-40px
+          w-80px
           block;
         }
       }
@@ -35,7 +37,7 @@
     }
 
     .ant-pro-form-login-top {
-      @apply m-b-70px
+      @apply m-b-50px
       m-t-50px;
     }
   }

@@ -4,7 +4,7 @@ import { PageContainer, ProLayout } from '@ant-design/pro-components'
 import { useSessionStorageState } from 'ahooks'
 import { Avatar, ConfigProvider, Dropdown, Space, theme } from 'antd'
 
-import Logo from '@/assets/images/react.svg'
+import Logo from '@/assets/images/Logo.png'
 import AuthRoute from '@/routes/authRoute.tsx'
 import getMenuConfig from '@/routes/menuConfig.tsx'
 import axios from '@/utils/axios.ts'
