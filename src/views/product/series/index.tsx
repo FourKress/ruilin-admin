@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons'
-import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components'
+import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components'
 import { Badge, Button, message, Modal, Select } from 'antd'
 import lodash from 'lodash'
 
@@ -69,7 +69,7 @@ function ProductSeries() {
             <a
               key="modify"
               onClick={async () => {
-                navigate('/product/series/details')
+                navigate(`/product/series/details/${record.id}`)
               }}
             >
               详情
@@ -132,7 +132,7 @@ function ProductSeries() {
   }
 
   return (
-    <>
+    <PageContainer breadcrumbRender={false}>
       <ProTable
         rowKey="id"
         headerTitle="产品系列列表"
@@ -176,7 +176,7 @@ function ProductSeries() {
           onChange: (page) => console.log(page)
         }}
       />
-    </>
+    </PageContainer>
   )
 }
 

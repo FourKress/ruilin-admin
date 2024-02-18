@@ -3,6 +3,7 @@ import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons'
 import {
   ActionType,
   ModalForm,
+  PageContainer,
   ProColumns,
   ProFormDateRangePicker,
   ProFormDigit,
@@ -145,7 +146,7 @@ function OperationsRule() {
   }
 
   return (
-    <>
+    <PageContainer breadcrumbRender={false}>
       <ProTable
         search={{
           labelWidth: 'auto'
@@ -281,7 +282,7 @@ function OperationsRule() {
           }}
         />
       </ModalForm>
-    </>
+    </PageContainer>
   )
 }
 

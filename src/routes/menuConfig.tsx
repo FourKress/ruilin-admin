@@ -49,11 +49,6 @@ const menuList = [
         authCode: 'product-series-manager'
       },
       {
-        path: '/product/unit',
-        name: '规格管理',
-        authCode: 'product-unit-manager'
-      },
-      {
         path: '/product/sku',
         name: 'SKU管理',
         authCode: 'product-sku-manager'

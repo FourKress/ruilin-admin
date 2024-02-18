@@ -3,6 +3,7 @@ import { FileImageOutlined, PlusOutlined } from '@ant-design/icons'
 import {
   ActionType,
   ModalForm,
+  PageContainer,
   ProColumns,
   ProFormText,
   ProFormUploadDragger,
@@ -187,7 +188,7 @@ function Banner() {
   }
 
   return (
-    <>
+    <PageContainer breadcrumbRender={false}>
       <ProTable
         search={false}
         rowKey="id"
@@ -345,7 +346,7 @@ function Banner() {
           toolbarRender: () => <span></span>
         }}
       />
-    </>
+    </PageContainer>
   )
 }
 

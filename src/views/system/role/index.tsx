@@ -3,6 +3,7 @@ import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons'
 import {
   ActionType,
   ModalForm,
+  PageContainer,
   ProColumns,
   ProFormText,
   ProFormTreeSelect,
@@ -172,7 +173,7 @@ function SystemRole() {
   }
 
   return (
-    <>
+    <PageContainer breadcrumbRender={false}>
       <ProTable
         rowKey="id"
         headerTitle="角色列表"
@@ -194,7 +195,7 @@ function SystemRole() {
                   perms: []
                 })
 
-                const { records } = await getPermList()
+                const records = await getPermList()
                 setPermList(records)
 
                 setModalInfo({
@@ -313,7 +314,7 @@ function SystemRole() {
           placeholder={'请选择权限'}
         ></ProFormTreeSelect>
       </ModalForm>
-    </>
+    </PageContainer>
   )
 }
 

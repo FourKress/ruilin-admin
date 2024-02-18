@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
-import { PageContainer, ProLayout } from '@ant-design/pro-components'
+import { ProLayout } from '@ant-design/pro-components'
 import { useSessionStorageState } from 'ahooks'
 import { Avatar, ConfigProvider, Dropdown, Space, theme } from 'antd'
 
@@ -90,11 +90,7 @@ function MyLayout() {
           routes: getMenuConfig()
         }}
       >
-        <PageContainer breadcrumbRender={false}>
-          <div className={'page-container'}>
-            <AuthRoute />
-          </div>
-        </PageContainer>
+        <AuthRoute />
       </ProLayout>
     </ConfigProvider>
   )

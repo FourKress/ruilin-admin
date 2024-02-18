@@ -3,6 +3,7 @@ import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons'
 import {
   ActionType,
   ModalForm,
+  PageContainer,
   ProColumns,
   ProFormSelect,
   ProFormText,
@@ -222,7 +223,7 @@ function SystemUser() {
   }
 
   return (
-    <>
+    <PageContainer breadcrumbRender={false}>
       <ProTable
         rowKey="id"
         headerTitle="用户列表"
@@ -431,7 +432,7 @@ function SystemUser() {
           ]}
         />
       </ModalForm>
-    </>
+    </PageContainer>
   )
 }
 

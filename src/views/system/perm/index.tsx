@@ -3,6 +3,7 @@ import { PlusOutlined } from '@ant-design/icons'
 import {
   ActionType,
   ModalForm,
+  PageContainer,
   ProColumns,
   ProFormText,
   ProTable
@@ -171,7 +172,7 @@ function SystemPerm() {
   }
 
   return (
-    <>
+    <PageContainer breadcrumbRender={false}>
       <ProTable
         search={false}
         rowKey="id"
@@ -287,7 +288,7 @@ function SystemPerm() {
           ]}
         />
       </ModalForm>
-    </>
+    </PageContainer>
   )
 }
 

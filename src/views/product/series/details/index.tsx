@@ -1,19 +1,35 @@
-import { FC, useRef, useState } from 'react'
+import React, { FC, useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { FileImageOutlined, PlusOutlined } from '@ant-design/icons'
 import {
   ActionType,
   FooterToolbar,
   ModalForm,
+  PageContainer,
   ProColumns,
   ProForm,
-  ProFormDateRangePicker,
-  ProFormItem,
-  ProFormSelect,
   ProFormText,
   ProFormUploadDragger,
+  ProList,
   ProTable
 } from '@ant-design/pro-components'
-import { Badge, Button, Card, Col, Form, Image, message, Modal, Row } from 'antd'
+import {
+  Badge,
+  Button,
+  Card,
+  Col,
+  ConfigProvider,
+  Form,
+  Image,
+  message,
+  Modal,
+  Row,
+  Space,
+  Spin,
+  Tag,
+  theme,
+  Tooltip
+} from 'antd'
 
 import axios from '@/utils/axios.ts'
 import { uploadFile } from '@/utils/fileUtils.ts'
@@ -25,43 +41,9 @@ const { confirm } = Modal
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
 
-const fieldLabels = {
-  name: '仓库名',
-  url: '仓库域名',
-  owner: '仓库管理员',
-  approver: '审批人',
-  dateRange: '生效日期',
-  type: '仓库类型',
-  name2: '任务名',
-  url2: '任务描述',
-  owner2: '执行人',
-  approver2: '责任人',
-  dateRange2: '生效日期',
-  type2: '任务类型'
-}
-
-const tableData = [
-  {
-    key: '1',
-    workId: '00001',
-    name: 'John Brown',
-    department: 'New York No. 1 Lake Park'
-  },
-  {
-    key: '2',
-    workId: '00002',
-    name: 'Jim Green',
-    department: 'London No. 1 Lake Park'
-  },
-  {
-    key: '3',
-    workId: '00003',
-    name: 'Joe Black',
-    department: 'Sidney No. 1 Lake Park'
-  }
-]
-
 const SeriesDetails: FC<Record<string, any>> = () => {
+  const { id: productId } = useParams()
+
   const onFinish = async (values: Record<string, any>) => {
     try {
       console.log(values)
@@ -78,11 +60,17 @@ const SeriesDetails: FC<Record<string, any>> = () => {
     title: '编辑颜色'
   })
   const [fileList, setFileList] = useState<any>([])
-  const [form] = Form.useForm()
+  const [tagForm] = Form.useForm()
+  const [colorForm] = Form.useForm()
   const [previewInfo, setPreviewInfo] = useState({
     visible: false,
     url: ''
   })
+
+  const { token } = theme.useToken()
+  const [unitForm] = Form.useForm<{ name: string }>()
+  const [unitList, setUnitList] = useState([])
+  const [loading, setLoading] = React.useState<boolean>(false)
 
   const columns: ProColumns[] = [
     {
@@ -121,7 +109,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                     status: 'done'
                   }
                 ]
-                form.setFieldsValue({
+                colorForm.setFieldsValue({
                   ...record,
                   fileList
                 })
@@ -186,7 +174,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
   ]
 
   const handleUpdate = async (data: any) => {
-    const id = form.getFieldValue('id')
+    const id = colorForm.getFieldValue('id')
     const {
       fileList: [file],
       ...other
@@ -235,115 +223,178 @@ const SeriesDetails: FC<Record<string, any>> = () => {
     })
   }
 
-  return (
-    <ProForm
-      className={'series-details'}
-      layout="vertical"
-      submitter={{
-        render: (_props: any, dom: any) => {
-          return <FooterToolbar>{dom}</FooterToolbar>
-        }
-      }}
-      initialValues={{ members: tableData }}
-      onFinish={onFinish}
-    >
-      <>
-        <Card title="基础信息" className={'card'} bordered={false}>
-          <Row gutter={16}>
-            <Col lg={6} md={12} sm={24}>
-              <ProFormText
-                label={fieldLabels.name}
-                name="name"
-                rules={[{ required: true, message: '请输入仓库名称' }]}
-                placeholder="请输入仓库名称"
-              />
-            </Col>
-            <Col xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
-              <ProFormText
-                label={fieldLabels.url}
-                name="url"
-                rules={[{ required: true, message: '请选择' }]}
-                fieldProps={{
-                  style: { width: '100%' },
-                  addonBefore: 'http://',
-                  addonAfter: '.com'
-                }}
-                placeholder="请输入"
-              />
-            </Col>
-            <Col xl={{ span: 8, offset: 2 }} lg={{ span: 10 }} md={{ span: 24 }} sm={24}>
-              <ProFormSelect
-                label={fieldLabels.owner}
-                name="owner"
-                rules={[{ required: true, message: '请选择管理员' }]}
-                options={[
-                  {
-                    label: '付晓晓',
-                    value: 'xiao'
-                  },
-                  {
-                    label: '周毛毛',
-                    value: 'mao'
-                  }
-                ]}
-                placeholder="请选择管理员"
-              />
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col lg={6} md={12} sm={24}>
-              <ProFormSelect
-                label={fieldLabels.approver}
-                name="approver"
-                rules={[{ required: true, message: '请选择审批员' }]}
-                options={[
-                  {
-                    label: '付晓晓',
-                    value: 'xiao'
-                  },
-                  {
-                    label: '周毛毛',
-                    value: 'mao'
-                  }
-                ]}
-                placeholder="请选择审批员"
-              />
-            </Col>
-            <Col xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
-              <ProFormDateRangePicker
-                label={fieldLabels.dateRange}
-                name="dateRange"
-                fieldProps={{
-                  style: {
-                    width: '100%'
-                  }
-                }}
-                rules={[{ required: true, message: '请选择生效日期' }]}
-              />
-            </Col>
-            <Col xl={{ span: 8, offset: 2 }} lg={{ span: 10 }} md={{ span: 24 }} sm={24}>
-              <ProFormSelect
-                label={fieldLabels.type}
-                name="type"
-                rules={[{ required: true, message: '请选择仓库类型' }]}
-                options={[
-                  {
-                    label: '私密',
-                    value: 'private'
-                  },
-                  {
-                    label: '公开',
-                    value: 'public'
-                  }
-                ]}
-                placeholder="请选择仓库类型"
-              />
-            </Col>
-          </Row>
-        </Card>
+  const getUnitList = () => {
+    setLoading(true)
+    axios.get('/unit/list').then((res: any) => {
+      setUnitList(handleRenderFormat(res))
+      setLoading(false)
+    })
+  }
 
-        <Card title="颜色管理" className={'card'} bordered={false}>
-          <ProFormItem name="colors">
+  useEffect(() => {
+    getUnitList()
+  }, [])
+
+  const handleDeleteUnit = async (id: string) => {
+    await axios.get(`/unit/delete/${id}`)
+    getUnitList()
+  }
+  const handleRenderFormat = (res: any) => {
+    return res.map((item: any) => ({
+      title: item.name,
+      actions: perms.includes('delete-unit')
+        ? [
+            <a
+              key="delete"
+              onClick={() => {
+                confirm({
+                  title: '确认操作',
+                  content: '确认删除该规格吗?',
+                  onOk: async () => {
+                    await handleDeleteUnit(item.id)
+                  }
+                })
+              }}
+            >
+              删除
+            </a>
+          ]
+        : [],
+      avatar: 'https://gw.alipayobjects.com/zos/antfincdn/UCSiy1j6jx/xingzhuang.svg',
+      content: (
+        <div
+          style={{
+            flex: 1
+          }}
+        >
+          <ConfigProvider theme={{ algorithm: [theme.defaultAlgorithm] }}>
+            <Space size={[0, 8]} wrap>
+              {item.tags.map((tag: any) => {
+                const { id, name } = tag
+                const isLongTag = name.length > 20
+                const tagElem = (
+                  <Tag
+                    key={id}
+                    closable={perms.includes('delete-unit')}
+                    style={{ userSelect: 'none' }}
+                    onClose={async (e) => {
+                      e.preventDefault()
+                      await handleClose(id, item)
+                    }}
+                  >
+                    {isLongTag ? `${name.slice(0, 20)}...` : name}
+                  </Tag>
+                )
+                return isLongTag ? (
+                  <Tooltip title={name} key={id}>
+                    {tagElem}
+                  </Tooltip>
+                ) : (
+                  tagElem
+                )
+              })}
+              {perms.includes('add-unit') ? (
+                <Tag style={tagPlusStyle} icon={<PlusOutlined />}>
+                  <ModalForm<{
+                    name: string
+                  }>
+                    title="新建标签"
+                    trigger={<span>新建</span>}
+                    width={300}
+                    form={tagForm}
+                    autoFocusFirstInput
+                    modalProps={{
+                      destroyOnClose: true
+                    }}
+                    onFinish={async (values) => {
+                      await axios.post(`/tag/create`, {
+                        name: values.name,
+                        unitId: item.id
+                      })
+                      getUnitList()
+                      return true
+                    }}
+                  >
+                    <ProFormText
+                      name="name"
+                      rules={[
+                        {
+                          required: true,
+                          message: '请输入标签名称'
+                        }
+                      ]}
+                      label="标签名称"
+                    />
+                  </ModalForm>
+                </Tag>
+              ) : (
+                <span></span>
+              )}
+            </Space>
+          </ConfigProvider>
+        </div>
+      )
+    }))
+  }
+
+  const tagPlusStyle: React.CSSProperties = {
+    height: 22,
+    background: token.colorBgContainer,
+    borderStyle: 'dashed'
+  }
+
+  const handleClose = async (id: string, unit: any) => {
+    if (unit.tags.length === 1) {
+      confirm({
+        title: '确认操作',
+        content: '删除最后一个标签将同步删除整个规格，确认删除吗?',
+        onOk: async () => {
+          await handleDeleteUnit(unit.id)
+        }
+      })
+      return
+    }
+
+    await axios.get(`/tag/delete/${id}`)
+    getUnitList()
+  }
+
+  return (
+    <PageContainer breadcrumbRender={false}>
+      <ProForm
+        className={'series-details'}
+        layout="vertical"
+        submitter={{
+          render: (_props: any, dom: any) => {
+            return <FooterToolbar>{dom}</FooterToolbar>
+          }
+        }}
+        initialValues={{ name: 1, desc: 2 }}
+        onFinish={onFinish}
+      >
+        <>
+          <Card title="基础信息" className={'card'} bordered={false}>
+            <Row gutter={24}>
+              <Col md={12}>
+                <ProFormText
+                  label={'系列名称'}
+                  name="name"
+                  rules={[{ required: true, message: '请输入系列名称' }]}
+                  placeholder="请输入系列名称"
+                />
+              </Col>
+              <Col md={12}>
+                <ProFormText
+                  label={'系列介绍'}
+                  name="desc"
+                  rules={[{ required: true, message: '请输入系列介绍' }]}
+                  placeholder="请输入系列介绍"
+                />
+              </Col>
+            </Row>
+          </Card>
+
+          <Card title="颜色管理" className={'card'} bordered={false}>
             <ProTable
               search={false}
               rowKey="id"
@@ -356,7 +407,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                     type="primary"
                     key="primary"
                     onClick={() => {
-                      form.setFieldsValue({
+                      colorForm.setFieldsValue({
                         name: '',
                         link: '',
                         desc: '',
@@ -394,116 +445,201 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                 onChange: (page) => console.log(page)
               }}
             />
-          </ProFormItem>
 
-          <ModalForm<{
-            name: string
-            link: string
-            desc: string
-          }>
-            open={modalInfo.open}
-            initialValues={{}}
-            title={modalInfo.title}
-            form={form}
-            autoFocusFirstInput
-            width={400}
-            modalProps={{
-              onCancel: () => {
-                setModalInfo({ open: false })
-              }
-            }}
-            onFinish={async (values) => {
-              await handleUpdate(values)
-              setModalInfo({
-                open: false
-              })
-              return true
-            }}
-          >
-            <ProFormText
-              name="name"
-              label="颜色名称"
-              placeholder={'请输入1-20位颜色名称'}
-              fieldProps={{
-                maxLength: 20
-              }}
-              rules={[
-                () => ({
-                  validator(_, value) {
-                    if (value && value.length > 10) {
-                      return Promise.reject(new Error('请输入1-20位颜色名称'))
-                    }
-                    return Promise.resolve()
-                  }
-                })
-              ]}
-            />
-            <ProFormText
-              name="desc"
-              label="描述"
-              placeholder={'请输入描述'}
-              fieldProps={{
-                maxLength: 50
-              }}
-              rules={[
-                () => ({
-                  validator(_, value) {
-                    if (value && value.length > 50) {
-                      return Promise.reject(new Error('描述最多50个字'))
-                    }
-                    return Promise.resolve()
-                  }
-                })
-              ]}
-            />
-            <ProFormUploadDragger
-              name="fileList"
-              label="图片"
-              description=""
-              rules={[
-                {
-                  required: true,
-                  message: '请选择图片'
+            <ModalForm<{
+              name: string
+              link: string
+              desc: string
+            }>
+              open={modalInfo.open}
+              initialValues={{}}
+              title={modalInfo.title}
+              form={colorForm}
+              autoFocusFirstInput
+              width={400}
+              modalProps={{
+                onCancel: () => {
+                  setModalInfo({ open: false })
                 }
-              ]}
-              fieldProps={{
-                maxCount: 10,
-                accept: '.png,.jpg,.jpeg',
-                customRequest: () => {},
-                onRemove: () => {
-                  setFileList([])
-                },
-                onChange: ({ fileList }) => {
-                  setFileList(fileList)
-                },
-                iconRender: () => <FileImageOutlined />,
-                ...(form.getFieldValue('id')
-                  ? {
-                      fileList: fileList
+              }}
+              onFinish={async (values) => {
+                await handleUpdate(values)
+                setModalInfo({
+                  open: false
+                })
+                return true
+              }}
+            >
+              <ProFormText
+                name="name"
+                label="颜色名称"
+                placeholder={'请输入1-20位颜色名称'}
+                fieldProps={{
+                  maxLength: 20
+                }}
+                rules={[
+                  () => ({
+                    validator(_, value) {
+                      if (value && value.length > 10) {
+                        return Promise.reject(new Error('请输入1-20位颜色名称'))
+                      }
+                      return Promise.resolve()
                     }
-                  : {})
+                  })
+                ]}
+              />
+              <ProFormText
+                name="desc"
+                label="描述"
+                placeholder={'请输入描述'}
+                fieldProps={{
+                  maxLength: 50
+                }}
+                rules={[
+                  () => ({
+                    validator(_, value) {
+                      if (value && value.length > 50) {
+                        return Promise.reject(new Error('描述最多50个字'))
+                      }
+                      return Promise.resolve()
+                    }
+                  })
+                ]}
+              />
+              <ProFormUploadDragger
+                name="fileList"
+                label="图片"
+                description=""
+                rules={[
+                  {
+                    required: true,
+                    message: '请选择图片'
+                  }
+                ]}
+                fieldProps={{
+                  maxCount: 10,
+                  accept: '.png,.jpg,.jpeg',
+                  customRequest: () => {},
+                  onRemove: () => {
+                    setFileList([])
+                  },
+                  onChange: ({ fileList }) => {
+                    setFileList(fileList)
+                  },
+                  iconRender: () => <FileImageOutlined />,
+                  ...(colorForm.getFieldValue('id')
+                    ? {
+                        fileList: fileList
+                      }
+                    : {})
+                }}
+              />
+            </ModalForm>
+
+            <Image
+              width={200}
+              style={{ display: 'none' }}
+              preview={{
+                visible: previewInfo.visible,
+                src: previewInfo.url,
+                onVisibleChange: (value) => {
+                  setPreviewInfo({
+                    visible: value,
+                    url: ''
+                  })
+                },
+                toolbarRender: () => <span></span>
               }}
             />
-          </ModalForm>
+          </Card>
 
-          <Image
-            width={200}
-            style={{ display: 'none' }}
-            preview={{
-              visible: previewInfo.visible,
-              src: previewInfo.url,
-              onVisibleChange: (value) => {
-                setPreviewInfo({
-                  visible: value,
-                  url: ''
-                })
-              },
-              toolbarRender: () => <span></span>
-            }}
-          />
-        </Card>
-      </>
-    </ProForm>
+          <Card title="规格管理" className={'card'} bordered={false}>
+            <ProTable
+              search={false}
+              rowKey="id"
+              headerTitle=""
+              actionRef={actionRef}
+              options={{
+                reload: () => {
+                  getUnitList()
+                },
+                setting: false,
+                density: false
+              }}
+              tableRender={(_props, _dom, domList) => {
+                return (
+                  <>
+                    {domList.toolbar}
+                    <Spin spinning={loading}>
+                      <ProList<any>
+                        pagination={false}
+                        rowSelection={false}
+                        grid={{ gutter: 16, column: 3 }}
+                        metas={{
+                          title: {},
+                          type: {},
+                          avatar: {},
+                          content: {},
+                          actions: {
+                            cardActionProps: 'extra'
+                          }
+                        }}
+                        dataSource={unitList}
+                      />
+                    </Spin>
+                  </>
+                )
+              }}
+              toolBarRender={() => [
+                perms.includes('add-unit') && (
+                  <ModalForm<{
+                    name: string
+                  }>
+                    title="新建规格"
+                    trigger={
+                      <Row>
+                        <Col>
+                          <Button type="primary">
+                            <PlusOutlined />
+                            新建
+                          </Button>
+                        </Col>
+                      </Row>
+                    }
+                    width={300}
+                    form={unitForm}
+                    autoFocusFirstInput
+                    modalProps={{
+                      destroyOnClose: true
+                    }}
+                    onFinish={async (values) => {
+                      await axios.post(`/unit/create`, {
+                        name: values.name,
+                        productId: productId
+                      })
+                      getUnitList()
+                      return true
+                    }}
+                  >
+                    <ProFormText
+                      name="name"
+                      rules={[
+                        {
+                          required: true,
+                          message: '请输入规格名称'
+                        }
+                      ]}
+                      label="规格名称"
+                    />
+                  </ModalForm>
+                )
+              ]}
+              pagination={false}
+            />
+          </Card>
+        </>
+      </ProForm>
+    </PageContainer>
   )
 }
 
