@@ -90,7 +90,7 @@ function OperationsRule() {
                 })
                 setModalInfo({
                   open: true,
-                  title: '编辑优惠码'
+                  title: '编辑满减规则码'
                 })
               }}
             >
@@ -103,7 +103,7 @@ function OperationsRule() {
               onClick={() => {
                 confirm({
                   title: '确认操作',
-                  content: '确认删除优惠码吗?',
+                  content: '确认删除满减规则吗?',
                   onOk() {
                     handleDelete(record)
                   }
