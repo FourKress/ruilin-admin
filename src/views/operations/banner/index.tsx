@@ -271,10 +271,6 @@ function Banner() {
             maxLength: 20
           }}
           rules={[
-            {
-              required: true,
-              message: '请输入1-20位轮播图名称'
-            },
             () => ({
               validator(_, value) {
                 if (value && value.length > 10) {

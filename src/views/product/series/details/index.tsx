@@ -1,26 +1,29 @@
-import { FC } from 'react'
+import { FC, useRef, useState } from 'react'
+import { FileImageOutlined, PlusOutlined } from '@ant-design/icons'
 import {
-  EditableProTable,
+  ActionType,
   FooterToolbar,
-  ProColumnType,
+  ModalForm,
+  ProColumns,
   ProForm,
   ProFormDateRangePicker,
   ProFormItem,
   ProFormSelect,
-  ProFormText
+  ProFormText,
+  ProFormUploadDragger,
+  ProTable
 } from '@ant-design/pro-components'
-import { Card, Col, message, Row } from 'antd'
+import { Badge, Button, Card, Col, Form, Image, message, Modal, Row } from 'antd'
+
+import axios from '@/utils/axios.ts'
+import { uploadFile } from '@/utils/fileUtils.ts'
 
 import './style.scss'
 
-interface TableFormDateType {
-  key: string
-  workId?: string
-  name?: string
-  department?: string
-  isNew?: boolean
-  editable?: boolean
-}
+const { confirm } = Modal
+
+const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+const { perms = [] } = userInfo
 
 const fieldLabels = {
   name: '仓库名',
@@ -69,43 +72,168 @@ const SeriesDetails: FC<Record<string, any>> = () => {
     }
   }
 
-  const columns: ProColumnType<TableFormDateType>[] = [
+  const actionRef = useRef<ActionType>()
+  const [modalInfo, setModalInfo] = useState<Record<string, any>>({
+    open: false,
+    title: '编辑颜色'
+  })
+  const [fileList, setFileList] = useState<any>([])
+  const [form] = Form.useForm()
+  const [previewInfo, setPreviewInfo] = useState({
+    visible: false,
+    url: ''
+  })
+
+  const columns: ProColumns[] = [
     {
-      title: '成员姓名',
-      dataIndex: 'name',
-      key: 'name',
-      width: '20%'
+      title: '颜色名',
+      dataIndex: 'name'
     },
     {
-      title: '工号',
-      dataIndex: 'workId',
-      key: 'workId',
-      width: '20%'
+      title: '状态',
+      dataIndex: 'isActive',
+      render: (status) => {
+        const color = status ? 'blue' : 'red'
+        return [<Badge key={color} color={color} text={status ? '使用中' : '已停用'} />]
+      }
     },
     {
-      title: '所属部门',
-      dataIndex: 'department',
-      key: 'department',
-      width: '40%'
+      title: '描述',
+      dataIndex: 'desc'
     },
     {
       title: '操作',
-      key: 'action',
+      dataIndex: 'option',
       valueType: 'option',
-      render: (_, record: TableFormDateType, _index, action) => {
+      ellipsis: false,
+      width: 140,
+      render: (_, record) => {
         return [
+          perms.includes('edit-perm') && (
+            <a
+              key="modify"
+              onClick={() => {
+                const fileList = [
+                  {
+                    uid: record.uid,
+                    name: record.fileName,
+                    type: record.fileType,
+                    status: 'done'
+                  }
+                ]
+                form.setFieldsValue({
+                  ...record,
+                  fileList
+                })
+                setFileList(fileList)
+                setModalInfo({
+                  open: true,
+                  title: '编辑颜色'
+                })
+              }}
+            >
+              编辑
+            </a>
+          ),
+          perms.includes('edit-perm') && (
+            <a
+              key="active"
+              onClick={() => {
+                confirm({
+                  title: '确认操作',
+                  content: '确认更改颜色状态吗?',
+                  onOk() {
+                    handleActive(record)
+                  }
+                })
+              }}
+            >
+              {record.isActive ? '停用' : '启用'}
+            </a>
+          ),
+
           <a
-            key="eidit"
+            key="preview"
             onClick={() => {
-              action?.startEditable(record.key)
+              setPreviewInfo({
+                visible: true,
+                url: record.url
+              })
             }}
           >
-            编辑
-          </a>
+            预览
+          </a>,
+
+          perms.includes('delete-banner') && (
+            <a
+              key="delete"
+              onClick={() => {
+                confirm({
+                  title: '确认操作',
+                  content: '确认删除颜色吗?',
+                  onOk() {
+                    handleDelete(record)
+                  }
+                })
+              }}
+            >
+              删除
+            </a>
+          )
         ]
       }
     }
   ]
+
+  const handleUpdate = async (data: any) => {
+    const id = form.getFieldValue('id')
+    const {
+      fileList: [file],
+      ...other
+    } = data
+    console.log(fileList, file)
+
+    const { uid, type, name } = file
+    const objectKey = `${uid}.${type.replace(/[\w\W]+\//, '')}`
+
+    const isUploadFile = file.status !== 'done'
+
+    console.log(name, objectKey, isUploadFile)
+    if (isUploadFile) {
+      await uploadFile(file.originFileObj, objectKey)
+    }
+
+    await axios.post(`/color/${id ? 'update' : 'create'}`, {
+      id: id || undefined,
+      ...other,
+      objectKey,
+      fileName: name,
+      uid,
+      fileType: type
+    })
+
+    message.success(`颜色${id ? '编辑' : '新建'}成功`)
+    actionRef.current?.reloadAndRest?.()
+  }
+
+  const handleActive = (data: any) => {
+    axios
+      .post(`/color/active`, {
+        id: data.id,
+        isActive: !data.isActive
+      })
+      .then(async () => {
+        message.success('颜色状态修改成功')
+        actionRef.current?.reloadAndRest?.()
+      })
+  }
+
+  const handleDelete = (data: any) => {
+    axios.get(`/color/delete/${data.id}`).then(async () => {
+      message.success('删除颜色成功')
+      actionRef.current?.reloadAndRest?.()
+    })
+  }
 
   return (
     <ProForm
@@ -216,21 +344,163 @@ const SeriesDetails: FC<Record<string, any>> = () => {
 
         <Card title="颜色管理" className={'card'} bordered={false}>
           <ProFormItem name="colors">
-            <EditableProTable<TableFormDateType>
-              recordCreatorProps={{
-                record: () => {
-                  return {
-                    key: `0${Date.now()}`
+            <ProTable
+              search={false}
+              rowKey="id"
+              headerTitle=""
+              actionRef={actionRef}
+              columns={columns}
+              toolBarRender={() => [
+                perms.includes('add-banner') && (
+                  <Button
+                    type="primary"
+                    key="primary"
+                    onClick={() => {
+                      form.setFieldsValue({
+                        name: '',
+                        link: '',
+                        desc: '',
+                        fileList: [],
+                        id: ''
+                      })
+                      setModalInfo({
+                        open: true,
+                        title: '新建颜色'
+                      })
+                    }}
+                  >
+                    <PlusOutlined /> 新建
+                  </Button>
+                )
+              ]}
+              request={async (params) => {
+                const { pageSize, current } = params
+                const { records, total }: { records: any; total: number } = await axios.post(
+                  '/color/page',
+                  {
+                    size: pageSize,
+                    current
                   }
+                )
+                return {
+                  data: records,
+                  total,
+                  success: true
                 }
               }}
-              columns={columns}
-              rowKey="key"
               pagination={{
-                pageSize: 20
+                pageSize: 20,
+                hideOnSinglePage: true,
+                onChange: (page) => console.log(page)
               }}
             />
           </ProFormItem>
+
+          <ModalForm<{
+            name: string
+            link: string
+            desc: string
+          }>
+            open={modalInfo.open}
+            initialValues={{}}
+            title={modalInfo.title}
+            form={form}
+            autoFocusFirstInput
+            width={400}
+            modalProps={{
+              onCancel: () => {
+                setModalInfo({ open: false })
+              }
+            }}
+            onFinish={async (values) => {
+              await handleUpdate(values)
+              setModalInfo({
+                open: false
+              })
+              return true
+            }}
+          >
+            <ProFormText
+              name="name"
+              label="颜色名称"
+              placeholder={'请输入1-20位颜色名称'}
+              fieldProps={{
+                maxLength: 20
+              }}
+              rules={[
+                () => ({
+                  validator(_, value) {
+                    if (value && value.length > 10) {
+                      return Promise.reject(new Error('请输入1-20位颜色名称'))
+                    }
+                    return Promise.resolve()
+                  }
+                })
+              ]}
+            />
+            <ProFormText
+              name="desc"
+              label="描述"
+              placeholder={'请输入描述'}
+              fieldProps={{
+                maxLength: 50
+              }}
+              rules={[
+                () => ({
+                  validator(_, value) {
+                    if (value && value.length > 50) {
+                      return Promise.reject(new Error('描述最多50个字'))
+                    }
+                    return Promise.resolve()
+                  }
+                })
+              ]}
+            />
+            <ProFormUploadDragger
+              name="fileList"
+              label="图片"
+              description=""
+              rules={[
+                {
+                  required: true,
+                  message: '请选择图片'
+                }
+              ]}
+              fieldProps={{
+                maxCount: 10,
+                accept: '.png,.jpg,.jpeg',
+                customRequest: () => {},
+                onRemove: () => {
+                  setFileList([])
+                },
+                onChange: ({ fileList }) => {
+                  setFileList(fileList)
+                },
+                iconRender: () => <FileImageOutlined />,
+                ...(form.getFieldValue('id')
+                  ? {
+                      fileList: fileList
+                    }
+                  : {})
+              }}
+            />
+          </ModalForm>
+
+          <Image
+            width={200}
+            style={{ display: 'none' }}
+            preview={{
+              visible: previewInfo.visible,
+              src: previewInfo.url,
+              onVisibleChange: (value) => {
+                setPreviewInfo({
+                  visible: value,
+                  url: ''
+                })
+              },
+              toolbarRender: () => <span></span>
+            }}
+          />
         </Card>
       </>
     </ProForm>
