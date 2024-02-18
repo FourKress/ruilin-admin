@@ -4,7 +4,7 @@ import axios from 'axios'
 import { closeLoading, createLoading } from '@/components/loading/utils.tsx'
 
 const Axios = axios.create({
-  baseURL: `${import.meta.env.VITE_APP_BASE_URL}${import.meta.env.VITE_APP_BASE_PREFIX}`,
+  baseURL: `${import.meta.env.VITE_APP_BASE_URL}/${import.meta.env.VITE_APP_BASE_PREFIX}`,
   timeout: 30000
 })
 
