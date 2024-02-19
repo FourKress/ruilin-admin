@@ -169,7 +169,7 @@ function SystemUser() {
 
   const handleUpdate = (data: any) => {
     const id = form.getFieldValue('id')
-    let params = {}
+    let params
     if (id) {
       params = {
         id,
