@@ -1,20 +1,21 @@
 import React, { FC, useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { FileImageOutlined, PlusOutlined } from '@ant-design/icons'
 import {
   ActionType,
+  DragSortTable,
   FooterToolbar,
   ModalForm,
   PageContainer,
   ProColumns,
   ProForm,
   ProFormText,
+  ProFormTextArea,
   ProFormUploadDragger,
   ProList,
   ProTable
 } from '@ant-design/pro-components'
 import {
-  Badge,
   Button,
   Card,
   Col,
@@ -43,6 +44,48 @@ const { perms = [] } = userInfo
 
 const SeriesDetails: FC<Record<string, any>> = () => {
   const { id: productId } = useParams()
+  const navigate = useNavigate()
+
+  const actionRef = useRef<ActionType>()
+  const [modalInfo, setModalInfo] = useState<Record<string, any>>({
+    open: false,
+    title: '编辑颜色'
+  })
+  const [fileList, setFileList] = useState<any>([])
+  const [tagForm] = Form.useForm()
+  const [colorForm] = Form.useForm()
+  const [colorList, setColorList] = useState([])
+  const [colorLoading, setColorLoading] = React.useState<boolean>(false)
+  const [previewInfo, setPreviewInfo] = useState({
+    visible: false,
+    url: ''
+  })
+
+  const { token } = theme.useToken()
+  const [unitForm] = Form.useForm<{ name: string }>()
+  const [unitList, setUnitList] = useState([])
+  const [unitLoading, setUnitLoading] = React.useState<boolean>(false)
+
+  const getColorList = () => {
+    setColorLoading(true)
+    axios.get('/color/list').then((res: any) => {
+      setColorList(res)
+      setColorLoading(false)
+    })
+  }
+
+  const getUnitList = () => {
+    setUnitLoading(true)
+    axios.get('/unit/list').then((res: any) => {
+      setUnitList(handleRenderFormat(res))
+      setUnitLoading(false)
+    })
+  }
+
+  useEffect(() => {
+    getColorList()
+    getUnitList()
+  }, [])
 
   const onFinish = async (values: Record<string, any>) => {
     try {
@@ -54,36 +97,16 @@ const SeriesDetails: FC<Record<string, any>> = () => {
     }
   }
 
-  const actionRef = useRef<ActionType>()
-  const [modalInfo, setModalInfo] = useState<Record<string, any>>({
-    open: false,
-    title: '编辑颜色'
-  })
-  const [fileList, setFileList] = useState<any>([])
-  const [tagForm] = Form.useForm()
-  const [colorForm] = Form.useForm()
-  const [previewInfo, setPreviewInfo] = useState({
-    visible: false,
-    url: ''
-  })
-
-  const { token } = theme.useToken()
-  const [unitForm] = Form.useForm<{ name: string }>()
-  const [unitList, setUnitList] = useState([])
-  const [loading, setLoading] = React.useState<boolean>(false)
-
   const columns: ProColumns[] = [
+    {
+      title: '排序',
+      dataIndex: 'sort',
+      width: 60,
+      className: 'drag-visible'
+    },
     {
       title: '颜色名',
       dataIndex: 'name'
-    },
-    {
-      title: '状态',
-      dataIndex: 'isActive',
-      render: (status) => {
-        const color = status ? 'blue' : 'red'
-        return [<Badge key={color} color={color} text={status ? '使用中' : '已停用'} />]
-      }
     },
     {
       title: '描述',
@@ -123,22 +146,6 @@ const SeriesDetails: FC<Record<string, any>> = () => {
               编辑
             </a>
           ),
-          perms.includes('edit-perm') && (
-            <a
-              key="active"
-              onClick={() => {
-                confirm({
-                  title: '确认操作',
-                  content: '确认更改颜色状态吗?',
-                  onOk() {
-                    handleActive(record)
-                  }
-                })
-              }}
-            >
-              {record.isActive ? '停用' : '启用'}
-            </a>
-          ),
 
           <a
             key="preview"
@@ -173,6 +180,26 @@ const SeriesDetails: FC<Record<string, any>> = () => {
     }
   ]
 
+  const handleDragSortEnd = async (
+    _beforeIndex: number,
+    _afterIndex: number,
+    newDataSource: any
+  ) => {
+    setColorList(newDataSource)
+    setColorLoading(true)
+    const ids = newDataSource.map((d: any) => d.id)
+    axios
+      .post(`/color/batchSort`, {
+        ids
+      })
+      .then(async () => {
+        message.success('排序成功')
+      })
+      .finally(() => {
+        setColorLoading(false)
+      })
+  }
+
   const handleUpdate = async (data: any) => {
     const id = colorForm.getFieldValue('id')
     const {
@@ -197,23 +224,12 @@ const SeriesDetails: FC<Record<string, any>> = () => {
       objectKey,
       fileName: name,
       uid,
-      fileType: type
+      fileType: type,
+      productId: productId
     })
 
     message.success(`颜色${id ? '编辑' : '新建'}成功`)
     actionRef.current?.reloadAndRest?.()
-  }
-
-  const handleActive = (data: any) => {
-    axios
-      .post(`/color/active`, {
-        id: data.id,
-        isActive: !data.isActive
-      })
-      .then(async () => {
-        message.success('颜色状态修改成功')
-        actionRef.current?.reloadAndRest?.()
-      })
   }
 
   const handleDelete = (data: any) => {
@@ -222,18 +238,6 @@ const SeriesDetails: FC<Record<string, any>> = () => {
       actionRef.current?.reloadAndRest?.()
     })
   }
-
-  const getUnitList = () => {
-    setLoading(true)
-    axios.get('/unit/list').then((res: any) => {
-      setUnitList(handleRenderFormat(res))
-      setLoading(false)
-    })
-  }
-
-  useEffect(() => {
-    getUnitList()
-  }, [])
 
   const handleDeleteUnit = async (id: string) => {
     await axios.get(`/unit/delete/${id}`)
@@ -365,12 +369,54 @@ const SeriesDetails: FC<Record<string, any>> = () => {
         className={'series-details'}
         layout="vertical"
         submitter={{
-          render: (_props: any, dom: any) => {
-            return <FooterToolbar>{dom}</FooterToolbar>
+          render: (_props: any, _dom: any) => {
+            return (
+              <FooterToolbar>
+                <Button
+                  type="primary"
+                  danger
+                  onClick={() => {
+                    confirm({
+                      title: '确认操作',
+                      content: '确认删除该产品系列吗?',
+                      onOk() {
+                        axios.get(`/product/delete/${productId}`).then(async () => {
+                          message.success('删除产品系列成功')
+                          navigate(-1)
+                        })
+                      }
+                    })
+                  }}
+                >
+                  删除
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={async () => {
+                    const res: any = await axios.get(`/product/details/${productId}`)
+                    if (!res.isComplete) {
+                      confirm({
+                        title: '确认操作',
+                        content: '请先完善基础信息和颜色相关信息后再上架',
+                        onOk() {}
+                      })
+                      return
+                    } else {
+                      message.success('产品系列上架成功')
+                    }
+                  }}
+                >
+                  上架
+                </Button>
+                <Button type="primary">保存</Button>
+              </FooterToolbar>
+            )
           }
         }}
-        initialValues={{ name: 1, desc: 2 }}
         onFinish={onFinish}
+        request={async () => {
+          return await axios.get(`/product/details/${productId}`)
+        }}
       >
         <>
           <Card title="基础信息" className={'card'} bordered={false}>
@@ -384,7 +430,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                 />
               </Col>
               <Col md={12}>
-                <ProFormText
+                <ProFormTextArea
                   label={'系列介绍'}
                   name="desc"
                   rules={[{ required: true, message: '请输入系列介绍' }]}
@@ -395,7 +441,16 @@ const SeriesDetails: FC<Record<string, any>> = () => {
           </Card>
 
           <Card title="颜色管理" className={'card'} bordered={false}>
-            <ProTable
+            <DragSortTable
+              dragSortKey="sort"
+              onDragSortEnd={handleDragSortEnd}
+              dataSource={colorList}
+              loading={colorLoading}
+              options={{
+                reload: () => {
+                  getColorList()
+                }
+              }}
               search={false}
               rowKey="id"
               headerTitle=""
@@ -424,26 +479,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                   </Button>
                 )
               ]}
-              request={async (params) => {
-                const { pageSize, current } = params
-                const { records, total }: { records: any; total: number } = await axios.post(
-                  '/color/page',
-                  {
-                    size: pageSize,
-                    current
-                  }
-                )
-                return {
-                  data: records,
-                  total,
-                  success: true
-                }
-              }}
-              pagination={{
-                pageSize: 20,
-                hideOnSinglePage: true,
-                onChange: (page) => console.log(page)
-              }}
+              pagination={false}
             />
 
             <ModalForm<{
@@ -558,7 +594,6 @@ const SeriesDetails: FC<Record<string, any>> = () => {
               search={false}
               rowKey="id"
               headerTitle=""
-              actionRef={actionRef}
               options={{
                 reload: () => {
                   getUnitList()
@@ -570,7 +605,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                 return (
                   <>
                     {domList.toolbar}
-                    <Spin spinning={loading}>
+                    <Spin spinning={unitLoading}>
                       <ProList<any>
                         pagination={false}
                         rowSelection={false}

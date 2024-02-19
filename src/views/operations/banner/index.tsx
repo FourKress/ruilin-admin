@@ -1,13 +1,13 @@
-import { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { FileImageOutlined, PlusOutlined } from '@ant-design/icons'
 import {
   ActionType,
+  DragSortTable,
   ModalForm,
   PageContainer,
   ProColumns,
   ProFormText,
-  ProFormUploadDragger,
-  ProTable
+  ProFormUploadDragger
 } from '@ant-design/pro-components'
 import { Badge, Button, Form, Image, message, Modal } from 'antd'
 
@@ -32,7 +32,47 @@ function Banner() {
     url: ''
   })
 
+  const [bannerList, setBannerList] = useState([])
+  const [loading, setLoading] = React.useState<boolean>(false)
+
+  const getBannerPage = () => {
+    setLoading(true)
+    axios.get('/banner/page').then((res: any) => {
+      setBannerList(res)
+      setLoading(false)
+    })
+  }
+
+  useEffect(() => {
+    getBannerPage()
+  }, [])
+
+  const handleDragSortEnd = async (
+    _beforeIndex: number,
+    _afterIndex: number,
+    newDataSource: any
+  ) => {
+    setBannerList(newDataSource)
+    setLoading(true)
+    const ids = newDataSource.map((d: any) => d.id)
+    axios
+      .post(`/banner/batchSort`, {
+        ids
+      })
+      .then(async () => {
+        message.success('排序成功')
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }
   const columns: ProColumns[] = [
+    {
+      title: '排序',
+      dataIndex: 'sort',
+      width: 60,
+      className: 'drag-visible'
+    },
     {
       title: '轮播图名',
       dataIndex: 'name'
@@ -189,7 +229,16 @@ function Banner() {
 
   return (
     <PageContainer breadcrumbRender={false}>
-      <ProTable
+      <DragSortTable
+        dragSortKey="sort"
+        onDragSortEnd={handleDragSortEnd}
+        dataSource={bannerList}
+        loading={loading}
+        options={{
+          reload: () => {
+            getBannerPage()
+          }
+        }}
         search={false}
         rowKey="id"
         headerTitle="轮播图列表"
@@ -218,26 +267,7 @@ function Banner() {
             </Button>
           )
         ]}
-        request={async (params) => {
-          const { pageSize, current } = params
-          const { records, total }: { records: any; total: number } = await axios.post(
-            '/banner/page',
-            {
-              size: pageSize,
-              current
-            }
-          )
-          return {
-            data: records,
-            total,
-            success: true
-          }
-        }}
-        pagination={{
-          pageSize: 20,
-          hideOnSinglePage: true,
-          onChange: (page) => console.log(page)
-        }}
+        pagination={false}
       />
 
       <ModalForm<{

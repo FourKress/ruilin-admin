@@ -1,8 +1,16 @@
 import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons'
-import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components'
-import { Badge, Button, message, Modal, Select } from 'antd'
+import {
+  ActionType,
+  ModalForm,
+  PageContainer,
+  ProColumns,
+  ProFormText,
+  ProFormTextArea,
+  ProTable
+} from '@ant-design/pro-components'
+import { Badge, Button, Form, message, Modal, Select } from 'antd'
 import lodash from 'lodash'
 
 import axios from '@/utils/axios.ts'
@@ -15,6 +23,7 @@ const { perms = [] } = userInfo
 function ProductSeries() {
   const actionRef = useRef<ActionType>()
   const navigate = useNavigate()
+  const [form] = Form.useForm()
 
   const columns: ProColumns[] = [
     {
@@ -46,16 +55,16 @@ function ProductSeries() {
       }
     },
     {
+      title: '介绍',
+      width: 360,
+      hideInSearch: true,
+      dataIndex: 'desc'
+    },
+    {
       title: '最后编辑时间',
       dataIndex: 'updateTime',
       hideInSearch: true,
       valueType: 'dateTime'
-    },
-    {
-      title: '描述',
-      width: 360,
-      hideInSearch: true,
-      dataIndex: 'remark'
     },
     {
       title: '操作',
@@ -79,6 +88,17 @@ function ProductSeries() {
             <a
               key="active"
               onClick={() => {
+                if (!record.isComplete) {
+                  confirm({
+                    title: '确认操作',
+                    content: '请先编辑详情，完善相关信息后再上架',
+                    onOk() {
+                      navigate(`/product/series/details/${record.id}`)
+                    }
+                  })
+                  return
+                }
+
                 confirm({
                   title: '确认操作',
                   content: '确认更改产品系列状态吗?',
@@ -114,7 +134,7 @@ function ProductSeries() {
 
   const handleActive = (data: any) => {
     axios
-      .post(`/user/active`, {
+      .post(`/product/active`, {
         id: data.id,
         isActive: !data.isActive
       })
@@ -125,7 +145,7 @@ function ProductSeries() {
   }
 
   const handleDelete = (data: any) => {
-    axios.get(`/user/delete/${data.id}`).then(async () => {
+    axios.get(`/product/delete/${data.id}`).then(async () => {
       message.success('删除产品系列成功')
       actionRef.current?.reloadAndRest?.()
     })
@@ -143,15 +163,52 @@ function ProductSeries() {
         }}
         toolBarRender={() => [
           perms.includes('add-series') && (
-            <Button
-              type="primary"
-              key="primary"
-              onClick={async () => {
-                console.log('新建')
+            <ModalForm<{
+              name: string
+              desc: string
+              remark: string
+            }>
+              title="新建产品"
+              trigger={
+                <Button type="primary" key="primary">
+                  <PlusOutlined /> 新建
+                </Button>
+              }
+              width={400}
+              form={form}
+              autoFocusFirstInput
+              modalProps={{
+                destroyOnClose: true
+              }}
+              onFinish={async (values) => {
+                await axios.post(`/product/create`, {
+                  ...values
+                })
+                actionRef.current?.reloadAndRest?.()
+                return true
               }}
             >
-              <PlusOutlined /> 新建
-            </Button>
+              <ProFormText
+                name="name"
+                rules={[
+                  {
+                    required: true,
+                    message: '请输入产品名称'
+                  }
+                ]}
+                label="产品名称"
+              />
+              <ProFormTextArea
+                name="desc"
+                rules={[
+                  {
+                    required: true,
+                    message: '请输入产品介绍'
+                  }
+                ]}
+                label="产品介绍"
+              />
+            </ModalForm>
           )
         ]}
         request={async (params) => {
