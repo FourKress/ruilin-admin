@@ -58,6 +58,7 @@ function ProductSeries() {
       title: '介绍',
       width: 360,
       hideInSearch: true,
+      ellipsis: true,
       dataIndex: 'desc'
     },
     {
@@ -91,7 +92,7 @@ function ProductSeries() {
                 if (!record.isComplete) {
                   confirm({
                     title: '确认操作',
-                    content: '请先编辑详情，完善相关信息后再上架',
+                    content: '请先编辑详情，完善颜色相关信息后再上架',
                     onOk() {
                       navigate(`/product/series/details/${record.id}`)
                     }

@@ -68,7 +68,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
 
   const getColorList = () => {
     setColorLoading(true)
-    axios.get('/color/list').then((res: any) => {
+    axios.get(`/color/list/${productId}`).then((res: any) => {
       setColorList(res)
       setColorLoading(false)
     })
@@ -76,7 +76,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
 
   const getUnitList = () => {
     setUnitLoading(true)
-    axios.get('/unit/list').then((res: any) => {
+    axios.get(`/unit/list/${productId}`).then((res: any) => {
       setUnitList(handleRenderFormat(res))
       setUnitLoading(false)
     })
@@ -86,16 +86,6 @@ const SeriesDetails: FC<Record<string, any>> = () => {
     getColorList()
     getUnitList()
   }, [])
-
-  const onFinish = async (values: Record<string, any>) => {
-    try {
-      console.log(values)
-      // await fakeSubmitForm(values)
-      message.success('提交成功')
-    } catch {
-      // console.log
-    }
-  }
 
   const columns: ProColumns[] = [
     {
@@ -213,7 +203,6 @@ const SeriesDetails: FC<Record<string, any>> = () => {
 
     const isUploadFile = file.status !== 'done'
 
-    console.log(name, objectKey, isUploadFile)
     if (isUploadFile) {
       await uploadFile(file.originFileObj, objectKey)
     }
@@ -229,14 +218,20 @@ const SeriesDetails: FC<Record<string, any>> = () => {
     })
 
     message.success(`颜色${id ? '编辑' : '新建'}成功`)
-    actionRef.current?.reloadAndRest?.()
+    getColorList()
   }
 
   const handleDelete = (data: any) => {
-    axios.get(`/color/delete/${data.id}`).then(async () => {
-      message.success('删除颜色成功')
-      actionRef.current?.reloadAndRest?.()
-    })
+    setColorLoading(true)
+    axios
+      .get(`/color/delete/${data.id}`)
+      .then(async () => {
+        message.success('删除颜色成功')
+        getColorList()
+      })
+      .finally(() => {
+        setColorLoading(false)
+      })
   }
 
   const handleDeleteUnit = async (id: string) => {
@@ -313,7 +308,8 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                     onFinish={async (values) => {
                       await axios.post(`/tag/create`, {
                         name: values.name,
-                        unitId: item.id
+                        unitId: item.id,
+                        productId: productId
                       })
                       getUnitList()
                       return true
@@ -369,7 +365,8 @@ const SeriesDetails: FC<Record<string, any>> = () => {
         className={'series-details'}
         layout="vertical"
         submitter={{
-          render: (_props: any, _dom: any) => {
+          render: (props: any, _dom: any) => {
+            const details = props.form.getFieldValue() || {}
             return (
               <FooterToolbar>
                 <Button
@@ -394,26 +391,50 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                   type="primary"
                   onClick={async () => {
                     const res: any = await axios.get(`/product/details/${productId}`)
-                    if (!res.isComplete) {
+                    if (!res.name || !res.desc || !res.isComplete) {
                       confirm({
                         title: '确认操作',
-                        content: '请先完善基础信息和颜色相关信息后再上架',
+                        content: '请先完善颜色相关信息后再上架',
                         onOk() {}
                       })
                       return
                     } else {
-                      message.success('产品系列上架成功')
+                      confirm({
+                        title: '确认操作',
+                        content: '确认更改产品系列状态吗?',
+                        onOk() {
+                          axios
+                            .post(`/product/active`, {
+                              id: productId,
+                              isActive: !res.isActive
+                            })
+                            .then(async () => {
+                              message.success('产品系列状态修改成功')
+                            })
+                        }
+                      })
                     }
                   }}
                 >
-                  上架
+                  {details.isActive ? '下架' : '上架'}
                 </Button>
-                <Button type="primary">保存</Button>
+                <Button
+                  type="primary"
+                  onClick={async () => {
+                    const { name, desc } = props.form.getFieldValue()
+                    await axios.post(`/product/update`, {
+                      name,
+                      desc,
+                      id: productId
+                    })
+                  }}
+                >
+                  保存
+                </Button>
               </FooterToolbar>
             )
           }
         }}
-        onFinish={onFinish}
         request={async () => {
           return await axios.get(`/product/details/${productId}`)
         }}
