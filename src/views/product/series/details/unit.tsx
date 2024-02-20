@@ -1,11 +1,26 @@
-import React, { useEffect, useState } from 'react'
-import { PlusOutlined } from '@ant-design/icons'
+import React, { FC, useEffect, useState } from 'react'
+import { HolderOutlined, PlusOutlined } from '@ant-design/icons'
 import { ModalForm, ProFormText, ProList, ProTable } from '@ant-design/pro-components'
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  horizontalListSortingStrategy,
+  SortableContext,
+  useSortable
+} from '@dnd-kit/sortable'
 import {
   Button,
   Col,
   ConfigProvider,
   Form,
+  message,
   Modal,
   Row,
   Space,
@@ -18,6 +33,8 @@ import {
 import axios from '@/utils/axios.ts'
 
 const { confirm } = Modal
+
+let rawUnitList: any[]
 
 function Unit({ productId }: { productId: string | undefined }) {
   const [unitForm] = Form.useForm<{ name: string }>()
@@ -34,6 +51,8 @@ function Unit({ productId }: { productId: string | undefined }) {
   const getUnitList = () => {
     setUnitLoading(true)
     axios.get(`/unit/list/${productId}`).then((res: any) => {
+      rawUnitList = []
+      rawUnitList.push(...res)
       setUnitList(handleRenderFormat(res))
       setUnitLoading(false)
     })
@@ -42,6 +61,88 @@ function Unit({ productId }: { productId: string | undefined }) {
   useEffect(() => {
     getUnitList()
   }, [])
+
+  type DraggableTagProps = {
+    tag: any
+    isLongTag: boolean
+    unit: any
+  }
+
+  const DraggableTag: FC<DraggableTagProps> = (props) => {
+    const { tag, isLongTag, unit } = props
+    const { listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: tag.id })
+
+    const commonStyle = {
+      cursor: 'move',
+      transition: 'unset' // Prevent element from shaking after drag
+    }
+
+    const style = transform
+      ? {
+          ...commonStyle,
+          transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+          transition: isDragging ? 'unset' : transition // Improve performance/visual effect when dragging
+        }
+      : commonStyle
+
+    return (
+      <Tag
+        style={style}
+        key={tag.id}
+        closable
+        onClose={async (e) => {
+          e.preventDefault()
+          await handleClose(tag.id, unit)
+        }}
+      >
+        <Space>
+          <HolderOutlined ref={setNodeRef} {...listeners} />
+          {isLongTag ? `${tag.name.slice(0, 20)}...` : tag.name}
+        </Space>
+      </Tag>
+    )
+  }
+
+  const sensors = useSensors(useSensor(PointerSensor))
+
+  const handleDragEnd = (event: DragEndEvent, item: any) => {
+    const { active, over } = event
+    if (!over) return
+
+    if (active.id !== over.id) {
+      const tags = item.tags
+
+      const activeIndex = tags.findIndex((d: any) => d.id === active.id)
+      const overIndex = tags.findIndex((d: any) => d.id === over.id)
+      const sortList = arrayMove(tags, activeIndex, overIndex)
+      const ids = sortList.map((d: any) => d.id)
+
+      setUnitLoading(true)
+
+      setUnitList(
+        handleRenderFormat(
+          rawUnitList.map((d: any) => {
+            return {
+              ...d,
+              tags: d.id === item.id ? sortList : d.tags
+            }
+          })
+        )
+      )
+
+      axios
+        .post(`/tag/batchSort`, {
+          ids
+        })
+        .then(async () => {
+          message.success('排序成功')
+          getUnitList()
+        })
+        .finally(() => {
+          setUnitLoading(false)
+        })
+    }
+  }
 
   const handleRenderFormat = (res: any) => {
     return res.map((item: any) => ({
@@ -71,30 +172,29 @@ function Unit({ productId }: { productId: string | undefined }) {
         >
           <ConfigProvider theme={{ algorithm: [theme.defaultAlgorithm] }}>
             <Space size={[0, 8]} wrap>
-              {item.tags.map((tag: any) => {
-                const { id, name } = tag
-                const isLongTag = name.length > 20
-                const tagElem = (
-                  <Tag
-                    key={id}
-                    closable
-                    style={{ userSelect: 'none' }}
-                    onClose={async (e) => {
-                      e.preventDefault()
-                      await handleClose(id, item)
-                    }}
-                  >
-                    {isLongTag ? `${name.slice(0, 20)}...` : name}
-                  </Tag>
-                )
-                return isLongTag ? (
-                  <Tooltip title={name} key={id}>
-                    {tagElem}
-                  </Tooltip>
-                ) : (
-                  tagElem
-                )
-              })}
+              <DndContext
+                sensors={sensors}
+                onDragEnd={(e) => handleDragEnd(e, item)}
+                collisionDetection={closestCenter}
+              >
+                <SortableContext items={item.tags} strategy={horizontalListSortingStrategy}>
+                  {item.tags.map((tag: any) => {
+                    const { id, name } = tag
+                    const isLongTag = name.length > 20
+                    const tagElem = (
+                      <DraggableTag tag={tag} key={tag.id} isLongTag={isLongTag} unit={item} />
+                    )
+                    return isLongTag ? (
+                      <Tooltip title={name} key={id}>
+                        {tagElem}
+                      </Tooltip>
+                    ) : (
+                      tagElem
+                    )
+                  })}
+                </SortableContext>
+              </DndContext>
+
               <Tag style={tagPlusStyle} icon={<PlusOutlined />}>
                 <ModalForm<{
                   name: string
