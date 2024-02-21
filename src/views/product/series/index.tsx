@@ -230,8 +230,7 @@ function ProductSeries() {
         }}
         pagination={{
           pageSize: 20,
-          hideOnSinglePage: true,
-          onChange: (page) => console.log(page)
+          hideOnSinglePage: true
         }}
       />
     </PageContainer>

@@ -177,15 +177,22 @@ function OperationsRule() {
           )
         ]}
         request={async (params) => {
-          const { pageSize, current, validStartDate, validEndDate, ...other } = params
+          const { pageSize, current, validDate = [], faceValue, thresholdValue, ...other } = params
+          const [validStartDate, validEndDate] = validDate
           const { records, total }: { records: any; total: number } = await axios.post(
             '/rule/page',
             {
               size: pageSize,
               current,
-              validStartDate: dayjs(validStartDate).valueOf(),
-              validEndDate: dayjs(validEndDate).valueOf(),
-              ...lodash.omitBy(other, lodash.isEmpty)
+              ...(validStartDate
+                ? {
+                    validStartDate: dayjs(validStartDate).valueOf(),
+                    validEndDate: dayjs(validEndDate).valueOf()
+                  }
+                : {}),
+              faceValue: faceValue ? Number(faceValue) : undefined,
+              thresholdValue: thresholdValue ? Number(thresholdValue) : undefined,
+              ...lodash.omitBy(other, (value) => !value && value !== false)
             }
           )
           return {
@@ -196,8 +203,7 @@ function OperationsRule() {
         }}
         pagination={{
           pageSize: 20,
-          hideOnSinglePage: true,
-          onChange: (page) => console.log(page)
+          hideOnSinglePage: true
         }}
       />
 

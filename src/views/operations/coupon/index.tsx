@@ -124,7 +124,7 @@ function OperationsCoupon() {
           ),
           perms.includes('edit-coupon') && (
             <a
-              key="modify"
+              key="records"
               onClick={() => {
                 console.log('使用记录')
               }}
@@ -214,16 +214,22 @@ function OperationsCoupon() {
           )
         ]}
         request={async (params) => {
-          const { pageSize, current, validStartDate, validEndDate, ...other } = params
-          console.log(other)
+          const { pageSize, current, validDate = [], faceValue, thresholdValue, ...other } = params
+          const [validStartDate, validEndDate] = validDate
           const { records, total }: { records: any; total: number } = await axios.post(
             '/coupon/page',
             {
               size: pageSize,
               current,
-              validStartDate: dayjs(validStartDate).valueOf(),
-              validEndDate: dayjs(validEndDate).valueOf(),
-              ...lodash.omitBy(other, lodash.isEmpty)
+              ...(validStartDate
+                ? {
+                    validStartDate: dayjs(validStartDate).valueOf(),
+                    validEndDate: dayjs(validEndDate).valueOf()
+                  }
+                : {}),
+              faceValue: faceValue ? Number(faceValue) : undefined,
+              thresholdValue: thresholdValue ? Number(thresholdValue) : undefined,
+              ...lodash.omitBy(other, (value) => !value && value !== false)
             }
           )
           return {
@@ -234,8 +240,7 @@ function OperationsCoupon() {
         }}
         pagination={{
           pageSize: 20,
-          hideOnSinglePage: true,
-          onChange: (page) => console.log(page)
+          hideOnSinglePage: true
         }}
       />
 
@@ -266,19 +271,19 @@ function OperationsCoupon() {
         <ProFormText
           name="code"
           label="CODE"
-          placeholder={'请输入1-50位CODE'}
+          placeholder={'请输入4-50位CODE'}
           fieldProps={{
             maxLength: 50
           }}
           rules={[
             {
               required: true,
-              message: '请输入1-50位CODE'
+              message: '请输入4-50位CODE'
             },
             () => ({
               validator(_, value) {
-                if (value && value.length > 10) {
-                  return Promise.reject(new Error('请输入1-50位CODE'))
+                if (value && (value.length < 4 || value.length > 50)) {
+                  return Promise.reject(new Error('请输入4-50位CODE'))
                 }
                 return Promise.resolve()
               }
