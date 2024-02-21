@@ -209,14 +209,13 @@ function SystemRole() {
           )
         ]}
         request={async (params) => {
-          console.log(params)
           const { pageSize, current, ...other } = params
           const { records, total }: { records: any; total: number } = await axios.post(
             '/role/page',
             {
               size: pageSize,
               current,
-              ...lodash.omitBy(other, lodash.isEmpty)
+              ...lodash.omitBy(other, (value) => !value && value !== false)
             }
           )
           return {

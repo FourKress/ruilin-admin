@@ -267,7 +267,7 @@ function SystemUser() {
             {
               size: pageSize,
               current,
-              ...lodash.omitBy(other, lodash.isEmpty)
+              ...lodash.omitBy(other, (value) => !value && value !== false)
             }
           )
           return {
