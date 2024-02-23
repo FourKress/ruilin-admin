@@ -26,7 +26,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
     <PageContainer breadcrumbRender={false}>
       <ProForm
         className={'series-details'}
-        layout="vertical"
+        layout="horizontal"
         submitter={{
           render: (props: any, _dom: any) => {
             const details = props.form.getFieldValue() || {}
@@ -88,12 +88,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                 <Button
                   type="primary"
                   onClick={async () => {
-                    const { name, desc } = props.form.getFieldValue()
-                    await axios.post(`/product/update`, {
-                      name,
-                      desc,
-                      id: productId
-                    })
+                    props.form?.submit?.()
                   }}
                 >
                   保存
@@ -102,53 +97,62 @@ const SeriesDetails: FC<Record<string, any>> = () => {
             )
           }
         }}
+        onFinish={async (values) => {
+          console.log(values)
+          // const { name, desc } = props.form.getFieldValue()
+          // await axios.post(`/product/update`, {
+          //   name,
+          //   desc,
+          //   id: productId
+          // })
+          message.success('提交成功')
+          return true
+        }}
         request={async () => {
           return await axios.get(`/product/details/${productId}`)
         }}
       >
-        <>
-          <Card title="基础信息" className={'card'} bordered={false}>
-            <Row gutter={24}>
-              <Col md={8}>
-                <ProFormText
-                  label={'商品名称'}
-                  name="name"
-                  rules={[{ required: true, message: '请输入商品名称' }]}
-                  placeholder="请输入商品名称"
-                />
-              </Col>
-              <Col md={8}>
-                <ProFormText
-                  label={'商品编码'}
-                  name="code"
-                  rules={[{ required: true, message: '请输入商品编码' }]}
-                  placeholder="请输入商品编码"
-                />
-              </Col>
-              <Col md={8}>
-                <ProFormTextArea
-                  label={'商品介绍'}
-                  name="desc"
-                  rules={[{ required: true, message: '请输入商品介绍' }]}
-                  placeholder="请输入商品介绍"
-                />
-              </Col>
-            </Row>
-          </Card>
-
-          <Card title="商品详情" className={'card'} bordered={false}>
-            <Banner productId={productId} />
-          </Card>
-
-          <Card title="颜色管理" className={'card'} bordered={false}>
-            <Color productId={productId} />
-          </Card>
-
-          <Card title="规格管理" className={'card'} bordered={false}>
-            <Unit productId={productId} />
-          </Card>
-        </>
+        <Card title="基础信息" className={'card'} bordered={false}>
+          <Row gutter={24}>
+            <Col md={8}>
+              <ProFormText
+                label={'商品名称'}
+                name="name"
+                rules={[{ required: true, message: '请输入商品名称' }]}
+                placeholder="请输入商品名称"
+              />
+            </Col>
+            <Col md={8}>
+              <ProFormText
+                label={'商品编码'}
+                name="code"
+                rules={[{ required: true, message: '请输入商品编码' }]}
+                placeholder="请输入商品编码"
+              />
+            </Col>
+            <Col md={8}>
+              <ProFormTextArea
+                label={'商品介绍'}
+                name="desc"
+                rules={[{ required: true, message: '请输入商品介绍' }]}
+                placeholder="请输入商品介绍"
+              />
+            </Col>
+          </Row>
+        </Card>
       </ProForm>
+
+      <Card title="商品详情" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
+        <Banner productId={productId} />
+      </Card>
+
+      <Card title="商品颜色" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
+        <Color productId={productId} />
+      </Card>
+
+      <Card title="规格管理" className={'card'} bordered={false}>
+        <Unit productId={productId} />
+      </Card>
     </PageContainer>
   )
 }

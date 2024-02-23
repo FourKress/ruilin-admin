@@ -8,10 +8,31 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Col, Descriptions, Image, Row, Space, Upload, UploadFile, UploadProps } from 'antd'
+import { Col, Descriptions, Image, Row, Space, Spin, Upload, UploadFile, UploadProps } from 'antd'
 
 import axios from '@/utils/axios.ts'
 import Summary from '@/views/product/list/details/summary.tsx'
+
+const descList = [
+  {
+    key: '1',
+    label: '1.素材限制',
+    span: 3,
+    children: <p>图片视频宽高比例为4:3。图片宽高均大于1200px，大小10M以内；视频时长5s-60s以内</p>
+  },
+  {
+    key: '2',
+    label: '2.数量限制',
+    span: 3,
+    children: <p>数量限制：图片最少上传1张，最多可上传9张；视频最多可上传1个。</p>
+  },
+  {
+    key: '3',
+    label: '3.排序限制',
+    span: 3,
+    children: <p>排序影响商城展示顺序。图片视频排序可直接手动拖拽排序</p>
+  }
+]
 
 function Banner({ productId }: { productId: string | undefined }) {
   const [fileList, setFileList] = useState<any[]>([])
@@ -20,11 +41,11 @@ function Banner({ productId }: { productId: string | undefined }) {
     visible: false,
     url: ''
   })
-  const [videoPreviewInfo, setVideoPreviewInfo] = useState({
-    visible: false,
-    url: ''
-  })
+
+  const [loading, setLoading] = React.useState<boolean>(false)
+
   const getFileList = () => {
+    setLoading(true)
     axios.get(`/product-banner/list/${productId}`).then((res: any) => {
       const imageFile: any[] = []
       const videoFile: any[] = []
@@ -46,6 +67,7 @@ function Banner({ productId }: { productId: string | undefined }) {
       })
       setFileList(imageFile)
       setVideoFileList(videoFile)
+      setLoading(false)
     })
   }
 
@@ -65,15 +87,6 @@ function Banner({ productId }: { productId: string | undefined }) {
     const url = file.url || file.thumbUrl
     if (!url) return
     setPreviewInfo({
-      visible: true,
-      url
-    })
-  }
-
-  const handleVideoPreview = (file: UploadFile) => {
-    const url = file.url
-    if (!url) return
-    setVideoPreviewInfo({
       visible: true,
       url
     })
@@ -130,27 +143,6 @@ function Banner({ productId }: { productId: string | undefined }) {
     )
   }
 
-  const descList = [
-    {
-      key: '1',
-      label: '1.素材限制',
-      span: 3,
-      children: <p>图片视频宽高比例为4:3。图片宽高均大于1200px，大小10M以内；视频时长5s-60s以内</p>
-    },
-    {
-      key: '2',
-      label: '2.数量限制',
-      span: 3,
-      children: <p>数量限制：图片最少上传1张，最多可上传9张；视频最多可上传1个。</p>
-    },
-    {
-      key: '3',
-      label: '3.排序限制',
-      span: 3,
-      children: <p>排序影响商城展示顺序。图片视频排序可直接手动拖拽排序</p>
-    }
-  ]
-
   return (
     <Space direction={'vertical'}>
       <Descriptions
@@ -160,41 +152,43 @@ function Banner({ productId }: { productId: string | undefined }) {
       />
 
       <Row gutter={24} style={{ marginTop: '16px' }}>
-        <Col md={4}>
+        <Col>
           <Space direction={'vertical'}>
             <h4>介绍视频</h4>
-            <Upload
-              accept={'.mp4'}
-              listType="picture-card"
-              fileList={videoFileList}
-              maxCount={1}
-              onChange={handleVideoChange}
-              beforeUpload={(file: any) => {
-                file.url = URL.createObjectURL(file)
-                return false
-              }}
-              itemRender={(originNode, file) => {
-                return (
-                  <div className={originNode.props.className}>
-                    {originNode.props.children[0]}
-                    {originNode.props.children[1]}
-                    <div className={originNode.props.children[2].props.className}>
-                      <EyeOutlined
-                        onClick={() => {
-                          handleVideoPreview(file)
-                        }}
-                      />
-                      {originNode.props.children[2].props.children[2]}
+            <Spin spinning={loading}>
+              <Upload
+                accept={'.mp4'}
+                listType="picture-card"
+                fileList={videoFileList}
+                maxCount={1}
+                onChange={handleVideoChange}
+                beforeUpload={(file: any) => {
+                  file.url = URL.createObjectURL(file)
+                  return false
+                }}
+                itemRender={(originNode, file) => {
+                  return (
+                    <div className={originNode.props.className}>
+                      {originNode.props.children[0]}
+                      {originNode.props.children[1]}
+                      <div className={originNode.props.children[2].props.className}>
+                        <EyeOutlined
+                          onClick={() => {
+                            handlePreview(file)
+                          }}
+                        />
+                        {originNode.props.children[2].props.children[2]}
+                      </div>
                     </div>
-                  </div>
-                )
-              }}
-            >
-              {videoFileList.length >= 1 ? null : uploadButton}
-            </Upload>
+                  )
+                }}
+              >
+                {videoFileList.length >= 1 ? null : uploadButton}
+              </Upload>
+            </Spin>
           </Space>
         </Col>
-        <Col md={20}>
+        <Col flex={1}>
           <Space direction={'vertical'}>
             <h4>轮播图</h4>
 
@@ -203,20 +197,22 @@ function Banner({ productId }: { productId: string | undefined }) {
                 items={fileList.map((i) => i.uid)}
                 strategy={verticalListSortingStrategy}
               >
-                <Upload
-                  accept={'.png,.jpg,.jpeg'}
-                  listType="picture-card"
-                  fileList={fileList}
-                  maxCount={10}
-                  onPreview={handlePreview}
-                  onChange={handleChange}
-                  beforeUpload={() => false}
-                  itemRender={(originNode, file) => (
-                    <DraggableUploadListItem originNode={originNode} file={file} />
-                  )}
-                >
-                  {fileList.length >= 10 ? null : uploadButton}
-                </Upload>
+                <Spin spinning={loading}>
+                  <Upload
+                    accept={'.png,.jpg,.jpeg'}
+                    listType="picture-card"
+                    fileList={fileList}
+                    maxCount={9}
+                    onPreview={handlePreview}
+                    onChange={handleChange}
+                    beforeUpload={() => false}
+                    itemRender={(originNode, file) => (
+                      <DraggableUploadListItem originNode={originNode} file={file} />
+                    )}
+                  >
+                    {fileList.length >= 9 ? null : uploadButton}
+                  </Upload>
+                </Spin>
               </SortableContext>
             </DndContext>
           </Space>
@@ -232,36 +228,27 @@ function Banner({ productId }: { productId: string | undefined }) {
         style={{ display: 'none' }}
         preview={{
           visible: previewInfo.visible,
-          src: previewInfo.url,
           onVisibleChange: (value) => {
             setPreviewInfo({
               visible: value,
               url: ''
             })
           },
-          toolbarRender: () => <span></span>
-        }}
-      />
-      <Image
-        width={200}
-        style={{ display: 'none' }}
-        preview={{
-          visible: videoPreviewInfo.visible,
-          imageRender: () => {
-            return (
-              <video width="420" height="440" controls>
-                <source src={videoPreviewInfo.url} type="video/mp4" />
-                您的浏览器不支持 Video 标签。
-              </video>
-            )
-          },
-          onVisibleChange: (value) => {
-            setVideoPreviewInfo({
-              visible: value,
-              url: ''
-            })
-          },
-          toolbarRender: () => <span></span>
+          toolbarRender: () => <span></span>,
+          ...(previewInfo.url.includes('blob')
+            ? {
+                imageRender: () => {
+                  return (
+                    <video width="420" height="440" controls>
+                      <source src={previewInfo.url} type="video/mp4" />
+                      您的浏览器不支持 Video 标签。
+                    </video>
+                  )
+                }
+              }
+            : {
+                src: previewInfo.url
+              })
         }}
       />
     </Space>

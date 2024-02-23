@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   DragSortTable,
@@ -16,10 +16,13 @@ const { confirm } = Modal
 function Summary({ productId }: { productId: string | undefined }) {
   const [summaryList, setSummaryList] = useState<any[]>([])
   const [form] = Form.useForm()
+  const [loading, setLoading] = React.useState<boolean>(false)
 
   const getSummaryList = () => {
+    setLoading(true)
     axios.get(`/product-summary/list/${productId}`).then((res: any) => {
       setSummaryList(res)
+      setLoading(false)
     })
   }
 
@@ -143,6 +146,7 @@ function Summary({ productId }: { productId: string | undefined }) {
       <DragSortTable
         dragSortKey="sort"
         onDragSortEnd={handleDragSortEnd}
+        loading={loading}
         dataSource={summaryList}
         options={{
           reload: false,
