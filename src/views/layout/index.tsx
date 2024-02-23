@@ -15,7 +15,7 @@ function MyLayout() {
   const [pathname, setPathname] = useSessionStorageState('pathname', {
     defaultValue: '/dashboard'
   })
-  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+  const userInfo: Record<string, any> = JSON.parse(localStorage.getItem('userInfo') || '{}')
 
   const handleLogout = () => {
     axios.get(`/auth/logout/${userInfo.userId}`).finally(() => {
@@ -87,7 +87,7 @@ function MyLayout() {
         }}
         route={{
           path: '/',
-          routes: getMenuConfig()
+          routes: getMenuConfig(userInfo.perms)
         }}
       >
         <AuthRoute />

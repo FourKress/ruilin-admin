@@ -4,8 +4,8 @@ import Dashboard from '@/views/dashboard'
 import OperationsBanner from '@/views/operations/banner'
 import OperationsCoupon from '@/views/operations/coupon'
 import OperationsRule from '@/views/operations/rule'
-import ProductSeries from '@/views/product/series'
-import ProductSeriesDetails from '@/views/product/series/details'
+import ProductList from '@/views/product/list'
+import ProductListDetails from '@/views/product/list/details'
 import SystemPerm from '@/views/system/perm'
 import SystemRole from '@/views/system/role'
 import SystemUser from '@/views/system/user'
@@ -24,11 +24,11 @@ const AuthRoute = () => {
       {checkAuthCode('sys-user-manager') && <Route path="/system/user" element={<SystemUser />} />}
       {checkAuthCode('sys-role-manager') && <Route path="/system/role" element={<SystemRole />} />}
       {checkAuthCode('sys-perm-manager') && <Route path="/system/perm" element={<SystemPerm />} />}
-      {checkAuthCode('product-series-manager') && (
-        <Route path="/product/series" element={<ProductSeries />} />
+      {checkAuthCode('product-list-manager') && (
+        <Route path="/product/list" element={<ProductList />} />
       )}
-      {checkAuthCode('add-series') | checkAuthCode('edit-series') && (
-        <Route path="/product/series/details/:id" element={<ProductSeriesDetails />} />
+      {checkAuthCode('add-product') | checkAuthCode('edit-product') && (
+        <Route path="/product/list/details/:id" element={<ProductListDetails />} />
       )}
       {checkAuthCode('operations-coupon-manager') && (
         <Route path="/operations/coupon" element={<OperationsCoupon />} />

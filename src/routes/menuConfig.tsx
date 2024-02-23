@@ -5,9 +5,6 @@ import {
   SettingOutlined
 } from '@ant-design/icons'
 
-const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-const { perms = [] } = userInfo
-
 const menuList = [
   {
     path: '/dashboard',
@@ -39,19 +36,14 @@ const menuList = [
   },
   {
     path: '/product',
-    name: '产品管理',
+    name: '商品管理',
     icon: <AppstoreOutlined />,
     authCode: 'product-manager',
     routes: [
       {
-        path: '/product/series',
-        name: '产品系列管理',
-        authCode: 'product-series-manager'
-      },
-      {
-        path: '/product/sku',
-        name: 'SKU管理',
-        authCode: 'product-sku-manager'
+        path: '/product/list',
+        name: '商品列表',
+        authCode: 'product-list-manager'
       }
     ]
   },
@@ -80,29 +72,27 @@ const menuList = [
   }
 ]
 
-const checkAuthCode = (authCode: string) => perms.includes(authCode)
+const getMenuConfig = (perms: string[]): any[] => {
+  const checkAuthCode = (authCode: string) => (perms || []).includes(authCode)
 
-const getMenuConfig = (): any[] => {
-  const routes: any[] = []
-  menuList.forEach((menu) => {
-    if (!menu?.authCode) {
-      routes.push(menu)
-    } else if (checkAuthCode(menu.authCode)) {
-      routes.push(menu)
+  return menuList.map((menu) => {
+    let route: any
+    if (!menu?.authCode || checkAuthCode(menu.authCode)) {
+      route = menu
+      if (menu?.routes?.length) {
+        route.routes = menu.routes.filter((d) => {
+          if (!d?.authCode) {
+            return true
+          } else if (checkAuthCode(d.authCode)) {
+            return true
+          }
+          return false
+        })
+      }
     }
-    if (menu?.routes?.length) {
-      menu.routes = menu.routes.filter((d) => {
-        if (!d?.authCode) {
-          return true
-        } else if (checkAuthCode(d.authCode)) {
-          return true
-        }
-        return false
-      })
-    }
+
+    return route
   })
-
-  return routes
 }
 
 export default getMenuConfig

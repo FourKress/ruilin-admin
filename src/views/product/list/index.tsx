@@ -20,7 +20,7 @@ const { confirm } = Modal
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
 
-function ProductSeries() {
+function ProductList() {
   const actionRef = useRef<ActionType>()
   const navigate = useNavigate()
   const [form] = Form.useForm()
@@ -73,9 +73,9 @@ function ProductSeries() {
       valueType: 'option',
       ellipsis: false,
       width: 110,
-      render: (_, record) => {
+      render: (_, record: Record<string, any>) => {
         return [
-          perms.includes('edit-series') && (
+          perms.includes('edit-product') && (
             <a
               key="modify"
               onClick={async () => {
@@ -85,7 +85,7 @@ function ProductSeries() {
               详情
             </a>
           ),
-          perms.includes('edit-series') && (
+          perms.includes('edit-product') && (
             <a
               key="active"
               onClick={() => {
@@ -112,7 +112,7 @@ function ProductSeries() {
               {record.isActive ? '下架' : '上架'}
             </a>
           ),
-          perms.includes('delete-series') && (
+          perms.includes('delete-product') && (
             <a
               key="delete"
               onClick={() => {
@@ -163,7 +163,7 @@ function ProductSeries() {
           labelWidth: 'auto'
         }}
         toolBarRender={() => [
-          perms.includes('add-series') && (
+          perms.includes('add-product') && (
             <ModalForm<{
               name: string
               desc: string
@@ -237,4 +237,4 @@ function ProductSeries() {
   )
 }
 
-export default ProductSeries
+export default ProductList

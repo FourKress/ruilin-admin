@@ -10,9 +10,9 @@ import {
 import { Button, Card, Col, message, Modal, Row } from 'antd'
 
 import axios from '@/utils/axios.ts'
-import Banner from '@/views/product/series/details/banner.tsx'
-import Color from '@/views/product/series/details/color.tsx'
-import Unit from '@/views/product/series/details/unit.tsx'
+import Banner from '@/views/product/list/details/banner.tsx'
+import Color from '@/views/product/list/details/color.tsx'
+import Unit from '@/views/product/list/details/unit.tsx'
 
 import './style.scss'
 

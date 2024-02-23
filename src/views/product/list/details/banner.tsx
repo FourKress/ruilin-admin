@@ -12,7 +12,7 @@ import { Col, Image, message, Row, Space, Spin, Upload, UploadFile, UploadProps 
 
 import axios from '@/utils/axios.ts'
 import { uploadFile } from '@/utils/fileUtils.ts'
-import Summary from '@/views/product/series/details/summary.tsx'
+import Summary from '@/views/product/list/details/summary.tsx'
 
 function Banner({ productId }: { productId: string | undefined }) {
   const [fileList, setFileList] = useState<any[]>([])
