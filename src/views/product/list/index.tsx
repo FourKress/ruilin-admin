@@ -27,17 +27,66 @@ function ProductList() {
 
   const columns: ProColumns[] = [
     {
-      title: '产品系列名称',
-      dataIndex: 'name'
+      title: '商品名称',
+      dataIndex: 'name',
+      render: () => {
+        return (
+          <div>
+            <span>name</span>
+            <span>desc</span>
+          </div>
+        )
+      }
     },
-
+    {
+      title: '商品规格',
+      hideInSearch: true,
+      ellipsis: true,
+      dataIndex: 'unit',
+      render: () => {
+        return <span>unit</span>
+      }
+    },
+    {
+      title: '价格(美元)',
+      hideInSearch: true,
+      ellipsis: true,
+      dataIndex: 'price',
+      render: () => {
+        return <span>price</span>
+      }
+    },
+    {
+      title: '总库存',
+      hideInSearch: true,
+      dataIndex: 'stock',
+      render: () => {
+        return <span>stock</span>
+      }
+    },
+    {
+      title: '30日销量',
+      hideInSearch: true,
+      dataIndex: 'salesRang',
+      render: () => {
+        return <span>12322222</span>
+      }
+    },
+    {
+      title: '累计销量',
+      hideInSearch: true,
+      dataIndex: 'sales',
+      render: () => {
+        return <span>123</span>
+      }
+    },
     {
       title: '状态',
       dataIndex: 'isActive',
       defaultFilteredValue: null,
       render: (status) => {
         const color = status ? 'blue' : 'red'
-        return [<Badge key={color} color={color} text={status ? '上架' : '下架'} />]
+        return [<Badge key={color} color={color} text={status ? '上架中' : '已下架'} />]
       },
       renderFormItem: () => {
         return (
@@ -55,15 +104,8 @@ function ProductList() {
       }
     },
     {
-      title: '介绍',
-      width: 360,
-      hideInSearch: true,
-      ellipsis: true,
-      dataIndex: 'desc'
-    },
-    {
-      title: '最后编辑时间',
-      dataIndex: 'updateTime',
+      title: '创建时间',
+      dataIndex: 'createTime',
       hideInSearch: true,
       valueType: 'dateTime'
     },

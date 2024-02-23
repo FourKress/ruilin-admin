@@ -12,7 +12,7 @@ import { Badge, Button, Form, message, Modal } from 'antd'
 
 import axios from '@/utils/axios.ts'
 
-const { confirm, warning } = Modal
+const { confirm } = Modal
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
@@ -70,7 +70,7 @@ function SystemPerm() {
               编辑
             </a>
           ),
-          perms.includes('edit-perm') && (
+          perms.includes('edit-perm') && !record?.children && (
             <a
               key="active"
               onClick={() => {
@@ -107,16 +107,10 @@ function SystemPerm() {
               新建
             </a>
           ),
-          perms.includes('delete-perm') && (
+          perms.includes('delete-perm') && !record?.children && (
             <a
               key="delete"
               onClick={() => {
-                if (record?.children) {
-                  return warning({
-                    title: '确认操作',
-                    content: '请先删除下级权限！'
-                  })
-                }
                 confirm({
                   title: '确认操作',
                   content: '确认删除权限吗?',
@@ -204,7 +198,7 @@ function SystemPerm() {
         ]}
         pagination={false}
         request={async () => {
-          const data: any[] = await axios.get('/perm/tree')
+          const data: any[] = await axios.get('/perm/list')
           return {
             data,
             success: true
