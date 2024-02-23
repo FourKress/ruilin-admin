@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { PlusOutlined } from '@ant-design/icons'
+import { EyeOutlined, PlusOutlined } from '@ant-design/icons'
 import { DndContext, DragEndEvent, PointerSensor, useSensor } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -8,10 +8,9 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Col, Image, message, Row, Space, Spin, Upload, UploadFile, UploadProps } from 'antd'
+import { Col, Descriptions, Image, Row, Space, Upload, UploadFile, UploadProps } from 'antd'
 
 import axios from '@/utils/axios.ts'
-import { uploadFile } from '@/utils/fileUtils.ts'
 import Summary from '@/views/product/list/details/summary.tsx'
 
 function Banner({ productId }: { productId: string | undefined }) {
@@ -25,8 +24,6 @@ function Banner({ productId }: { productId: string | undefined }) {
     visible: false,
     url: ''
   })
-  const [loading, setLoading] = React.useState<boolean>(false)
-
   const getFileList = () => {
     axios.get(`/product-banner/list/${productId}`).then((res: any) => {
       const imageFile: any[] = []
@@ -56,25 +53,29 @@ function Banner({ productId }: { productId: string | undefined }) {
     getFileList()
   }, [])
 
-  const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) =>
+  const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
     setFileList(newFileList)
+  }
 
-  const handleVideoChange: UploadProps['onChange'] = ({ fileList: newFileList }) =>
+  const handleVideoChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
     setVideoFileList(newFileList)
+  }
 
   const handlePreview = (file: UploadFile) => {
-    if (!file.url) return
+    const url = file.url || file.thumbUrl
+    if (!url) return
     setPreviewInfo({
       visible: true,
-      url: file.url
+      url
     })
   }
 
   const handleVideoPreview = (file: UploadFile) => {
-    if (!file.url) return
+    const url = file.url
+    if (!url) return
     setVideoPreviewInfo({
       visible: true,
-      url: file.url
+      url
     })
   }
 
@@ -85,67 +86,16 @@ function Banner({ productId }: { productId: string | undefined }) {
     </button>
   )
 
-  const handleUpload = async (file: any, url: string, data: any) => {
-    const { uid, type, name } = file
-    const objectKey = `${uid}.${type.replace(/[\w\W]+\//, '')}`
-    await uploadFile(file.originFileObj, objectKey)
-
-    await axios.post(`/product-banner/${url}`, {
-      productId,
-      fileName: name,
-      fileType: type,
-      uid,
-      objectKey,
-      ...data
-    })
-  }
-
-  const handleImageUpload = async () => {
-    const uploadFile = fileList.find((d: any) => d.status !== 'done')
-    console.log(uploadFile)
-    await handleUpload(uploadFile, 'create', {
-      type: 'image'
-    })
-    getFileList()
-  }
-
-  const handleVideoUpload = async () => {
-    await handleUpload(videoFileList[0], 'create-video', {
-      type: 'video'
-    })
-
-    getFileList()
-  }
-
-  const handleRemove = async (file: any) => {
-    await axios.get(`/product-banner/delete/${file.id}`)
-  }
-
   const sensor = useSensor(PointerSensor, {
     activationConstraint: { distance: 10 }
   })
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
-    console.log(active, over)
     if (active.id !== over?.id) {
       setFileList((prev) => {
         const activeIndex = prev.findIndex((i) => i.uid === active.id)
         const overIndex = prev.findIndex((i) => i.uid === over?.id)
-        const sortList = arrayMove(prev, activeIndex, overIndex)
-        const ids = sortList.map((d: any) => d.id)
-        setLoading(true)
-        axios
-          .post(`/product-banner/batchSort`, {
-            ids
-          })
-          .then(async () => {
-            message.success('排序成功')
-          })
-          .finally(() => {
-            setLoading(false)
-          })
-
-        return sortList
+        return arrayMove(prev, activeIndex, overIndex)
       })
     }
   }
@@ -180,64 +130,103 @@ function Banner({ productId }: { productId: string | undefined }) {
     )
   }
 
+  const descList = [
+    {
+      key: '1',
+      label: '1.素材限制',
+      span: 3,
+      children: <p>图片视频宽高比例为4:3。图片宽高均大于1200px，大小10M以内；视频时长5s-60s以内</p>
+    },
+    {
+      key: '2',
+      label: '2.数量限制',
+      span: 3,
+      children: <p>数量限制：图片最少上传1张，最多可上传9张；视频最多可上传1个。</p>
+    },
+    {
+      key: '3',
+      label: '3.排序限制',
+      span: 3,
+      children: <p>排序影响商城展示顺序。图片视频排序可直接手动拖拽排序</p>
+    }
+  ]
+
   return (
-    <>
-      <Row gutter={24}>
-        <Col md={12}>
+    <Space direction={'vertical'}>
+      <Descriptions
+        items={descList}
+        size={'small'}
+        contentStyle={{ color: 'rgba(0, 0, 0, 0.45)' }}
+      />
+
+      <Row gutter={24} style={{ marginTop: '16px' }}>
+        <Col md={4}>
           <Space direction={'vertical'}>
-            <h4>图片简介</h4>
+            <h4>介绍视频</h4>
+            <Upload
+              accept={'.mp4'}
+              listType="picture-card"
+              fileList={videoFileList}
+              maxCount={1}
+              onChange={handleVideoChange}
+              beforeUpload={(file: any) => {
+                file.url = URL.createObjectURL(file)
+                return false
+              }}
+              itemRender={(originNode, file) => {
+                return (
+                  <div className={originNode.props.className}>
+                    {originNode.props.children[0]}
+                    {originNode.props.children[1]}
+                    <div className={originNode.props.children[2].props.className}>
+                      <EyeOutlined
+                        onClick={() => {
+                          handleVideoPreview(file)
+                        }}
+                      />
+                      {originNode.props.children[2].props.children[2]}
+                    </div>
+                  </div>
+                )
+              }}
+            >
+              {videoFileList.length >= 1 ? null : uploadButton}
+            </Upload>
+          </Space>
+        </Col>
+        <Col md={20}>
+          <Space direction={'vertical'}>
+            <h4>轮播图</h4>
 
             <DndContext sensors={[sensor]} onDragEnd={onDragEnd}>
               <SortableContext
                 items={fileList.map((i) => i.uid)}
                 strategy={verticalListSortingStrategy}
               >
-                <Spin spinning={loading}>
-                  <Upload
-                    customRequest={handleImageUpload}
-                    accept={'.png,.jpg,.jpeg'}
-                    listType="picture-card"
-                    fileList={fileList}
-                    maxCount={10}
-                    onPreview={handlePreview}
-                    onChange={handleChange}
-                    onRemove={handleRemove}
-                    itemRender={(originNode, file) => (
-                      <DraggableUploadListItem originNode={originNode} file={file} />
-                    )}
-                  >
-                    {fileList.length >= 10 ? null : uploadButton}
-                  </Upload>
-                </Spin>
+                <Upload
+                  accept={'.png,.jpg,.jpeg'}
+                  listType="picture-card"
+                  fileList={fileList}
+                  maxCount={10}
+                  onPreview={handlePreview}
+                  onChange={handleChange}
+                  beforeUpload={() => false}
+                  itemRender={(originNode, file) => (
+                    <DraggableUploadListItem originNode={originNode} file={file} />
+                  )}
+                >
+                  {fileList.length >= 10 ? null : uploadButton}
+                </Upload>
               </SortableContext>
             </DndContext>
           </Space>
         </Col>
-        <Col md={12}>
-          <Space direction={'vertical'}>
-            <h4>视频简介</h4>
-            <Upload
-              customRequest={handleVideoUpload}
-              accept={'.mp4'}
-              listType="picture-card"
-              fileList={videoFileList}
-              maxCount={1}
-              onChange={handleVideoChange}
-              onPreview={handleVideoPreview}
-              onRemove={handleRemove}
-            >
-              {videoFileList.length >= 1 ? null : uploadButton}
-            </Upload>
-          </Space>
-        </Col>
       </Row>
-
       <Row gutter={24}>
         <Col md={24}>
           <Summary productId={productId} />
         </Col>
       </Row>
-
       <Image
         width={200}
         style={{ display: 'none' }}
@@ -253,7 +242,6 @@ function Banner({ productId }: { productId: string | undefined }) {
           toolbarRender: () => <span></span>
         }}
       />
-
       <Image
         width={200}
         style={{ display: 'none' }}
@@ -276,7 +264,7 @@ function Banner({ productId }: { productId: string | undefined }) {
           toolbarRender: () => <span></span>
         }}
       />
-    </>
+    </Space>
   )
 }
 

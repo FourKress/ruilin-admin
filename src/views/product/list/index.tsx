@@ -1,16 +1,21 @@
 import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons'
+import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components'
 import {
-  ActionType,
-  ModalForm,
-  PageContainer,
-  ProColumns,
-  ProFormText,
-  ProFormTextArea,
-  ProTable
-} from '@ant-design/pro-components'
-import { Badge, Button, Form, message, Modal, Select } from 'antd'
+  Badge,
+  Button,
+  Col,
+  Descriptions,
+  Flex,
+  Image,
+  message,
+  Modal,
+  Row,
+  Select,
+  Space,
+  Tooltip
+} from 'antd'
 import lodash from 'lodash'
 
 import axios from '@/utils/axios.ts'
@@ -23,20 +28,64 @@ const { perms = [] } = userInfo
 function ProductList() {
   const actionRef = useRef<ActionType>()
   const navigate = useNavigate()
-  const [form] = Form.useForm()
 
   const columns: ProColumns[] = [
     {
       title: '商品名称',
       dataIndex: 'name',
-      render: () => {
+      width: 200,
+      render: (_, record: Record<string, any>) => {
+        const { code = 'A10100001', name } = record
         return (
-          <div>
-            <span>name</span>
-            <span>desc</span>
-          </div>
+          <Row style={{ height: '60px' }}>
+            <Space size={'middle'}>
+              <Col style={{ height: '60px' }}>
+                <div
+                  style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden' }}
+                >
+                  <Image
+                    style={{ borderRadius: '50%', display: 'block' }}
+                    width={60}
+                    height={60}
+                    src="https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"
+                    preview={{
+                      src: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+                      toolbarRender: () => <span></span>
+                    }}
+                  />
+                </div>
+              </Col>
+              <Col style={{ height: '60px' }}>
+                <Flex
+                  style={{ height: '60px' }}
+                  vertical={true}
+                  justify={'space-around'}
+                  align={'start'}
+                >
+                  <Tooltip title={name || '天才纬纱'}>
+                    <Button type="link" style={{ padding: 0 }}>
+                      {name || '天才纬纱'}
+                    </Button>
+                  </Tooltip>
+
+                  <Descriptions title="">
+                    <Descriptions.Item label="商品编码">
+                      <Tooltip title={`商品编码: ${code}`}>
+                        <span>{code.length > 9 ? `${code.slice(0, 20)}...` : code}</span>
+                      </Tooltip>
+                    </Descriptions.Item>
+                  </Descriptions>
+                </Flex>
+              </Col>
+            </Space>
+          </Row>
         )
       }
+    },
+    {
+      title: '商品编码',
+      dataIndex: 'code',
+      hideInTable: true
     },
     {
       title: '商品规格',
@@ -62,6 +111,20 @@ function ProductList() {
       dataIndex: 'stock',
       render: () => {
         return <span>stock</span>
+      },
+      renderFormItem: () => {
+        return (
+          <Select
+            placeholder={'请选择'}
+            allowClear={{
+              clearIcon: <CloseCircleFilled />
+            }}
+            options={[
+              { value: true, label: '上架' },
+              { value: false, label: '下架' }
+            ]}
+          />
+        )
       }
     },
     {
@@ -81,7 +144,7 @@ function ProductList() {
       }
     },
     {
-      title: '状态',
+      title: '商品状态',
       dataIndex: 'isActive',
       defaultFilteredValue: null,
       render: (status) => {
@@ -114,17 +177,17 @@ function ProductList() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 110,
+      width: 80,
       render: (_, record: Record<string, any>) => {
         return [
           perms.includes('edit-product') && (
             <a
               key="modify"
               onClick={async () => {
-                navigate(`/product/series/details/${record.id}`)
+                navigate(`/product/list/details/${record.id}`)
               }}
             >
-              详情
+              编辑
             </a>
           ),
           perms.includes('edit-product') && (
@@ -134,17 +197,19 @@ function ProductList() {
                 if (!record.isComplete) {
                   confirm({
                     title: '确认操作',
-                    content: '请先编辑详情，完善颜色相关信息后再上架',
+                    content: '请先编辑完善相关信息后再上架',
                     onOk() {
-                      navigate(`/product/series/details/${record.id}`)
+                      navigate(`/product/list/details/${record.id}`)
                     }
                   })
                   return
                 }
-
+                const tips = record.isActive
+                  ? '此操作将导致该商品下所有的SKU下架，确认下架该商品吗?'
+                  : '确认上架该商品吗?'
                 confirm({
                   title: '确认操作',
-                  content: '确认更改产品系列状态吗?',
+                  content: tips,
                   onOk() {
                     handleActive(record)
                   }
@@ -152,22 +217,6 @@ function ProductList() {
               }}
             >
               {record.isActive ? '下架' : '上架'}
-            </a>
-          ),
-          perms.includes('delete-product') && (
-            <a
-              key="delete"
-              onClick={() => {
-                confirm({
-                  title: '确认操作',
-                  content: '确认删除该产品系列吗?',
-                  onOk() {
-                    handleDelete(record)
-                  }
-                })
-              }}
-            >
-              删除
             </a>
           )
         ]
@@ -187,18 +236,11 @@ function ProductList() {
       })
   }
 
-  const handleDelete = (data: any) => {
-    axios.get(`/product/delete/${data.id}`).then(async () => {
-      message.success('删除产品系列成功')
-      actionRef.current?.reloadAndRest?.()
-    })
-  }
-
   return (
     <PageContainer breadcrumbRender={false}>
       <ProTable
         rowKey="id"
-        headerTitle="产品系列列表"
+        headerTitle="商品列表"
         actionRef={actionRef}
         columns={columns}
         search={{
@@ -206,52 +248,15 @@ function ProductList() {
         }}
         toolBarRender={() => [
           perms.includes('add-product') && (
-            <ModalForm<{
-              name: string
-              desc: string
-              remark: string
-            }>
-              title="新建产品"
-              trigger={
-                <Button type="primary" key="primary">
-                  <PlusOutlined /> 新建
-                </Button>
-              }
-              width={400}
-              form={form}
-              autoFocusFirstInput
-              modalProps={{
-                destroyOnClose: true
-              }}
-              onFinish={async (values) => {
-                await axios.post(`/product/create`, {
-                  ...values
-                })
-                actionRef.current?.reloadAndRest?.()
-                return true
+            <Button
+              type="primary"
+              key="primary"
+              onClick={() => {
+                navigate(`/product/list/details`)
               }}
             >
-              <ProFormText
-                name="name"
-                rules={[
-                  {
-                    required: true,
-                    message: '请输入产品名称'
-                  }
-                ]}
-                label="产品名称"
-              />
-              <ProFormTextArea
-                name="desc"
-                rules={[
-                  {
-                    required: true,
-                    message: '请输入产品介绍'
-                  }
-                ]}
-                label="产品介绍"
-              />
-            </ModalForm>
+              <PlusOutlined /> 新建商品
+            </Button>
           )
         ]}
         request={async (params) => {

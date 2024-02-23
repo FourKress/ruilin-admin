@@ -38,10 +38,10 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                   onClick={() => {
                     confirm({
                       title: '确认操作',
-                      content: '确认删除该产品系列吗?',
+                      content: '确认删除该商品吗?',
                       onOk() {
                         axios.get(`/product/delete/${productId}`).then(async () => {
-                          message.success('删除产品系列成功')
+                          message.success('删除商品成功')
                           navigate(-1)
                         })
                       }
@@ -57,14 +57,18 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                     if (!res.name || !res.desc || !res.isComplete) {
                       confirm({
                         title: '确认操作',
-                        content: '请先完善颜色相关信息后再上架',
+                        content: '请先完善相关信息后再上架',
                         onOk() {}
                       })
                       return
                     } else {
+                      const tips = res.isActive
+                        ? '此操作将导致该商品下所有的SKU下架，确认下架该商品吗?'
+                        : '确认上架该商品吗?'
+
                       confirm({
                         title: '确认操作',
-                        content: '确认更改产品系列状态吗?',
+                        content: tips,
                         onOk() {
                           axios
                             .post(`/product/active`, {
@@ -72,7 +76,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                               isActive: !res.isActive
                             })
                             .then(async () => {
-                              message.success('产品系列状态修改成功')
+                              message.success('商品状态修改成功')
                             })
                         }
                       })
@@ -105,23 +109,35 @@ const SeriesDetails: FC<Record<string, any>> = () => {
         <>
           <Card title="基础信息" className={'card'} bordered={false}>
             <Row gutter={24}>
-              <Col md={12}>
+              <Col md={8}>
                 <ProFormText
-                  label={'系列名称'}
+                  label={'商品名称'}
                   name="name"
-                  rules={[{ required: true, message: '请输入系列名称' }]}
-                  placeholder="请输入系列名称"
+                  rules={[{ required: true, message: '请输入商品名称' }]}
+                  placeholder="请输入商品名称"
                 />
               </Col>
-              <Col md={12}>
+              <Col md={8}>
+                <ProFormText
+                  label={'商品编码'}
+                  name="code"
+                  rules={[{ required: true, message: '请输入商品编码' }]}
+                  placeholder="请输入商品编码"
+                />
+              </Col>
+              <Col md={8}>
                 <ProFormTextArea
-                  label={'系列介绍'}
+                  label={'商品介绍'}
                   name="desc"
-                  rules={[{ required: true, message: '请输入系列介绍' }]}
-                  placeholder="请输入系列介绍"
+                  rules={[{ required: true, message: '请输入商品介绍' }]}
+                  placeholder="请输入商品介绍"
                 />
               </Col>
             </Row>
+          </Card>
+
+          <Card title="商品详情" className={'card'} bordered={false}>
+            <Banner productId={productId} />
           </Card>
 
           <Card title="颜色管理" className={'card'} bordered={false}>
@@ -130,10 +146,6 @@ const SeriesDetails: FC<Record<string, any>> = () => {
 
           <Card title="规格管理" className={'card'} bordered={false}>
             <Unit productId={productId} />
-          </Card>
-
-          <Card title="产品详情" className={'card'} bordered={false}>
-            <Banner productId={productId} />
           </Card>
         </>
       </ProForm>
