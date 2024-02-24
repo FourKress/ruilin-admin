@@ -13,10 +13,14 @@ function Summary({ productId }: { productId: string | undefined }) {
 
   const getSummaryList = () => {
     setLoading(true)
-    axios.get(`/product-summary/list/${productId}`).then((res: any) => {
-      setSummaryList(res)
-      setLoading(false)
-    })
+    axios
+      .get(`/product-summary/list/${productId}`)
+      .then((res: any) => {
+        setSummaryList(res)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }
 
   useEffect(() => {

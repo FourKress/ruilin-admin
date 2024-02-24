@@ -39,36 +39,41 @@ function Banner({ productId }: { productId: string | undefined }) {
   const [videoFileList, setVideoFileList] = useState<any[]>([])
   const [previewInfo, setPreviewInfo] = useState({
     visible: false,
-    url: ''
+    url: '',
+    type: ''
   })
 
   const [loading, setLoading] = React.useState<boolean>(false)
 
   const getFileList = () => {
     setLoading(true)
-    axios.get(`/product-banner/list/${productId}`).then((res: any) => {
-      const imageFile: any[] = []
-      const videoFile: any[] = []
-      res.forEach((d: any) => {
-        const item = {
-          uid: d.uid,
-          name: d.fileName,
-          type: d.fileType,
-          id: d.id,
-          url: d.url,
-          status: 'done'
-        }
-        if (d.type === 'video') {
-          videoFile.push(item)
-          return
-        }
+    axios
+      .get(`/product-banner/list/${productId}`)
+      .then((res: any) => {
+        const imageFile: any[] = []
+        const videoFile: any[] = []
+        res.forEach((d: any) => {
+          const item = {
+            uid: d.uid,
+            name: d.fileName,
+            type: d.fileType,
+            id: d.id,
+            url: d.url,
+            status: 'done'
+          }
+          if (d.type === 'video') {
+            videoFile.push(item)
+            return
+          }
 
-        imageFile.push(item)
+          imageFile.push(item)
+        })
+        setFileList(imageFile)
+        setVideoFileList(videoFile)
       })
-      setFileList(imageFile)
-      setVideoFileList(videoFile)
-      setLoading(false)
-    })
+      .finally(() => {
+        setLoading(false)
+      })
   }
 
   useEffect(() => {
@@ -88,7 +93,8 @@ function Banner({ productId }: { productId: string | undefined }) {
     if (!url) return
     setPreviewInfo({
       visible: true,
-      url
+      url,
+      type: file.type || ''
     })
   }
 
@@ -231,11 +237,12 @@ function Banner({ productId }: { productId: string | undefined }) {
           onVisibleChange: (value) => {
             setPreviewInfo({
               visible: value,
-              url: ''
+              url: '',
+              type: ''
             })
           },
           toolbarRender: () => <span></span>,
-          ...(previewInfo.url.includes('blob')
+          ...(previewInfo.url.includes('blob') || previewInfo.type.includes('video')
             ? {
                 imageRender: () => {
                   return (

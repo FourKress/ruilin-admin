@@ -61,22 +61,27 @@ function Color({
   const [colorLoading, setColorLoading] = React.useState<boolean>(false)
   const [previewInfo, setPreviewInfo] = useState({
     visible: false,
-    url: ''
+    url: '',
+    type: ''
   })
 
   const getColorList = () => {
     setColorLoading(true)
-    axios.get(`/product-color/list/${productId}`).then((res: any) => {
-      const list = res.map((d: any) => {
-        return {
-          ...d,
-          smallFileList: [],
-          fileList: []
-        }
+    axios
+      .get(`/product-color/list/${productId}`)
+      .then((res: any) => {
+        const list = res.map((d: any) => {
+          return {
+            ...d,
+            smallFileList: [],
+            fileList: []
+          }
+        })
+        setColorList(list)
       })
-      setColorList(list)
-      setColorLoading(false)
-    })
+      .finally(() => {
+        setColorLoading(false)
+      })
   }
 
   useEffect(() => {
@@ -88,11 +93,13 @@ function Color({
   }, [colorList])
 
   const handlePreview = (file: UploadFile) => {
+    console.log(file)
     const url = file.url || file.thumbUrl
     if (!url) return
     setPreviewInfo({
       visible: true,
-      url
+      url,
+      type: file.type || ''
     })
   }
 
@@ -405,11 +412,12 @@ function Color({
           onVisibleChange: (value) => {
             setPreviewInfo({
               visible: value,
-              url: ''
+              url: '',
+              type: ''
             })
           },
           toolbarRender: () => <span></span>,
-          ...(previewInfo.url.includes('blob')
+          ...(previewInfo.url.includes('blob') || previewInfo.type.includes('video')
             ? {
                 imageRender: () => {
                   return (

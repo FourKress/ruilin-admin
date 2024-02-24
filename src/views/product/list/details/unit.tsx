@@ -55,10 +55,14 @@ function Unit({
 
   const getUnitList = () => {
     setUnitLoading(true)
-    axios.get(`/product-unit/list/${productId}`).then((res: any) => {
-      setUnitList(res)
-      setUnitLoading(false)
-    })
+    axios
+      .get(`/product-unit/list/${productId}`)
+      .then((res: any) => {
+        setUnitList(res)
+      })
+      .finally(() => {
+        setUnitLoading(false)
+      })
   }
 
   useEffect(() => {
