@@ -1,18 +1,17 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { FileImageOutlined, PlusOutlined } from '@ant-design/icons'
+import React, { useEffect, useState } from 'react'
+import { PlusOutlined } from '@ant-design/icons'
 import {
-  ActionType,
   DragSortTable,
   ModalForm,
   PageContainer,
   ProColumns,
-  ProFormText,
-  ProFormUploadDragger
+  ProFormItem,
+  ProFormText
 } from '@ant-design/pro-components'
-import { Badge, Button, Form, Image, message, Modal } from 'antd'
+import { Badge, Button, Form, Image, message, Modal, Upload } from 'antd'
 
 import axios from '@/utils/axios.ts'
-import { uploadFile } from '@/utils/fileUtils.ts'
+import { checkFileSize, uploadFile } from '@/utils/fileUtils.ts'
 
 const { confirm } = Modal
 
@@ -20,7 +19,6 @@ const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
 
 function Banner() {
-  const actionRef = useRef<ActionType>()
   const [modalInfo, setModalInfo] = useState<Record<string, any>>({
     open: false,
     title: '编辑轮播图'
@@ -105,19 +103,22 @@ function Banner() {
             <a
               key="modify"
               onClick={() => {
-                const fileList = [
+                const newFileList = [
                   {
+                    id: record.id,
                     uid: record.uid,
                     name: record.fileName,
                     type: record.fileType,
-                    status: 'done'
+                    status: 'done',
+                    url: record.url
                   }
                 ]
                 form.setFieldsValue({
                   ...record,
-                  fileList
+                  fileList: newFileList
                 })
-                setFileList(fileList)
+                console.log(newFileList)
+                setFileList(newFileList)
                 setModalInfo({
                   open: true,
                   title: '编辑轮播图'
@@ -180,17 +181,17 @@ function Banner() {
   const handleUpdate = async (data: any) => {
     const id = form.getFieldValue('id')
     const {
-      fileList: [file],
+      fileInfo: {
+        fileList: [file]
+      },
       ...other
     } = data
-    console.log(fileList, file)
 
     const { uid, type, name } = file
     const objectKey = `${uid}.${type.replace(/[\w\W]+\//, '')}`
 
     const isUploadFile = file.status !== 'done'
 
-    console.log(name, objectKey, isUploadFile)
     if (isUploadFile) {
       await uploadFile(file.originFileObj, objectKey)
     }
@@ -203,9 +204,8 @@ function Banner() {
       uid,
       fileType: type
     })
-
+    getBannerPage()
     message.success(`轮播图${id ? '编辑' : '新建'}成功`)
-    actionRef.current?.reloadAndRest?.()
   }
 
   const handleActive = (data: any) => {
@@ -215,15 +215,15 @@ function Banner() {
         isActive: !data.isActive
       })
       .then(async () => {
+        getBannerPage()
         message.success('轮播图状态修改成功')
-        actionRef.current?.reloadAndRest?.()
       })
   }
 
   const handleDelete = (data: any) => {
     axios.get(`/banner/delete/${data.id}`).then(async () => {
+      getBannerPage()
       message.success('删除轮播图成功')
-      actionRef.current?.reloadAndRest?.()
     })
   }
 
@@ -242,7 +242,6 @@ function Banner() {
         search={false}
         rowKey="id"
         headerTitle="轮播图列表"
-        actionRef={actionRef}
         columns={columns}
         toolBarRender={() => [
           perms.includes('add-banner') && (
@@ -255,8 +254,10 @@ function Banner() {
                   link: '',
                   desc: '',
                   fileList: [],
-                  id: ''
+                  id: '',
+                  url: ''
                 })
+                setFileList([])
                 setModalInfo({
                   open: true,
                   title: '新建轮播图'
@@ -331,34 +332,46 @@ function Banner() {
             })
           ]}
         />
-        <ProFormUploadDragger
-          name="fileList"
+        <ProFormItem
+          name="fileInfo"
           label="图片"
-          description=""
           rules={[
             {
               required: true,
               message: '请选择图片'
             }
           ]}
-          fieldProps={{
-            maxCount: 1,
-            accept: '.png,.jpg,.jpeg',
-            customRequest: () => {},
-            onRemove: () => {
-              setFileList([])
-            },
-            onChange: ({ fileList }) => {
-              setFileList(fileList)
-            },
-            iconRender: () => <FileImageOutlined />,
-            ...(form.getFieldValue('id')
-              ? {
-                  fileList: fileList
-                }
-              : {})
-          }}
-        />
+        >
+          <Upload
+            accept={'.png,.jpg,.jpeg'}
+            listType="picture-card"
+            fileList={fileList}
+            maxCount={1}
+            onChange={({ file, fileList: newFileList }) => {
+              console.log(file, newFileList)
+              if (newFileList.length && !checkFileSize(file)) {
+                return
+              }
+              setFileList(newFileList)
+            }}
+            beforeUpload={() => false}
+            onPreview={(file) => {
+              const url = file.url || file.thumbUrl
+              if (!url) return
+              setPreviewInfo({
+                visible: true,
+                url
+              })
+            }}
+          >
+            {fileList.length >= 1 ? null : (
+              <button style={{ border: 0, background: 'none' }} type="button">
+                <PlusOutlined />
+                <div style={{ marginTop: 8 }}>上传</div>
+              </button>
+            )}
+          </Upload>
+        </ProFormItem>
       </ModalForm>
 
       <Image

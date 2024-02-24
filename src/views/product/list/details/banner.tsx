@@ -11,6 +11,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { Col, Descriptions, Image, Row, Space, Spin, Upload, UploadFile, UploadProps } from 'antd'
 
 import axios from '@/utils/axios.ts'
+import { checkFileSize } from '@/utils/fileUtils.ts'
 import Summary from '@/views/product/list/details/summary.tsx'
 
 const descList = [
@@ -80,11 +81,18 @@ function Banner({ productId }: { productId: string | undefined }) {
     getFileList()
   }, [])
 
-  const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
+  const handleChange: UploadProps['onChange'] = ({ file, fileList: newFileList }) => {
+    const length = newFileList.length
+    if (length && length > fileList.length && !checkFileSize(file)) {
+      return
+    }
     setFileList(newFileList)
   }
 
-  const handleVideoChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
+  const handleVideoChange: UploadProps['onChange'] = ({ file, fileList: newFileList }) => {
+    if (newFileList.length && !checkFileSize(file)) {
+      return
+    }
     setVideoFileList(newFileList)
   }
 

@@ -1,3 +1,5 @@
+import { message } from 'antd'
+
 import axios from '@/utils/axios.ts'
 
 const uploadFile = async (file: any, objectKey: string) => {
@@ -33,4 +35,12 @@ const deleteFile = async (objectKey: string) => {
   })
 }
 
-export { deleteFile, previewFile, uploadFile }
+const checkFileSize = (file: any) => {
+  const isLt10M = file.size / 1024 / 1024 < 1
+  if (!isLt10M) {
+    message.error('文件须小于 10MB !').then(() => {})
+  }
+  return isLt10M
+}
+
+export { checkFileSize, deleteFile, previewFile, uploadFile }

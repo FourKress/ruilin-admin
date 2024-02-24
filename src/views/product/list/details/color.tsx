@@ -24,6 +24,7 @@ import {
 } from 'antd'
 
 import axios from '@/utils/axios.ts'
+import { checkFileSize } from '@/utils/fileUtils.ts'
 
 import './color.scss'
 
@@ -104,7 +105,12 @@ function Color({
   }
 
   const handleChange = (data: any, item: any) => {
-    const { fileList: newFileList } = data
+    const { file, fileList: newFileList } = data
+
+    const length = newFileList.length
+    if (length && length > item.fileList.length && !checkFileSize(file)) {
+      return
+    }
 
     setColorList(
       colorList.map((d) => {
@@ -118,7 +124,11 @@ function Color({
   }
 
   const handleSmallChange = (data: any, item: any) => {
-    const { fileList: newFileList } = data
+    const { file, fileList: newFileList } = data
+
+    if (newFileList.length && !checkFileSize(file)) {
+      return
+    }
 
     setColorList(
       colorList.map((d) => {
@@ -300,7 +310,7 @@ function Color({
             <Col>
               <Button
                 type="link"
-                style={{ marginLeft: '16px' }}
+                style={{ margin: '-4px -6px 0 16px' }}
                 onClick={() => {
                   confirm({
                     title: '确认操作',
