@@ -9,7 +9,19 @@ import {
   useSortable
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Button, Col, Descriptions, Flex, Image, Input, Modal, Row, Upload, UploadFile } from 'antd'
+import {
+  Button,
+  Col,
+  Descriptions,
+  Flex,
+  Image,
+  Input,
+  message,
+  Modal,
+  Row,
+  Upload,
+  UploadFile
+} from 'antd'
 
 import axios from '@/utils/axios.ts'
 
@@ -38,7 +50,13 @@ const descList = [
   }
 ]
 
-function Color({ productId }: { productId: string | undefined }) {
+function Color({
+  productId,
+  onUpdate
+}: {
+  productId: string | undefined
+  onUpdate: (data: any[]) => void
+}) {
   const [colorList, setColorList] = useState<any[]>([])
   const [colorLoading, setColorLoading] = React.useState<boolean>(false)
   const [previewInfo, setPreviewInfo] = useState({
@@ -48,7 +66,7 @@ function Color({ productId }: { productId: string | undefined }) {
 
   const getColorList = () => {
     setColorLoading(true)
-    axios.get(`/color/list/${productId}`).then((res: any) => {
+    axios.get(`/product-color/list/${productId}`).then((res: any) => {
       const list = res.map((d: any) => {
         return {
           ...d,
@@ -64,6 +82,10 @@ function Color({ productId }: { productId: string | undefined }) {
   useEffect(() => {
     getColorList()
   }, [])
+
+  useEffect(() => {
+    onUpdate(colorList)
+  }, [colorList])
 
   const handlePreview = (file: UploadFile) => {
     const url = file.url || file.thumbUrl
@@ -108,16 +130,21 @@ function Color({ productId }: { productId: string | undefined }) {
     </button>
   )
 
-  const handleColorNameChange = (val: any, item: any) => {
-    setColorList(
-      colorList.map((d) => {
-        const { name, id } = d
-        return {
-          ...d,
-          name: id === item.id ? val : name
-        }
-      })
-    )
+  const handleColorNameChange = async (val: any, item: any) => {
+    if (val && colorList.some((d: any) => d.id !== item.id && d.name === val)) {
+      message.error('颜色名称重复，请重新输入')
+      setColorList([...colorList])
+    } else {
+      setColorList(
+        colorList.map((d) => {
+          const { name, id } = d
+          return {
+            ...d,
+            name: id === item.id ? val : name
+          }
+        })
+      )
+    }
   }
 
   const handleAddColor = () => {
@@ -241,8 +268,8 @@ function Color({ productId }: { productId: string | undefined }) {
                 <Input
                   defaultValue={item.name}
                   placeholder="请输入颜色名称"
-                  onBlur={(val) => {
-                    handleColorNameChange(val.target.value, item)
+                  onBlur={async (e) => {
+                    await handleColorNameChange(e.target.value, item)
                   }}
                 />
               </ProFormItem>
@@ -337,7 +364,7 @@ function Color({ productId }: { productId: string | undefined }) {
           contentStyle={{ color: 'rgba(0, 0, 0, 0.45)' }}
         />
 
-        <Flex justify={'end'} align={'center'}>
+        <Flex justify={'end'} align={'center'} style={{ marginTop: '-10px' }}>
           <Button
             key="primary"
             type={'primary'}

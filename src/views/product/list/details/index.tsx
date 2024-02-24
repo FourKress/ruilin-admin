@@ -1,4 +1,4 @@
-import { FC } from 'react'
+import { FC, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   FooterToolbar,
@@ -22,6 +22,8 @@ const { confirm } = Modal
 const SeriesDetails: FC<Record<string, any>> = () => {
   const { id: productId } = useParams()
   const navigate = useNavigate()
+  const [colorList, setColorList] = useState<any[]>([])
+  const [unitList, setUnitList] = useState<any[]>([])
 
   return (
     <PageContainer breadcrumbRender={false}>
@@ -146,15 +148,25 @@ const SeriesDetails: FC<Record<string, any>> = () => {
       </Card>
 
       <Card title="商品颜色" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
-        <Color productId={productId} />
+        <Color
+          productId={productId}
+          onUpdate={(data) => {
+            setColorList(data)
+          }}
+        />
       </Card>
 
       <Card title="规格管理" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
-        <Unit productId={productId} />
+        <Unit
+          productId={productId}
+          onUpdate={(data) => {
+            setUnitList(data)
+          }}
+        />
       </Card>
 
       <Card title="SKU管理" className={'card'} bordered={false}>
-        <Sku productId={productId} />
+        <Sku productId={productId} colorList={colorList} unitList={unitList} />
       </Card>
     </PageContainer>
   )

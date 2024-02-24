@@ -58,7 +58,15 @@ const defaultData = [
   }
 ]
 
-function Sku({ productId }: { productId: string | undefined }) {
+function Sku({
+  productId,
+  colorList,
+  unitList
+}: {
+  productId: string | undefined
+  colorList: any[]
+  unitList: any[]
+}) {
   console.log(productId)
   const [form] = Form.useForm()
 
@@ -66,6 +74,15 @@ function Sku({ productId }: { productId: string | undefined }) {
     defaultData.map((item) => item.id)
   )
   const [dataSource, setDataSource] = useState<any[]>(() => defaultData)
+
+  console.log(colorList)
+  console.log(unitList)
+
+  // consg handleFormData = () => {
+  //   const data = unitList.map()
+  // }
+
+  // useEffect(() => {}, [unitList, colorList])
 
   const columns: any[] = [
     {
@@ -128,7 +145,6 @@ function Sku({ productId }: { productId: string | undefined }) {
         className={'series-details'}
         layout="inline"
         submitter={false}
-        initialValues={{ price: '1', stock: '123123' }}
         onFinish={async (val) => {
           console.log(val)
         }}
@@ -138,22 +154,26 @@ function Sku({ productId }: { productId: string | undefined }) {
           label={'批量设置'}
           name={'color'}
           placeholder="请选择颜色"
-          request={async () => [
-            { label: '全部', value: 'all' },
-            { label: '未解决', value: 'open' },
-            { label: '已解决', value: 'closed' },
-            { label: '解决中', value: 'processing' }
-          ]}
+          request={async () =>
+            colorList.map((d) => {
+              return {
+                label: d.name,
+                value: d.id
+              }
+            })
+          }
         ></ProFormSelect>
         <ProFormSelect
           name={'unit'}
           placeholder="请选择规格"
-          request={async () => [
-            { label: '全部', value: 'all' },
-            { label: '未解决', value: 'open' },
-            { label: '已解决', value: 'closed' },
-            { label: '解决中', value: 'processing' }
-          ]}
+          request={async () =>
+            unitList.map((d) => {
+              return {
+                label: d.name,
+                value: d.id
+              }
+            })
+          }
         ></ProFormSelect>
         <ProFormText name={'stock'} placeholder="当前库存"></ProFormText>
         <ProFormText name={'price'} placeholder="价格"></ProFormText>

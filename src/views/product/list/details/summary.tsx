@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
 import { DragSortTable, ProColumns } from '@ant-design/pro-components'
-import { Button, Flex, Input, Modal, Space } from 'antd'
+import { Button, Flex, Input, message, Modal, Space } from 'antd'
 
 import axios from '@/utils/axios.ts'
 
@@ -35,7 +35,28 @@ function Summary({ productId }: { productId: string | undefined }) {
       dataIndex: 'name',
       width: 260,
       render: (_, record) => {
-        return <Input defaultValue={record.name} placeholder="请输入标题" />
+        return (
+          <Input
+            defaultValue={record.name}
+            placeholder="请输入标题"
+            onBlur={async (e) => {
+              const value = e.target.value
+              if (value && summaryList.some((d: any) => d.id !== record.id && d.name === value)) {
+                message.error('简介标题重复，请重新输入')
+                setSummaryList([...summaryList])
+              } else {
+                setSummaryList(
+                  summaryList.map((d: any) => {
+                    return {
+                      ...d,
+                      name: record.id === d.id ? value : d.name
+                    }
+                  })
+                )
+              }
+            }}
+          />
+        )
       }
     },
     {
@@ -43,7 +64,23 @@ function Summary({ productId }: { productId: string | undefined }) {
       dataIndex: 'desc',
       ellipsis: true,
       render: (_, record) => {
-        return <Input.TextArea defaultValue={record.desc} placeholder="请输入内容" />
+        return (
+          <Input.TextArea
+            defaultValue={record.desc}
+            placeholder="请输入内容"
+            onBlur={async (e) => {
+              const value = e.target.value
+              setSummaryList(
+                summaryList.map((d: any) => {
+                  return {
+                    ...d,
+                    desc: record.id === d.id ? value : d.desc
+                  }
+                })
+              )
+            }}
+          />
+        )
       }
     },
     {

@@ -16,7 +16,19 @@ import {
   useSortable
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Button, Col, ConfigProvider, Flex, Input, Modal, Row, Space, Tag, theme } from 'antd'
+import {
+  Button,
+  Col,
+  ConfigProvider,
+  Flex,
+  Input,
+  message,
+  Modal,
+  Row,
+  Space,
+  Tag,
+  theme
+} from 'antd'
 
 import axios from '@/utils/axios.ts'
 
@@ -24,7 +36,15 @@ import './unit.scss'
 
 const { confirm } = Modal
 
-function Unit({ productId }: { productId: string | undefined }) {
+const addTagId = Date.now()
+
+function Unit({
+  productId,
+  onUpdate
+}: {
+  productId: string | undefined
+  onUpdate: (data: any[]) => void
+}) {
   const [unitList, setUnitList] = useState<any[]>([])
   const [unitLoading, setUnitLoading] = React.useState<boolean>(false)
   const { token } = theme.useToken()
@@ -35,7 +55,7 @@ function Unit({ productId }: { productId: string | undefined }) {
 
   const getUnitList = () => {
     setUnitLoading(true)
-    axios.get(`/unit/list/${productId}`).then((res: any) => {
+    axios.get(`/product-unit/list/${productId}`).then((res: any) => {
       setUnitList(res)
       setUnitLoading(false)
     })
@@ -44,6 +64,10 @@ function Unit({ productId }: { productId: string | undefined }) {
   useEffect(() => {
     getUnitList()
   }, [])
+
+  useEffect(() => {
+    onUpdate(unitList)
+  }, [unitList])
 
   type DraggableTagProps = {
     tag: any
@@ -80,27 +104,49 @@ function Unit({ productId }: { productId: string | undefined }) {
           }}
           defaultValue={''}
           placeholder="请输入"
-          onBlur={(val) => {
-            const value = val.target.value
+          onBlur={async (e) => {
+            const value = e.target.value
             if (!value) return
-            setUnitList(
-              unitList.map((d) => {
-                const { id, tags } = d
+
+            const tags = unit.tags
+            if (value && tags.some((d: any) => d.id !== tag.id && d.name === value)) {
+              message.error('规格属性重复，请重新输入')
+              const list = tags.map((d: any) => {
                 return {
                   ...d,
-                  tags:
-                    id === unit.id
-                      ? [
-                          ...tags,
-                          {
-                            name: value,
-                            id: Date.now()
-                          }
-                        ]
-                      : tags
+                  name: tag.id === d.id ? '' : d.name
                 }
               })
-            )
+
+              setUnitList(
+                unitList.map((d) => {
+                  const { id, tags } = d
+                  return {
+                    ...d,
+                    tags: id === unit.id ? list : tags
+                  }
+                })
+              )
+            } else {
+              setUnitList(
+                unitList.map((d) => {
+                  const { id, tags } = d
+                  return {
+                    ...d,
+                    tags:
+                      id === unit.id
+                        ? [
+                            ...tags,
+                            {
+                              name: value,
+                              id: Date.now()
+                            }
+                          ]
+                        : tags
+                  }
+                })
+              )
+            }
 
             setTimeout(() => {
               const input: any = document.querySelector(`.add-btn_${unit.id}`)!
@@ -129,8 +175,33 @@ function Unit({ productId }: { productId: string | undefined }) {
               }}
               defaultValue={tag.name}
               placeholder="请输入"
-              onBlur={(val) => {
-                console.log(val)
+              onBlur={async (e) => {
+                const value = e.target.value
+                let list: any[] = []
+                const tags = unit.tags
+
+                if (value && tags.some((d: any) => d.id !== tag.id && d.name === value)) {
+                  message.error('规格属性重复，请重新输入')
+                  list = tags
+                } else {
+                  list = tags.map((d: any) => {
+                    const { name, id } = d
+                    return {
+                      ...d,
+                      name: id === tag.id ? value : name
+                    }
+                  })
+                }
+
+                setUnitList(
+                  unitList.map((d) => {
+                    const { id, tags } = d
+                    return {
+                      ...d,
+                      tags: id === unit.id ? list : tags
+                    }
+                  })
+                )
               }}
             />
           }
@@ -170,8 +241,8 @@ function Unit({ productId }: { productId: string | undefined }) {
                 <Input
                   defaultValue={item.name}
                   placeholder="请输入规格名称"
-                  onBlur={(val) => {
-                    handleUnitNameChange(val.target.value, item)
+                  onBlur={async (e) => {
+                    await handleUnitNameChange(e.target.value, item)
                   }}
                 />
               </ProFormItem>
@@ -207,7 +278,7 @@ function Unit({ productId }: { productId: string | undefined }) {
                     items={item.tags.map((i: any) => i.id)}
                     strategy={horizontalListSortingStrategy}
                   >
-                    {[...item.tags, { type: 'add', id: Date.now() }].map((tag: any) => {
+                    {[...item.tags, { type: 'add', id: addTagId }].map((tag: any) => {
                       return <DraggableTag tag={tag} key={tag.id} unit={item} />
                     })}
                   </SortableContext>
@@ -267,16 +338,21 @@ function Unit({ productId }: { productId: string | undefined }) {
     marginBottom: '8px'
   }
 
-  const handleUnitNameChange = (val: any, item: any) => {
-    setUnitList(
-      unitList.map((d) => {
-        const { name, id } = d
-        return {
-          ...d,
-          name: id === item.id ? val : name
-        }
-      })
-    )
+  const handleUnitNameChange = async (val: any, item: any) => {
+    if (val && unitList.some((d: any) => d.id !== item.id && d.name === val)) {
+      message.error('规格名称重复，请重新输入')
+      setUnitList([...unitList])
+    } else {
+      setUnitList(
+        unitList.map((d) => {
+          const { name, id } = d
+          return {
+            ...d,
+            name: id === item.id ? val : name
+          }
+        })
+      )
+    }
   }
   const handleClose = (id: string, unit: any) => {
     if (unit.tags.length === 1) {
@@ -311,7 +387,7 @@ function Unit({ productId }: { productId: string | undefined }) {
       submitter={false}
       onValuesChange={(changeValues) => console.log(changeValues)}
     >
-      <Flex justify={'end'} align={'center'}>
+      <Flex justify={'end'} align={'center'} style={{ marginTop: '-10px' }}>
         <Button
           key="primary"
           type={'primary'}
