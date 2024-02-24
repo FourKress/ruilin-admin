@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
-import {
-  DragSortTable,
-  ModalForm,
-  ProColumns,
-  ProFormText,
-  ProFormTextArea
-} from '@ant-design/pro-components'
-import { Button, Flex, Form, Input, Modal, Space } from 'antd'
+import { DragSortTable, ProColumns } from '@ant-design/pro-components'
+import { Button, Flex, Input, Modal, Space } from 'antd'
 
 import axios from '@/utils/axios.ts'
 
@@ -15,7 +9,6 @@ const { confirm } = Modal
 
 function Summary({ productId }: { productId: string | undefined }) {
   const [summaryList, setSummaryList] = useState<any[]>([])
-  const [form] = Form.useForm()
   const [loading, setLoading] = React.useState<boolean>(false)
 
   const getSummaryList = () => {
@@ -91,56 +84,19 @@ function Summary({ productId }: { productId: string | undefined }) {
 
   return (
     <Space direction={'vertical'} size={'middle'} style={{ width: '100%' }}>
-      <Flex
-        style={{ height: '28px', marginTop: '20px' }}
-        justify={'space-between'}
-        align={'center'}
-      >
+      <Flex style={{ height: '28px' }} justify={'space-between'} align={'center'}>
         <h4>文字简介</h4>
 
-        <ModalForm<{
-          name: string
-          desc: string
-        }>
-          trigger={
-            <Button type="primary" key="primary">
-              <PlusOutlined /> 新建
-            </Button>
-          }
-          title={'新建简介'}
-          form={form}
-          autoFocusFirstInput
-          width={400}
-          modalProps={{
-            destroyOnClose: true
-          }}
-          onFinish={async (values) => {
-            console.log(values)
-            setSummaryList([...summaryList, { ...values }])
+        <Button
+          type="primary"
+          key="primary"
+          onClick={() => {
+            setSummaryList([...summaryList, { name: '', desc: '', id: Date.now() }])
             return true
           }}
         >
-          <ProFormText
-            name="name"
-            rules={[
-              {
-                required: true,
-                message: '请输入简介名称'
-              }
-            ]}
-            label="简介名称"
-          />
-          <ProFormTextArea
-            name="desc"
-            rules={[
-              {
-                required: true,
-                message: '请输入简介详情'
-              }
-            ]}
-            label="简介详情"
-          />
-        </ModalForm>
+          <PlusOutlined /> 新建
+        </Button>
       </Flex>
 
       <DragSortTable
@@ -148,6 +104,7 @@ function Summary({ productId }: { productId: string | undefined }) {
         onDragSortEnd={handleDragSortEnd}
         loading={loading}
         dataSource={summaryList}
+        size={'small'}
         options={{
           reload: false,
           setting: false,

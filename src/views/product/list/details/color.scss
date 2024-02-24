@@ -1,8 +1,4 @@
 .color-card {
-  .ant-pro-checkcard-body {
-    padding: 8px 20px !important;
-  }
-
   .color-upload {
     .ant-upload-list-item-container, .ant-upload-select {
       width: 52px !important;
@@ -14,5 +10,17 @@
     .ant-upload-select, .ant-upload-list-item-container {
       margin:  0 !important;
     }
+  }
+
+  .color-card-item {
+    border: 1px solid rgb(217, 217, 217);;
+    border-radius: 6px;
+    margin: 8px;
+    padding: 8px;
+
+    &:hover {
+      border-color: #1677ff;
+    }
+
   }
 }

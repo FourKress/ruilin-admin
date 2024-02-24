@@ -151,7 +151,7 @@ function Banner({ productId }: { productId: string | undefined }) {
         contentStyle={{ color: 'rgba(0, 0, 0, 0.45)' }}
       />
 
-      <Row gutter={24} style={{ marginTop: '16px' }}>
+      <Row gutter={24}>
         <Col>
           <Space direction={'vertical'}>
             <h4>介绍视频</h4>

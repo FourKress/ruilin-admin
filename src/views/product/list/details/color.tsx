@@ -1,13 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { EyeOutlined, PlusOutlined } from '@ant-design/icons'
-import {
-  ModalForm,
-  ProForm,
-  ProFormItem,
-  ProFormText,
-  ProFormUploadDragger,
-  ProList
-} from '@ant-design/pro-components'
+import { ProForm, ProFormItem, ProList } from '@ant-design/pro-components'
 import { DndContext, DragEndEvent, PointerSensor, useSensor } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -16,15 +9,13 @@ import {
   useSortable
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Col, Descriptions, Flex, Form, Image, Modal, Row, Space, Upload, UploadFile } from 'antd'
+import { Button, Col, Descriptions, Flex, Image, Input, Modal, Row, Upload, UploadFile } from 'antd'
 
 import axios from '@/utils/axios.ts'
 
 import './color.scss'
 
 const { confirm } = Modal
-
-let rawColorList: any[]
 
 const descList = [
   {
@@ -48,12 +39,7 @@ const descList = [
 ]
 
 function Color({ productId }: { productId: string | undefined }) {
-  const [modalInfo, setModalInfo] = useState<Record<string, any>>({
-    open: false,
-    title: '编辑颜色'
-  })
-  const [colorForm] = Form.useForm()
-  const [colorList, setColorList] = useState([])
+  const [colorList, setColorList] = useState<any[]>([])
   const [colorLoading, setColorLoading] = React.useState<boolean>(false)
   const [previewInfo, setPreviewInfo] = useState({
     visible: false,
@@ -70,9 +56,7 @@ function Color({ productId }: { productId: string | undefined }) {
           fileList: []
         }
       })
-      rawColorList = []
-      rawColorList.push(...list)
-      setColorList(handleRenderFormat(list))
+      setColorList(list)
       setColorLoading(false)
     })
   }
@@ -80,14 +64,6 @@ function Color({ productId }: { productId: string | undefined }) {
   useEffect(() => {
     getColorList()
   }, [])
-
-  // const handleDragSortEnd = async (
-  //   _beforeIndex: number,
-  //   _afterIndex: number,
-  //   newDataSource: any
-  // ) => {
-  //   setColorList(newDataSource)
-  // }
 
   const handlePreview = (file: UploadFile) => {
     const url = file.url || file.thumbUrl
@@ -101,31 +77,29 @@ function Color({ productId }: { productId: string | undefined }) {
   const handleChange = (data: any, item: any) => {
     const { fileList: newFileList } = data
 
-    rawColorList = [
-      ...rawColorList.map((d) => {
+    setColorList(
+      colorList.map((d) => {
         const { name, fileList: list } = d
         return {
           ...d,
           fileList: name === item.name ? [...newFileList] : list
         }
       })
-    ]
-    setColorList(handleRenderFormat(rawColorList))
+    )
   }
 
   const handleSmallChange = (data: any, item: any) => {
     const { fileList: newFileList } = data
 
-    rawColorList = [
-      ...rawColorList.map((d) => {
+    setColorList(
+      colorList.map((d) => {
         const { name, smallFileList } = d
         return {
           ...d,
           smallFileList: name === item.name ? [...newFileList] : smallFileList
         }
       })
-    ]
-    setColorList(handleRenderFormat(rawColorList))
+    )
   }
 
   const uploadButton = (
@@ -134,100 +108,29 @@ function Color({ productId }: { productId: string | undefined }) {
     </button>
   )
 
-  const handleRenderFormat = (res: any) => {
-    return res.map((item: any) => ({
-      title: item.name,
-      actions: [
-        <a
-          key="delete"
-          onClick={() => {
-            confirm({
-              title: '确认操作',
-              content: '确认删除该颜色吗?',
-              onOk: async () => {
-                const list = rawColorList.filter((d) => d.name !== item.name)
-                rawColorList = [...list]
-                setColorList(handleRenderFormat(list))
-              }
-            })
-          }}
-        >
-          删除
-        </a>
-      ],
-      avatar: 'https://gw.alipayobjects.com/zos/antfincdn/UCSiy1j6jx/xingzhuang.svg',
-      content: (
-        <div
-          style={{
-            flex: 1
-          }}
-        >
-          <Row justify={'space-between'} align={'top'}>
-            <Col flex={1} style={{ marginRight: '16px' }}>
-              <ProFormText
-                className={'color-name'}
-                label={'颜色名称'}
-                name="name"
-                placeholder="请输入颜色名称"
-              />
-            </Col>
-            <Col>
-              <ProFormItem label={'缩略图'}>
-                <Upload
-                  className={'color-upload small-upload'}
-                  accept={'.png,.jpg,.jpeg'}
-                  listType="picture-card"
-                  fileList={item.smallFileList}
-                  maxCount={1}
-                  onPreview={handlePreview}
-                  onChange={(data) => handleSmallChange(data, item)}
-                  beforeUpload={() => false}
-                >
-                  {item.smallFileList.length >= 1 ? null : uploadButton}
-                </Upload>
-              </ProFormItem>
-            </Col>
-          </Row>
-          <Flex vertical={true} justify={'space-between'} align={'flex-start'}>
-            <Flex style={{ width: '100%' }} justify={'start'} align={'start'}>
-              <ProFormItem label={'图片视频'}>
-                <DndContext sensors={[sensor]} onDragEnd={(e) => onDragEnd(e, item)}>
-                  <SortableContext
-                    items={item.fileList.map((i: any) => i.uid)}
-                    strategy={horizontalListSortingStrategy}
-                  >
-                    <Upload
-                      className={'color-upload'}
-                      accept={
-                        item.fileList.some((f: any) => f.type.includes('video'))
-                          ? '.png,.jpg,.jpeg'
-                          : '.png,.jpg,.jpeg,.mp4'
-                      }
-                      listType="picture-card"
-                      fileList={item.fileList}
-                      maxCount={9}
-                      onPreview={handlePreview}
-                      onChange={(data) => handleChange(data, item)}
-                      beforeUpload={(file: any) => {
-                        if (file.type.includes('video')) {
-                          file.url = URL.createObjectURL(file)
-                        }
-                        return false
-                      }}
-                      itemRender={(originNode, file) => {
-                        return <DraggableUploadListItem originNode={originNode} file={file} />
-                      }}
-                    >
-                      {item.fileList.length >= 10 ? null : uploadButton}
-                    </Upload>
-                  </SortableContext>
-                </DndContext>
-              </ProFormItem>
-            </Flex>
-          </Flex>
-        </div>
-      )
-    }))
+  const handleColorNameChange = (val: any, item: any) => {
+    setColorList(
+      colorList.map((d) => {
+        const { name, id } = d
+        return {
+          ...d,
+          name: id === item.id ? val : name
+        }
+      })
+    )
+  }
+
+  const handleAddColor = () => {
+    setColorList([
+      ...colorList,
+      {
+        name: '',
+        smallFileList: [],
+        fileList: [],
+        id: Date.now(),
+        uid: Date.now()
+      }
+    ])
   }
 
   const sensor = useSensor(PointerSensor, {
@@ -237,25 +140,33 @@ function Color({ productId }: { productId: string | undefined }) {
   const onDragEnd = (event: DragEndEvent, item: any) => {
     const { active, over } = event
     if (!over) return
-    if (active.id !== over?.id) {
-      if (active.id !== over.id) {
-        const list = item.fileList
+    if (active.id !== over.id) {
+      const list = item.fileList
 
-        const activeIndex = list.findIndex((d: any) => d.uid === active.id)
-        const overIndex = list.findIndex((d: any) => d.uid === over.id)
-        const sortList = arrayMove(list, activeIndex, overIndex)
+      const activeIndex = list.findIndex((d: any) => d.uid === active.id)
+      const overIndex = list.findIndex((d: any) => d.uid === over.id)
+      const sortList = arrayMove(list, activeIndex, overIndex)
 
-        setColorList(
-          handleRenderFormat(
-            rawColorList.map((d: any) => {
-              return {
-                ...d,
-                fileList: d.uid === item.uid ? sortList : d.fileList
-              }
-            })
-          )
-        )
-      }
+      setColorList(
+        colorList.map((d: any) => {
+          return {
+            ...d,
+            fileList: d.uid === item.uid ? sortList : d.fileList
+          }
+        })
+      )
+    }
+  }
+
+  const onListItemDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over) return
+    if (active.id !== over.id) {
+      setColorList((prev) => {
+        const activeIndex = prev.findIndex((i) => i.id === active.id)
+        const overIndex = prev.findIndex((i) => i.id === over?.id)
+        return arrayMove(prev, activeIndex, overIndex)
+      })
     }
   }
 
@@ -299,136 +210,195 @@ function Color({ productId }: { productId: string | undefined }) {
     )
   }
 
+  interface DraggableListItemProps {
+    item: any
+  }
+
+  const DraggableListItem = ({ item }: DraggableListItemProps) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+      id: item.id
+    })
+
+    const style: React.CSSProperties = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      cursor: 'move',
+      height: '100%'
+    }
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={isDragging ? 'is-dragging' : ''}
+        {...attributes}
+        {...listeners}
+      >
+        <div className={'color-card-item'}>
+          <Row justify={'space-between'} align={'top'}>
+            <Col flex={1} style={{ marginRight: '16px' }}>
+              <ProFormItem label={'颜色名称'} className={'color-name'}>
+                <Input
+                  defaultValue={item.name}
+                  placeholder="请输入颜色名称"
+                  onBlur={(val) => {
+                    handleColorNameChange(val.target.value, item)
+                  }}
+                />
+              </ProFormItem>
+            </Col>
+            <Col>
+              <ProFormItem label={'缩略图'}>
+                <Upload
+                  className={'color-upload small-upload'}
+                  accept={'.png,.jpg,.jpeg'}
+                  listType="picture-card"
+                  fileList={item.smallFileList}
+                  maxCount={1}
+                  onPreview={handlePreview}
+                  onChange={(data) => handleSmallChange(data, item)}
+                  beforeUpload={() => false}
+                >
+                  {item.smallFileList.length >= 1 ? null : uploadButton}
+                </Upload>
+              </ProFormItem>
+            </Col>
+            <Col>
+              <Button
+                type="link"
+                style={{ marginLeft: '16px' }}
+                onClick={() => {
+                  confirm({
+                    title: '确认操作',
+                    content: '确认删除该颜色吗?',
+                    onOk: async () => {
+                      setColorList(colorList.filter((d) => d.id !== item.id))
+                    }
+                  })
+                }}
+              >
+                删除
+              </Button>
+            </Col>
+          </Row>
+          <Flex vertical={true} justify={'space-between'} align={'flex-start'}>
+            <Flex style={{ width: '100%' }} justify={'start'} align={'start'}>
+              <ProFormItem label={'图片视频'}>
+                <DndContext sensors={[sensor]} onDragEnd={(e) => onDragEnd(e, item)}>
+                  <SortableContext
+                    items={item.fileList.map((i: any) => i.uid)}
+                    strategy={horizontalListSortingStrategy}
+                  >
+                    <Upload
+                      className={'color-upload'}
+                      accept={
+                        item.fileList.some((f: any) => f.type.includes('video'))
+                          ? '.png,.jpg,.jpeg'
+                          : '.png,.jpg,.jpeg,.mp4'
+                      }
+                      listType="picture-card"
+                      fileList={item.fileList}
+                      maxCount={9}
+                      onPreview={handlePreview}
+                      onChange={(data) => handleChange(data, item)}
+                      beforeUpload={(file: any) => {
+                        if (file.type.includes('video')) {
+                          file.url = URL.createObjectURL(file)
+                        }
+                        return false
+                      }}
+                      itemRender={(originNode, file) => {
+                        return <DraggableUploadListItem originNode={originNode} file={file} />
+                      }}
+                    >
+                      {item.fileList.length >= 10 ? null : uploadButton}
+                    </Upload>
+                  </SortableContext>
+                </DndContext>
+              </ProFormItem>
+            </Flex>
+          </Flex>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <ProForm className={'series-details'} layout="horizontal" submitter={false}>
-      <Space direction={'vertical'}>
+    <>
+      <ProForm
+        className={'series-details'}
+        layout="horizontal"
+        submitter={false}
+        onValuesChange={(changeValues) => console.log(changeValues)}
+      >
         <Descriptions
           items={descList}
           size={'small'}
           contentStyle={{ color: 'rgba(0, 0, 0, 0.45)' }}
         />
-        <ProList<any>
-          className={'color-card'}
-          pagination={false}
-          rowSelection={false}
-          loading={colorLoading}
-          grid={{ gutter: 16, column: 3 }}
-          metas={{
-            title: {},
-            type: {},
-            avatar: {},
-            content: {},
-            actions: {
-              cardActionProps: 'extra'
-            }
-          }}
-          dataSource={colorList}
-        />
-        <ModalForm<{
-          name: string
-          link: string
-          desc: string
-        }>
-          open={modalInfo.open}
-          initialValues={{}}
-          title={modalInfo.title}
-          form={colorForm}
-          autoFocusFirstInput
-          width={400}
-          modalProps={{
-            onCancel: () => {
-              setModalInfo({ open: false })
-            }
-          }}
-          onFinish={async (values) => {
-            console.log(values)
-            return true
-          }}
-        >
-          <ProFormText
-            name="name"
-            label="颜色名称"
-            placeholder={'请输入1-20位颜色名称'}
-            fieldProps={{
-              maxLength: 20
+
+        <Flex justify={'end'} align={'center'}>
+          <Button
+            key="primary"
+            type={'primary'}
+            onClick={() => {
+              handleAddColor()
             }}
-            rules={[
-              () => ({
-                validator(_, value) {
-                  if (value && value.length > 10) {
-                    return Promise.reject(new Error('请输入1-20位颜色名称'))
-                  }
-                  return Promise.resolve()
+          >
+            <PlusOutlined /> 新建
+          </Button>
+        </Flex>
+
+        <DndContext sensors={[sensor]} onDragEnd={(e) => onListItemDragEnd(e)}>
+          <SortableContext
+            items={colorList.map((i: any) => i.id)}
+            strategy={horizontalListSortingStrategy}
+          >
+            <ProList<any>
+              className={'color-card'}
+              pagination={false}
+              rowSelection={false}
+              loading={colorLoading}
+              grid={{ gutter: 16, column: 3 }}
+              dataSource={colorList}
+              size={'small'}
+              renderItem={(item) => {
+                return <DraggableListItem item={item} />
+              }}
+            />
+          </SortableContext>
+        </DndContext>
+      </ProForm>
+
+      <Image
+        width={200}
+        style={{ display: 'none' }}
+        preview={{
+          visible: previewInfo.visible,
+          onVisibleChange: (value) => {
+            setPreviewInfo({
+              visible: value,
+              url: ''
+            })
+          },
+          toolbarRender: () => <span></span>,
+          ...(previewInfo.url.includes('blob')
+            ? {
+                imageRender: () => {
+                  return (
+                    <video width="420" height="440" controls>
+                      <source src={previewInfo.url} type="video/mp4" />
+                      您的浏览器不支持 Video 标签。
+                    </video>
+                  )
                 }
-              })
-            ]}
-          />
-          <ProFormText
-            name="desc"
-            label="描述"
-            placeholder={'请输入描述'}
-            fieldProps={{
-              maxLength: 50
-            }}
-            rules={[
-              () => ({
-                validator(_, value) {
-                  if (value && value.length > 50) {
-                    return Promise.reject(new Error('描述最多50个字'))
-                  }
-                  return Promise.resolve()
-                }
-              })
-            ]}
-          />
-          <ProFormUploadDragger
-            name="fileList"
-            label="图片"
-            description=""
-            rules={[
-              {
-                required: true,
-                message: '请选择图片'
               }
-            ]}
-            fieldProps={{
-              maxCount: 10,
-              accept: '.png,.jpg,.jpeg',
-              customRequest: () => {},
-              onRemove: () => {}
-            }}
-          />
-        </ModalForm>
-        <Image
-          width={200}
-          style={{ display: 'none' }}
-          preview={{
-            visible: previewInfo.visible,
-            onVisibleChange: (value) => {
-              setPreviewInfo({
-                visible: value,
-                url: ''
+            : {
+                src: previewInfo.url
               })
-            },
-            toolbarRender: () => <span></span>,
-            ...(previewInfo.url.includes('blob')
-              ? {
-                  imageRender: () => {
-                    return (
-                      <video width="420" height="440" controls>
-                        <source src={previewInfo.url} type="video/mp4" />
-                        您的浏览器不支持 Video 标签。
-                      </video>
-                    )
-                  }
-                }
-              : {
-                  src: previewInfo.url
-                })
-          }}
-        />
-      </Space>
-    </ProForm>
+        }}
+      />
+    </>
   )
 }
 
