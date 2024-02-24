@@ -12,6 +12,7 @@ import { Button, Card, Col, message, Modal, Row } from 'antd'
 import axios from '@/utils/axios.ts'
 import Banner from '@/views/product/list/details/banner.tsx'
 import Color from '@/views/product/list/details/color.tsx'
+import Sku from '@/views/product/list/details/sku.tsx'
 import Unit from '@/views/product/list/details/unit.tsx'
 
 import './style.scss'
@@ -29,26 +30,36 @@ const SeriesDetails: FC<Record<string, any>> = () => {
         layout="horizontal"
         submitter={{
           render: (props: any, _dom: any) => {
-            const details = props.form.getFieldValue() || {}
             return (
-              <FooterToolbar>
+              <FooterToolbar
+                extra={
+                  <Button
+                    type="primary"
+                    danger
+                    onClick={() => {
+                      confirm({
+                        title: '确认操作',
+                        content: '确认删除该商品吗?',
+                        onOk() {
+                          axios.get(`/product/delete/${productId}`).then(async () => {
+                            message.success('删除商品成功')
+                            navigate(-1)
+                          })
+                        }
+                      })
+                    }}
+                  >
+                    删除
+                  </Button>
+                }
+              >
                 <Button
                   type="primary"
-                  danger
-                  onClick={() => {
-                    confirm({
-                      title: '确认操作',
-                      content: '确认删除该商品吗?',
-                      onOk() {
-                        axios.get(`/product/delete/${productId}`).then(async () => {
-                          message.success('删除商品成功')
-                          navigate(-1)
-                        })
-                      }
-                    })
+                  onClick={async () => {
+                    props.form?.submit?.()
                   }}
                 >
-                  删除
+                  保存
                 </Button>
                 <Button
                   type="primary"
@@ -61,14 +72,10 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                         onOk() {}
                       })
                       return
-                    } else {
-                      const tips = res.isActive
-                        ? '此操作将导致该商品下所有的SKU下架，确认下架该商品吗?'
-                        : '确认上架该商品吗?'
-
+                    } else if (!res.isActive) {
                       confirm({
                         title: '确认操作',
-                        content: tips,
+                        content: '确认上架该商品吗?',
                         onOk() {
                           axios
                             .post(`/product/active`, {
@@ -76,22 +83,14 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                               isActive: !res.isActive
                             })
                             .then(async () => {
-                              message.success('商品状态修改成功')
+                              message.success('商品上架成功')
                             })
                         }
                       })
                     }
                   }}
                 >
-                  {details.isActive ? '下架' : '上架'}
-                </Button>
-                <Button
-                  type="primary"
-                  onClick={async () => {
-                    props.form?.submit?.()
-                  }}
-                >
-                  保存
+                  保存并上架
                 </Button>
               </FooterToolbar>
             )
@@ -150,8 +149,12 @@ const SeriesDetails: FC<Record<string, any>> = () => {
         <Color productId={productId} />
       </Card>
 
-      <Card title="规格管理" className={'card'} bordered={false}>
+      <Card title="规格管理" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
         <Unit productId={productId} />
+      </Card>
+
+      <Card title="SKU管理" className={'card'} bordered={false}>
+        <Sku productId={productId} />
       </Card>
     </PageContainer>
   )

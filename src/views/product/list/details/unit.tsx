@@ -203,8 +203,11 @@ function Unit({ productId }: { productId: string | undefined }) {
                   onDragEnd={(e) => handleDragEnd(e, item)}
                   collisionDetection={closestCenter}
                 >
-                  <SortableContext items={item.tags} strategy={horizontalListSortingStrategy}>
-                    {[...item.tags, { type: 'add' }].map((tag: any) => {
+                  <SortableContext
+                    items={item.tags.map((i: any) => i.id)}
+                    strategy={horizontalListSortingStrategy}
+                  >
+                    {[...item.tags, { type: 'add', id: Date.now() }].map((tag: any) => {
                       return <DraggableTag tag={tag} key={tag.id} unit={item} />
                     })}
                   </SortableContext>
