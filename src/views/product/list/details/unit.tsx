@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useState } from 'react'
 import { HolderOutlined, PlusOutlined } from '@ant-design/icons'
-import { ProForm, ProFormItem, ProList } from '@ant-design/pro-components'
+import { DragSortTable, ProColumns } from '@ant-design/pro-components'
 import {
   closestCenter,
   DndContext,
@@ -15,20 +15,7 @@ import {
   SortableContext,
   useSortable
 } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import {
-  Button,
-  Col,
-  ConfigProvider,
-  Flex,
-  Input,
-  message,
-  Modal,
-  Row,
-  Space,
-  Tag,
-  theme
-} from 'antd'
+import { Button, ConfigProvider, Input, message, Modal, Space, Tag, theme } from 'antd'
 
 import axios from '@/utils/axios.ts'
 
@@ -86,8 +73,7 @@ function Unit({
       cursor: 'move',
       transition: 'unset',
       height: '32px',
-      lineHeight: '32px',
-      marginBottom: '8px'
+      lineHeight: '32px'
     }
 
     const style = transform
@@ -214,91 +200,7 @@ function Unit({
     )
   }
 
-  interface DraggableListItemProps {
-    item: any
-  }
-
-  const DraggableListItem = ({ item }: DraggableListItemProps) => {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-      id: item.id
-    })
-
-    const style: React.CSSProperties = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      cursor: 'move',
-      height: '100%'
-    }
-
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className={isDragging ? 'is-dragging' : ''}
-        {...attributes}
-        {...listeners}
-      >
-        <div className={'unit-card-item'}>
-          <Row justify={'space-between'} align={'top'}>
-            <Col flex={1} style={{ marginRight: '16px' }}>
-              <ProFormItem label={'规格名称'} className={'unit-name'}>
-                <Input
-                  defaultValue={item.name}
-                  placeholder="请输入规格名称"
-                  onBlur={async (e) => {
-                    await handleUnitNameChange(e.target.value, item)
-                  }}
-                />
-              </ProFormItem>
-            </Col>
-            <Col>
-              <Button
-                type="link"
-                style={{ marginLeft: '16px' }}
-                onClick={() => {
-                  confirm({
-                    title: '确认操作',
-                    content: '确认删除该规格吗?',
-                    onOk: async () => {
-                      setUnitList(unitList.filter((d) => d.id !== item.id))
-                    }
-                  })
-                }}
-              >
-                删除
-              </Button>
-            </Col>
-          </Row>
-
-          <ProFormItem label={'规格属性'}>
-            <ConfigProvider theme={{ algorithm: [theme.defaultAlgorithm] }}>
-              <Space size={[0, 4]} wrap>
-                <DndContext
-                  sensors={sensors}
-                  onDragEnd={(e) => handleDragEnd(e, item)}
-                  collisionDetection={closestCenter}
-                >
-                  <SortableContext
-                    items={item.tags.map((i: any) => i.id)}
-                    strategy={horizontalListSortingStrategy}
-                  >
-                    {[...item.tags, { type: 'add', id: addTagId }].map((tag: any) => {
-                      return <DraggableTag tag={tag} key={tag.id} unit={item} />
-                    })}
-                  </SortableContext>
-                </DndContext>
-              </Space>
-            </ConfigProvider>
-          </ProFormItem>
-        </div>
-      </div>
-    )
-  }
-
   const sensors = useSensors(useSensor(PointerSensor))
-  const sensor = useSensor(PointerSensor, {
-    activationConstraint: { distance: 10 }
-  })
 
   const handleDragEnd = (event: DragEndEvent, item: any) => {
     const { active, over } = event
@@ -322,24 +224,11 @@ function Unit({
     }
   }
 
-  const onListItemDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over) return
-    if (active.id !== over.id) {
-      setUnitList((prev) => {
-        const activeIndex = prev.findIndex((i) => i.id === active.id)
-        const overIndex = prev.findIndex((i) => i.id === over?.id)
-        return arrayMove(prev, activeIndex, overIndex)
-      })
-    }
-  }
-
   const tagPlusStyle: React.CSSProperties = {
     height: 32,
     lineHeight: '32px',
     background: token.colorBgContainer,
-    borderStyle: 'dashed',
-    marginBottom: '8px'
+    borderStyle: 'dashed'
   }
 
   const handleUnitNameChange = async (val: any, item: any) => {
@@ -384,44 +273,125 @@ function Unit({
     setUnitList([...unitList, { name: '', tags: [], id: Date.now() }])
   }
 
-  return (
-    <ProForm
-      className={'series-details'}
-      layout="horizontal"
-      submitter={false}
-      onValuesChange={(changeValues) => console.log(changeValues)}
-    >
-      <Flex justify={'end'} align={'center'} style={{ marginTop: '-10px' }}>
-        <Button
-          key="primary"
-          type={'primary'}
-          onClick={() => {
-            handleAddUnit()
-          }}
-        >
-          <PlusOutlined /> 新建
-        </Button>
-      </Flex>
+  const handleDragSortEnd = async (
+    _beforeIndex: number,
+    _afterIndex: number,
+    newDataSource: any
+  ) => {
+    setUnitList(newDataSource)
+  }
 
-      <DndContext sensors={[sensor]} onDragEnd={(e) => onListItemDragEnd(e)}>
-        <SortableContext
-          items={unitList.map((i: any) => i.id)}
-          strategy={horizontalListSortingStrategy}
-        >
-          <ProList<any>
-            className={'unit-card'}
-            pagination={false}
-            rowSelection={false}
-            loading={unitLoading}
-            grid={{ gutter: 16, column: 3 }}
-            dataSource={unitList}
-            renderItem={(item) => {
-              return <DraggableListItem item={item} />
+  const columns: ProColumns[] = [
+    {
+      title: '排序',
+      dataIndex: 'sort',
+      width: 40,
+      className: 'drag-visible'
+    },
+    {
+      title: '规格名称',
+      dataIndex: 'name',
+      width: 120,
+      render: (_, record) => {
+        return (
+          <Input
+            defaultValue={record.name}
+            placeholder="请输入规格名称"
+            onBlur={async (e) => {
+              await handleUnitNameChange(e.target.value, record)
             }}
           />
-        </SortableContext>
-      </DndContext>
-    </ProForm>
+        )
+      }
+    },
+    {
+      title: '规格属性',
+      dataIndex: 'smallFileList',
+      ellipsis: true,
+      render: (_, record) => {
+        return (
+          <ConfigProvider theme={{ algorithm: [theme.defaultAlgorithm] }}>
+            <Space size={[0, 4]} wrap>
+              <DndContext
+                sensors={sensors}
+                onDragEnd={(e) => handleDragEnd(e, record)}
+                collisionDetection={closestCenter}
+              >
+                <SortableContext
+                  items={record.tags.map((i: any) => i.id)}
+                  strategy={horizontalListSortingStrategy}
+                >
+                  {[...record.tags, { type: 'add', id: addTagId }].map((tag: any) => {
+                    return <DraggableTag tag={tag} key={tag.id} unit={record} />
+                  })}
+                </SortableContext>
+              </DndContext>
+            </Space>
+          </ConfigProvider>
+        )
+      }
+    },
+
+    {
+      title: '操作',
+      dataIndex: 'option',
+      valueType: 'option',
+      ellipsis: false,
+      width: 40,
+      render: (_, record) => {
+        return [
+          <a
+            key="delete"
+            onClick={() => {
+              confirm({
+                title: '确认操作',
+                content: '确认删除该规格吗?',
+                onOk() {
+                  setUnitList(unitList.filter((d) => d.id !== record.id))
+                }
+              })
+            }}
+          >
+            删除
+          </a>
+        ]
+      }
+    }
+  ]
+
+  return (
+    <>
+      <DragSortTable
+        className={'unit-card'}
+        style={{ marginTop: '-12px' }}
+        dragSortKey="sort"
+        onDragSortEnd={handleDragSortEnd}
+        loading={unitLoading}
+        dataSource={unitList}
+        size={'small'}
+        options={{
+          reload: false,
+          setting: false,
+          density: false
+        }}
+        search={false}
+        rowKey="id"
+        headerTitle=""
+        columns={columns}
+        pagination={false}
+        toolBarRender={() => [
+          <Button
+            type="primary"
+            key="primary"
+            onClick={() => {
+              handleAddUnit()
+            }}
+          >
+            <PlusOutlined /> 新建
+          </Button>
+        ]}
+      />
+    </>
   )
 }
 

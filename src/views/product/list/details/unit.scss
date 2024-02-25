@@ -1,16 +1,5 @@
 .unit-card {
-  .unit-card-item {
-    border: 1px solid rgb(217, 217, 217);;
-    border-radius: 6px;
-    margin: 8px;
-    padding: 16px 8px 8px;
-
-    &:hover {
-      border-color: #1677ff;
-    }
-
-    .ant-form-item {
-      margin-bottom: 6px;
-    }
+  .ant-pro-card-body {
+    padding: 0;
   }
 }

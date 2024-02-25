@@ -7,7 +7,13 @@ import axios from '@/utils/axios.ts'
 
 const { confirm } = Modal
 
-function Summary({ productId }: { productId: string | undefined }) {
+function Summary({
+  productId,
+  onSummaryUpdate
+}: {
+  productId: string | undefined
+  onSummaryUpdate: (data: any[]) => void
+}) {
   const [summaryList, setSummaryList] = useState<any[]>([])
   const [loading, setLoading] = React.useState<boolean>(false)
 
@@ -27,11 +33,15 @@ function Summary({ productId }: { productId: string | undefined }) {
     getSummaryList()
   }, [])
 
+  useEffect(() => {
+    onSummaryUpdate(summaryList)
+  }, [summaryList])
+
   const columns: ProColumns[] = [
     {
       title: '排序',
       dataIndex: 'sort',
-      width: 60,
+      width: 40,
       className: 'drag-visible'
     },
     {
@@ -70,6 +80,9 @@ function Summary({ productId }: { productId: string | undefined }) {
       render: (_, record) => {
         return (
           <Input.TextArea
+            autoSize={{
+              minRows: 1
+            }}
             defaultValue={record.desc}
             placeholder="请输入内容"
             onBlur={async (e) => {
@@ -102,8 +115,8 @@ function Summary({ productId }: { productId: string | undefined }) {
                 title: '确认操作',
                 content: '确认删除该文字简介吗?',
                 onOk() {
-                  const { name, desc } = record
-                  setSummaryList(summaryList.filter((d) => d.name !== name && d.desc !== desc))
+                  const { id } = record
+                  setSummaryList(summaryList.filter((d) => d.id !== id))
                 }
               })
             }}

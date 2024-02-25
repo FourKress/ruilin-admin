@@ -14,6 +14,8 @@ import axios from '@/utils/axios.ts'
 import { checkFileSize } from '@/utils/fileUtils.ts'
 import Summary from '@/views/product/list/details/summary.tsx'
 
+import './banner.scss'
+
 const descList = [
   {
     key: '1',
@@ -35,8 +37,16 @@ const descList = [
   }
 ]
 
-function Banner({ productId }: { productId: string | undefined }) {
-  const [fileList, setFileList] = useState<any[]>([])
+function Banner({
+  productId,
+  onBannerUpdate,
+  onSummaryUpdate
+}: {
+  productId: string | undefined
+  onBannerUpdate: (data: Record<string, any>) => void
+  onSummaryUpdate: (data: any[]) => void
+}) {
+  const [imageFileList, setImageFileList] = useState<any[]>([])
   const [videoFileList, setVideoFileList] = useState<any[]>([])
   const [previewInfo, setPreviewInfo] = useState({
     visible: false,
@@ -51,8 +61,8 @@ function Banner({ productId }: { productId: string | undefined }) {
     axios
       .get(`/product-banner/list/${productId}`)
       .then((res: any) => {
-        const imageFile: any[] = []
-        const videoFile: any[] = []
+        const imageList: any[] = []
+        const videoList: any[] = []
         res.forEach((d: any) => {
           const item = {
             uid: d.uid,
@@ -63,14 +73,14 @@ function Banner({ productId }: { productId: string | undefined }) {
             status: 'done'
           }
           if (d.type === 'video') {
-            videoFile.push(item)
+            videoList.push(item)
             return
           }
 
-          imageFile.push(item)
+          imageList.push(item)
         })
-        setFileList(imageFile)
-        setVideoFileList(videoFile)
+        setImageFileList(imageList)
+        setVideoFileList(videoList)
       })
       .finally(() => {
         setLoading(false)
@@ -81,19 +91,26 @@ function Banner({ productId }: { productId: string | undefined }) {
     getFileList()
   }, [])
 
-  const handleChange: UploadProps['onChange'] = ({ file, fileList: newFileList }) => {
-    const length = newFileList.length
-    if (length && length > fileList.length && !checkFileSize(file)) {
+  useEffect(() => {
+    onBannerUpdate({
+      imageFileList: imageFileList,
+      videoFileList: videoFileList
+    })
+  }, [imageFileList, videoFileList])
+
+  const handleChange: UploadProps['onChange'] = ({ file, fileList }) => {
+    const length = fileList.length
+    if (length && length > imageFileList.length && !checkFileSize(file)) {
       return
     }
-    setFileList(newFileList)
+    setImageFileList(fileList)
   }
 
-  const handleVideoChange: UploadProps['onChange'] = ({ file, fileList: newFileList }) => {
-    if (newFileList.length && !checkFileSize(file)) {
+  const handleVideoChange: UploadProps['onChange'] = ({ file, fileList }) => {
+    if (fileList.length && !checkFileSize(file)) {
       return
     }
-    setVideoFileList(newFileList)
+    setVideoFileList(fileList)
   }
 
   const handlePreview = (file: UploadFile) => {
@@ -119,7 +136,7 @@ function Banner({ productId }: { productId: string | undefined }) {
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     if (active.id !== over?.id) {
-      setFileList((prev) => {
+      setImageFileList((prev) => {
         const activeIndex = prev.findIndex((i) => i.uid === active.id)
         const overIndex = prev.findIndex((i) => i.uid === over?.id)
         return arrayMove(prev, activeIndex, overIndex)
@@ -158,7 +175,7 @@ function Banner({ productId }: { productId: string | undefined }) {
   }
 
   return (
-    <Space direction={'vertical'}>
+    <Space direction={'vertical'} className={'banner-card'}>
       <Descriptions
         items={descList}
         size={'small'}
@@ -171,6 +188,7 @@ function Banner({ productId }: { productId: string | undefined }) {
             <h4>介绍视频</h4>
             <Spin spinning={loading}>
               <Upload
+                className={'banner-upload'}
                 accept={'.mp4'}
                 listType="picture-card"
                 fileList={videoFileList}
@@ -184,7 +202,6 @@ function Banner({ productId }: { productId: string | undefined }) {
                   return (
                     <div className={originNode.props.className}>
                       {originNode.props.children[0]}
-                      {originNode.props.children[1]}
                       <div className={originNode.props.children[2].props.className}>
                         <EyeOutlined
                           onClick={() => {
@@ -208,14 +225,15 @@ function Banner({ productId }: { productId: string | undefined }) {
 
             <DndContext sensors={[sensor]} onDragEnd={onDragEnd}>
               <SortableContext
-                items={fileList.map((i) => i.uid)}
+                items={imageFileList.map((i) => i.uid)}
                 strategy={verticalListSortingStrategy}
               >
                 <Spin spinning={loading}>
                   <Upload
+                    className={'banner-upload'}
                     accept={'.png,.jpg,.jpeg'}
                     listType="picture-card"
-                    fileList={fileList}
+                    fileList={imageFileList}
                     maxCount={9}
                     onPreview={handlePreview}
                     onChange={handleChange}
@@ -224,7 +242,7 @@ function Banner({ productId }: { productId: string | undefined }) {
                       <DraggableUploadListItem originNode={originNode} file={file} />
                     )}
                   >
-                    {fileList.length >= 9 ? null : uploadButton}
+                    {imageFileList.length >= 9 ? null : uploadButton}
                   </Upload>
                 </Spin>
               </SortableContext>
@@ -234,7 +252,12 @@ function Banner({ productId }: { productId: string | undefined }) {
       </Row>
       <Row gutter={24}>
         <Col md={24}>
-          <Summary productId={productId} />
+          <Summary
+            productId={productId}
+            onSummaryUpdate={(data) => {
+              onSummaryUpdate(data)
+            }}
+          />
         </Col>
       </Row>
       <Image

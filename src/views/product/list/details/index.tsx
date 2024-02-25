@@ -24,6 +24,11 @@ const SeriesDetails: FC<Record<string, any>> = () => {
   const navigate = useNavigate()
   const [colorList, setColorList] = useState<any[]>([])
   const [unitList, setUnitList] = useState<any[]>([])
+  const [bannerInfo, setBannerInfo] = useState<Record<string, any>>([])
+  const [summaryList, setSummaryList] = useState<any[]>([])
+
+  console.log('bannerInfo', bannerInfo)
+  console.log('summaryList', summaryList)
 
   return (
     <PageContainer breadcrumbRender={false}>
@@ -133,6 +138,11 @@ const SeriesDetails: FC<Record<string, any>> = () => {
             </Col>
             <Col md={8}>
               <ProFormTextArea
+                fieldProps={{
+                  autoSize: {
+                    minRows: 1
+                  }
+                }}
                 label={'商品介绍'}
                 name="desc"
                 rules={[{ required: true, message: '请输入商品介绍' }]}
@@ -144,7 +154,15 @@ const SeriesDetails: FC<Record<string, any>> = () => {
       </ProForm>
 
       <Card title="商品详情" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
-        <Banner productId={productId} />
+        <Banner
+          productId={productId}
+          onBannerUpdate={(data) => {
+            setBannerInfo(data)
+          }}
+          onSummaryUpdate={(data) => {
+            setSummaryList(data)
+          }}
+        />
       </Card>
 
       <Card title="商品颜色" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { EyeOutlined, PlusOutlined } from '@ant-design/icons'
-import { ProForm, ProFormItem, ProList } from '@ant-design/pro-components'
+import { DragSortTable, ProColumns } from '@ant-design/pro-components'
 import { DndContext, DragEndEvent, PointerSensor, useSensor } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -9,19 +9,7 @@ import {
   useSortable
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import {
-  Button,
-  Col,
-  Descriptions,
-  Flex,
-  Image,
-  Input,
-  message,
-  Modal,
-  Row,
-  Upload,
-  UploadFile
-} from 'antd'
+import { Button, Descriptions, Image, Input, message, Modal, Upload, UploadFile } from 'antd'
 
 import axios from '@/utils/axios.ts'
 import { checkFileSize } from '@/utils/fileUtils.ts'
@@ -94,7 +82,6 @@ function Color({
   }, [colorList])
 
   const handlePreview = (file: UploadFile) => {
-    console.log(file)
     const url = file.url || file.thumbUrl
     if (!url) return
     setPreviewInfo({
@@ -114,10 +101,10 @@ function Color({
 
     setColorList(
       colorList.map((d) => {
-        const { name, fileList: list } = d
+        const { id, fileList: list } = d
         return {
           ...d,
-          fileList: name === item.name ? [...newFileList] : list
+          fileList: id === item.id ? [...newFileList] : list
         }
       })
     )
@@ -132,10 +119,10 @@ function Color({
 
     setColorList(
       colorList.map((d) => {
-        const { name, smallFileList } = d
+        const { id, smallFileList } = d
         return {
           ...d,
-          smallFileList: name === item.name ? [...newFileList] : smallFileList
+          smallFileList: id === item.id ? [...newFileList] : smallFileList
         }
       })
     )
@@ -146,23 +133,6 @@ function Color({
       <PlusOutlined />
     </button>
   )
-
-  const handleColorNameChange = async (val: any, item: any) => {
-    if (val && colorList.some((d: any) => d.id !== item.id && d.name === val)) {
-      message.error('颜色名称重复，请重新输入')
-      setColorList([...colorList])
-    } else {
-      setColorList(
-        colorList.map((d) => {
-          const { name, id } = d
-          return {
-            ...d,
-            name: id === item.id ? val : name
-          }
-        })
-      )
-    }
-  }
 
   const handleAddColor = () => {
     setColorList([
@@ -202,16 +172,12 @@ function Color({
     }
   }
 
-  const onListItemDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over) return
-    if (active.id !== over.id) {
-      setColorList((prev) => {
-        const activeIndex = prev.findIndex((i) => i.id === active.id)
-        const overIndex = prev.findIndex((i) => i.id === over?.id)
-        return arrayMove(prev, activeIndex, overIndex)
-      })
-    }
+  const handleDragSortEnd = async (
+    _beforeIndex: number,
+    _afterIndex: number,
+    newDataSource: any
+  ) => {
+    setColorList(newDataSource)
   }
 
   interface DraggableUploadListItemProps {
@@ -254,165 +220,193 @@ function Color({
     )
   }
 
-  interface DraggableListItemProps {
-    item: any
-  }
-
-  const DraggableListItem = ({ item }: DraggableListItemProps) => {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-      id: item.id
-    })
-
-    const style: React.CSSProperties = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      cursor: 'move',
-      height: '100%'
-    }
-
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className={isDragging ? 'is-dragging' : ''}
-        {...attributes}
-        {...listeners}
-      >
-        <div className={'color-card-item'}>
-          <Row justify={'space-between'} align={'top'}>
-            <Col flex={1} style={{ marginRight: '16px' }}>
-              <ProFormItem label={'颜色名称'} className={'color-name'}>
-                <Input
-                  defaultValue={item.name}
-                  placeholder="请输入颜色名称"
-                  onBlur={async (e) => {
-                    await handleColorNameChange(e.target.value, item)
-                  }}
-                />
-              </ProFormItem>
-            </Col>
-            <Col>
-              <ProFormItem label={'缩略图'}>
-                <Upload
-                  className={'color-upload small-upload'}
-                  accept={'.png,.jpg,.jpeg'}
-                  listType="picture-card"
-                  fileList={item.smallFileList}
-                  maxCount={1}
-                  onPreview={handlePreview}
-                  onChange={(data) => handleSmallChange(data, item)}
-                  beforeUpload={() => false}
-                >
-                  {item.smallFileList.length >= 1 ? null : uploadButton}
-                </Upload>
-              </ProFormItem>
-            </Col>
-            <Col>
-              <Button
-                type="link"
-                style={{ margin: '-4px -6px 0 16px' }}
-                onClick={() => {
-                  confirm({
-                    title: '确认操作',
-                    content: '确认删除该颜色吗?',
-                    onOk: async () => {
-                      setColorList(colorList.filter((d) => d.id !== item.id))
+  const columns: ProColumns[] = [
+    {
+      title: '排序',
+      dataIndex: 'sort',
+      width: 40,
+      className: 'drag-visible'
+    },
+    {
+      title: '颜色名称',
+      dataIndex: 'name',
+      width: 120,
+      render: (_, record) => {
+        return (
+          <Input
+            defaultValue={record.name}
+            placeholder="请输入颜色名称"
+            onBlur={async (e) => {
+              const value = e.target.value
+              if (value && colorList.some((d: any) => d.id !== record.id && d.name === value)) {
+                message.error('颜色名称重复，请重新输入')
+                setColorList([...colorList])
+              } else {
+                setColorList(
+                  colorList.map((d: any) => {
+                    return {
+                      ...d,
+                      name: record.id === d.id ? value : d.name
                     }
                   })
+                )
+              }
+            }}
+          />
+        )
+      }
+    },
+    {
+      title: '颜色描述',
+      dataIndex: 'desc',
+      ellipsis: true,
+      width: 230,
+      render: (_, record) => {
+        return (
+          <Input
+            defaultValue={record.desc}
+            placeholder="请输入颜色描述"
+            onBlur={async (e) => {
+              const value = e.target.value
+              setColorList(
+                colorList.map((d: any) => {
+                  return {
+                    ...d,
+                    desc: record.id === d.id ? value : d.desc
+                  }
+                })
+              )
+            }}
+          />
+        )
+      }
+    },
+    {
+      title: '缩略图',
+      dataIndex: 'smallFileList',
+      width: 60,
+      ellipsis: true,
+      render: (_, record) => {
+        return (
+          <Upload
+            className={'color-upload small-upload'}
+            accept={'.png,.jpg,.jpeg'}
+            listType="picture-card"
+            fileList={record.smallFileList}
+            maxCount={1}
+            onPreview={handlePreview}
+            onChange={(data) => handleSmallChange(data, record)}
+            beforeUpload={() => false}
+          >
+            {record.smallFileList.length >= 1 ? null : uploadButton}
+          </Upload>
+        )
+      }
+    },
+    {
+      title: '图片视频',
+      dataIndex: 'fileList',
+      ellipsis: true,
+      render: (_, record) => {
+        return (
+          <DndContext sensors={[sensor]} onDragEnd={(e) => onDragEnd(e, record)}>
+            <SortableContext
+              items={record.fileList.map((i: any) => i.uid)}
+              strategy={horizontalListSortingStrategy}
+            >
+              <Upload
+                className={'color-upload'}
+                accept={
+                  record.fileList.some((f: any) => f.type.includes('video'))
+                    ? '.png,.jpg,.jpeg'
+                    : '.png,.jpg,.jpeg,.mp4'
+                }
+                listType="picture-card"
+                fileList={record.fileList}
+                maxCount={9}
+                onPreview={handlePreview}
+                onChange={(data) => handleChange(data, record)}
+                beforeUpload={(file: any) => {
+                  if (file.type.includes('video')) {
+                    file.url = URL.createObjectURL(file)
+                  }
+                  return false
+                }}
+                itemRender={(originNode, file) => {
+                  return <DraggableUploadListItem originNode={originNode} file={file} />
                 }}
               >
-                删除
-              </Button>
-            </Col>
-          </Row>
-          <Flex vertical={true} justify={'space-between'} align={'flex-start'}>
-            <Flex style={{ width: '100%' }} justify={'start'} align={'start'}>
-              <ProFormItem label={'图片视频'}>
-                <DndContext sensors={[sensor]} onDragEnd={(e) => onDragEnd(e, item)}>
-                  <SortableContext
-                    items={item.fileList.map((i: any) => i.uid)}
-                    strategy={horizontalListSortingStrategy}
-                  >
-                    <Upload
-                      className={'color-upload'}
-                      accept={
-                        item.fileList.some((f: any) => f.type.includes('video'))
-                          ? '.png,.jpg,.jpeg'
-                          : '.png,.jpg,.jpeg,.mp4'
-                      }
-                      listType="picture-card"
-                      fileList={item.fileList}
-                      maxCount={9}
-                      onPreview={handlePreview}
-                      onChange={(data) => handleChange(data, item)}
-                      beforeUpload={(file: any) => {
-                        if (file.type.includes('video')) {
-                          file.url = URL.createObjectURL(file)
-                        }
-                        return false
-                      }}
-                      itemRender={(originNode, file) => {
-                        return <DraggableUploadListItem originNode={originNode} file={file} />
-                      }}
-                    >
-                      {item.fileList.length >= 10 ? null : uploadButton}
-                    </Upload>
-                  </SortableContext>
-                </DndContext>
-              </ProFormItem>
-            </Flex>
-          </Flex>
-        </div>
-      </div>
-    )
-  }
+                {record.fileList.length >= 9 ? null : uploadButton}
+              </Upload>
+            </SortableContext>
+          </DndContext>
+        )
+      }
+    },
+    {
+      title: '操作',
+      dataIndex: 'option',
+      valueType: 'option',
+      ellipsis: false,
+      width: 40,
+      render: (_, record) => {
+        return [
+          <a
+            key="delete"
+            onClick={() => {
+              confirm({
+                title: '确认操作',
+                content: '确认删除该颜色吗?',
+                onOk() {
+                  setColorList(colorList.filter((d) => d.id !== record.id))
+                }
+              })
+            }}
+          >
+            删除
+          </a>
+        ]
+      }
+    }
+  ]
 
   return (
     <>
-      <ProForm
-        className={'series-details'}
-        layout="horizontal"
-        submitter={false}
-        onValuesChange={(changeValues) => console.log(changeValues)}
-      >
-        <Descriptions
-          items={descList}
-          size={'small'}
-          contentStyle={{ color: 'rgba(0, 0, 0, 0.45)' }}
-        />
+      <Descriptions
+        items={descList}
+        size={'small'}
+        contentStyle={{ color: 'rgba(0, 0, 0, 0.45)' }}
+      />
 
-        <Flex justify={'end'} align={'center'} style={{ marginTop: '-10px' }}>
+      <DragSortTable
+        className={'color-card'}
+        dragSortKey="sort"
+        onDragSortEnd={handleDragSortEnd}
+        loading={colorLoading}
+        dataSource={colorList}
+        size={'small'}
+        options={{
+          reload: false,
+          setting: false,
+          density: false
+        }}
+        search={false}
+        rowKey="id"
+        headerTitle=""
+        columns={columns}
+        pagination={false}
+        toolBarRender={() => [
           <Button
+            type="primary"
             key="primary"
-            type={'primary'}
             onClick={() => {
               handleAddColor()
             }}
           >
             <PlusOutlined /> 新建
           </Button>
-        </Flex>
-
-        <DndContext sensors={[sensor]} onDragEnd={(e) => onListItemDragEnd(e)}>
-          <SortableContext
-            items={colorList.map((i: any) => i.id)}
-            strategy={horizontalListSortingStrategy}
-          >
-            <ProList<any>
-              className={'color-card'}
-              pagination={false}
-              rowSelection={false}
-              loading={colorLoading}
-              grid={{ gutter: 16, column: 3 }}
-              dataSource={colorList}
-              size={'small'}
-              renderItem={(item) => {
-                return <DraggableListItem item={item} />
-              }}
-            />
-          </SortableContext>
-        </DndContext>
-      </ProForm>
+        ]}
+      />
 
       <Image
         width={200}

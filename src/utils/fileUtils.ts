@@ -36,7 +36,7 @@ const deleteFile = async (objectKey: string) => {
 }
 
 const checkFileSize = (file: any) => {
-  const isLt10M = file.size / 1024 / 1024 < 1
+  const isLt10M = file.size / 1024 / 1024 < 10
   if (!isLt10M) {
     message.error('文件须小于 10MB !').then(() => {})
   }
