@@ -57,7 +57,13 @@ function Unit({
   }, [])
 
   useEffect(() => {
-    onUpdate(unitList)
+    if (!unitList.length) {
+      onUpdate([])
+    }
+    const list = unitList.filter((d: any) => d.name && d.tags?.length)
+    const length = list.length
+    if (!length) return
+    onUpdate(list)
   }, [unitList])
 
   type DraggableTagProps = {
@@ -170,17 +176,21 @@ function Unit({
                 let list: any[] = []
                 const tags = unit.tags
 
-                if (value && tags.some((d: any) => d.id !== tag.id && d.name === value)) {
-                  message.error('规格属性重复，请重新输入')
-                  list = tags
+                if (value) {
+                  if (tags.some((d: any) => d.id !== tag.id && d.name === value)) {
+                    message.error('规格属性重复，请重新输入')
+                    list = tags
+                  } else {
+                    list = tags.map((d: any) => {
+                      const { name, id } = d
+                      return {
+                        ...d,
+                        name: id === tag.id ? value : name
+                      }
+                    })
+                  }
                 } else {
-                  list = tags.map((d: any) => {
-                    const { name, id } = d
-                    return {
-                      ...d,
-                      name: id === tag.id ? value : name
-                    }
-                  })
+                  list = tags.filter((d: any) => d.id !== tag.id)
                 }
 
                 setUnitList(

@@ -78,7 +78,12 @@ function Color({
   }, [])
 
   useEffect(() => {
-    onUpdate(colorList)
+    if (!colorList.length) {
+      onUpdate([])
+    }
+    const list = colorList.filter((d: any) => d.name)
+    if (!list.length) return
+    onUpdate(list)
   }, [colorList])
 
   const handlePreview = (file: UploadFile) => {

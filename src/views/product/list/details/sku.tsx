@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
 import {
+  EditableFormInstance,
   EditableProTable,
   ProForm,
   ProFormItem,
@@ -11,53 +12,6 @@ import { Button, Form, Space, Switch } from 'antd'
 
 import './sku.scss'
 
-const defaultData = [
-  {
-    id: '6247481504',
-    colorName: '活动名称一',
-    stock: '123',
-    price: '这个活动真好玩',
-    state: 'open',
-    skuCode: '1590486176000',
-    sales: '1590481162000',
-    totalSales: '1590481162000',
-    isActive: true
-  },
-  {
-    id: '6246912229',
-    colorName: '活动名称一',
-    stock: 'e2',
-    price: '这个活动真好玩',
-    state: 'closed',
-    skuCode: '1590486176000',
-    sales: '1590481162000',
-    totalSales: '1590481162000',
-    isActive: true
-  },
-  {
-    id: '624691334229',
-    colorName: '活动名称一',
-    stock: 'e2',
-    price: '这个活动真好玩',
-    state: 'closed',
-    skuCode: '1590486176000',
-    sales: '1590481162000',
-    totalSales: '1590481162000',
-    isActive: true
-  },
-  {
-    id: '62469142229',
-    colorName: '活动名称12一',
-    stock: 'e2',
-    price: '这个活动真好玩',
-    state: 'closed',
-    skuCode: '1590486176000',
-    sales: '1590481162000',
-    totalSales: '1590481162000',
-    isActive: false
-  }
-]
-
 function Sku({
   productId,
   colorList,
@@ -67,22 +21,98 @@ function Sku({
   colorList: any[]
   unitList: any[]
 }) {
-  console.log(productId)
   const [form] = Form.useForm()
+  console.log(productId)
+  const [editableKeys, setEditableRowKeys] = useState<any[]>(() => [])
+  const [dataSource, setDataSource] = useState<any[]>(() => [])
 
-  const [editableKeys, setEditableRowKeys] = useState<any[]>(() =>
-    defaultData.map((item) => item.id)
-  )
-  const [dataSource, setDataSource] = useState<any[]>(() => defaultData)
+  const editorFormRef = useRef<EditableFormInstance<any>>()
 
   console.log(colorList)
   console.log(unitList)
 
-  // consg handleFormData = () => {
-  //   const data = unitList.map()
-  // }
+  const handleFormData = () => {
+    if (!colorList.length) {
+      setDataSource([])
+      return
+    }
 
-  // useEffect(() => {}, [unitList, colorList])
+    let dataList: any[] = []
+    if (unitList.length) {
+      colorList.forEach((color: any) => {
+        let currentList: any[] = []
+        unitList.forEach((unit: any) => {
+          const { tags } = unit
+
+          const newTags = tags.map((tag: any) => {
+            return {
+              id: `${unit.id}-${tag.id}`,
+              [`unit_${unit.id}`]: tag.name,
+              colorName: color.name,
+              colorId: color.id,
+              stock: '',
+              price: '',
+              skuCode: '',
+              sales: '',
+              totalSales: '',
+              isActive: false
+            }
+          })
+
+          if (currentList.length) {
+            const tempList = [...currentList]
+            currentList = []
+            tempList.forEach((t: Record<string, any>) => {
+              const unitKeyList = Object.keys(t).filter((key) => key.includes('unit'))!
+              newTags.forEach((n: any) => {
+                currentList.push({
+                  ...n,
+                  id: `${n.id}&${t.id}`,
+                  ...Object.fromEntries(
+                    unitKeyList.map((k) => {
+                      return [k, t[k]]
+                    })
+                  )
+                })
+              })
+            })
+          } else {
+            currentList.push(...newTags)
+          }
+
+          currentList = currentList.map((d) => {
+            return {
+              ...d,
+              id: `${d.colorId}_${d.id}`
+            }
+          })
+        })
+        dataList.push(...currentList)
+      })
+    } else {
+      dataList = colorList.map((d: any) => {
+        const { name, id } = d
+        return {
+          id,
+          colorName: name,
+          colorId: id,
+          stock: '',
+          price: '',
+          skuCode: '',
+          sales: '',
+          totalSales: '',
+          isActive: false
+        }
+      })
+    }
+    console.log(dataList)
+    setDataSource(dataList)
+    setEditableRowKeys(dataList.map((d: any) => d.id))
+  }
+
+  useEffect(() => {
+    handleFormData()
+  }, [unitList, colorList])
 
   const columns: any[] = [
     {
@@ -101,11 +131,39 @@ function Sku({
         }
       }
     },
-    {
-      title: '长度',
-      dataIndex: 'state',
-      editable: false
-    },
+    ...(unitList.length
+      ? unitList.map((d: any, sort) => {
+          const key = `unit_${d.id}`
+          return {
+            title: d.name,
+            dataIndex: key,
+            editable: false,
+            onCell: (_row: any, index: number) => {
+              let rowSpan = 1
+              if (sort === unitList.length - 1) {
+                return {
+                  rowSpan: rowSpan
+                }
+              }
+
+              const step = [...unitList]
+                .splice(sort + 1, unitList.length - 1)
+                .map((d) => d.tags.length)
+                .reduce((pre, cur) => pre * cur, 1)
+
+              if (index % step === 0) {
+                rowSpan = step
+              } else {
+                rowSpan = 0
+              }
+
+              return {
+                rowSpan: rowSpan
+              }
+            }
+          }
+        })
+      : []),
     {
       title: '库存',
       dataIndex: 'stock',
@@ -146,35 +204,56 @@ function Sku({
         layout="inline"
         submitter={false}
         onFinish={async (val) => {
-          console.log(val)
+          const { colorId, price, stock, ...other } = val
+          const unitKeys = Object.keys(other)
+          dataSource
+            .filter((d: any) => {
+              let colorFlag = true
+              let unitFlag = true
+              if (colorId) {
+                colorFlag = d.colorId === colorId
+              }
+              unitKeys.forEach((key) => {
+                if (!unitFlag) return
+                unitFlag = d[key] && d[key] === other[key]
+              })
+              return colorFlag && unitFlag
+            })
+            .forEach((d: any) => {
+              editorFormRef.current?.setRowData?.(d.id, {
+                ...d,
+                stock,
+                price
+              })
+            })
         }}
-        onValuesChange={(changeValues) => console.log(changeValues)}
       >
         <ProFormSelect
           label={'批量设置'}
-          name={'color'}
+          name={'colorId'}
           placeholder="请选择颜色"
-          request={async () =>
-            colorList.map((d) => {
-              return {
-                label: d.name,
-                value: d.id
-              }
-            })
-          }
+          options={colorList.map((d) => {
+            return {
+              label: d.name,
+              value: d.id
+            }
+          })}
         ></ProFormSelect>
-        <ProFormSelect
-          name={'unit'}
-          placeholder="请选择规格"
-          request={async () =>
-            unitList.map((d) => {
-              return {
-                label: d.name,
-                value: d.id
-              }
-            })
-          }
-        ></ProFormSelect>
+        {unitList.map((d: any) => {
+          return (
+            <ProFormSelect
+              name={`unit_${d.id}`}
+              placeholder={`请选择${d.name}`}
+              options={d.tags.map((t: any) => {
+                return {
+                  label: t.name,
+                  value: t.name
+                }
+              })}
+            ></ProFormSelect>
+          )
+        })}
+
         <ProFormText name={'stock'} placeholder="当前库存"></ProFormText>
         <ProFormText name={'price'} placeholder="价格"></ProFormText>
         <ProFormItem>
@@ -192,6 +271,7 @@ function Sku({
 
       <EditableProTable
         className={'sku-table'}
+        editableFormRef={editorFormRef}
         columns={columns}
         rowKey="id"
         value={dataSource}
