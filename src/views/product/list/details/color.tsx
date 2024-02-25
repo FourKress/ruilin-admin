@@ -282,7 +282,7 @@ function Color({
       }
     },
     {
-      title: '缩略图',
+      title: '头图',
       dataIndex: 'smallFileList',
       width: 60,
       ellipsis: true,
