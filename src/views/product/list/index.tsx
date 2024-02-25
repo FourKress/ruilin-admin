@@ -8,7 +8,6 @@ import {
   Col,
   Descriptions,
   Flex,
-  Image,
   message,
   Modal,
   Row,
@@ -33,28 +32,12 @@ function ProductList() {
     {
       title: '商品名称',
       dataIndex: 'name',
-      width: 200,
+      width: 140,
       render: (_, record: Record<string, any>) => {
-        const { code = 'A10100001', name } = record
+        const { code = 'A10100001', name, id } = record
         return (
           <Row style={{ height: '60px' }}>
             <Space size={'middle'}>
-              <Col style={{ height: '60px' }}>
-                <div
-                  style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden' }}
-                >
-                  <Image
-                    style={{ borderRadius: '50%', display: 'block' }}
-                    width={60}
-                    height={60}
-                    src="https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"
-                    preview={{
-                      src: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-                      toolbarRender: () => <span></span>
-                    }}
-                  />
-                </div>
-              </Col>
               <Col style={{ height: '60px' }}>
                 <Flex
                   style={{ height: '60px' }}
@@ -62,9 +45,20 @@ function ProductList() {
                   justify={'space-around'}
                   align={'start'}
                 >
-                  <Tooltip title={name || '天才纬纱'}>
-                    <Button type="link" style={{ padding: 0 }}>
-                      {name || '天才纬纱'}
+                  <Tooltip title={name}>
+                    <Button
+                      type="link"
+                      style={{ padding: 0 }}
+                      onClick={() => {
+                        console.log(id)
+                        navigate(`/product/list/details/${record.id}`, {
+                          state: {
+                            isEdit: false
+                          }
+                        })
+                      }}
+                    >
+                      {name}
                     </Button>
                   </Tooltip>
 
@@ -184,7 +178,11 @@ function ProductList() {
             <a
               key="modify"
               onClick={async () => {
-                navigate(`/product/list/details/${record.id}`)
+                navigate(`/product/list/details/${record.id}`, {
+                  state: {
+                    isEdit: true
+                  }
+                })
               }}
             >
               编辑
@@ -199,7 +197,11 @@ function ProductList() {
                     title: '确认操作',
                     content: '请先编辑完善相关信息后再上架',
                     onOk() {
-                      navigate(`/product/list/details/${record.id}`)
+                      navigate(`/product/list/details/${record.id}`, {
+                        state: {
+                          isEdit: true
+                        }
+                      })
                     }
                   })
                   return
@@ -252,7 +254,11 @@ function ProductList() {
               type="primary"
               key="primary"
               onClick={() => {
-                navigate(`/product/list/details`)
+                navigate(`/product/list/details`, {
+                  state: {
+                    isEdit: true
+                  }
+                })
               }}
             >
               <PlusOutlined /> 新建商品

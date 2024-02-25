@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useLocation, useParams } from 'react-router-dom'
 import { PlusOutlined } from '@ant-design/icons'
 import { DragSortTable, ProColumns } from '@ant-design/pro-components'
 import { Button, Flex, Input, message, Modal, Space } from 'antd'
@@ -7,17 +8,19 @@ import axios from '@/utils/axios.ts'
 
 const { confirm } = Modal
 
-function Summary({
-  productId,
-  onSummaryUpdate
-}: {
-  productId: string | undefined
-  onSummaryUpdate: (data: any[]) => void
-}) {
+function Summary({ onSummaryUpdate }: { onSummaryUpdate: (data: any[]) => void }) {
+  const { id: productId } = useParams()
+  console.log(productId)
+  const {
+    state: { isEdit }
+  } = useLocation()
+  console.log(isEdit)
+
   const [summaryList, setSummaryList] = useState<any[]>([])
   const [loading, setLoading] = React.useState<boolean>(false)
 
   const getSummaryList = () => {
+    if (!productId) return
     setLoading(true)
     axios
       .get(`/product-summary/list/${productId}`)
@@ -39,18 +42,13 @@ function Summary({
 
   const columns: ProColumns[] = [
     {
-      title: '排序',
-      dataIndex: 'sort',
-      width: 40,
-      className: 'drag-visible'
-    },
-    {
       title: '标题',
       dataIndex: 'name',
       width: 260,
       render: (_, record) => {
         return (
           <Input
+            readOnly={!isEdit}
             defaultValue={record.name}
             placeholder="请输入标题"
             onBlur={async (e) => {
@@ -80,6 +78,7 @@ function Summary({
       render: (_, record) => {
         return (
           <Input.TextArea
+            readOnly={!isEdit}
             autoSize={{
               minRows: 1
             }}
@@ -99,8 +98,17 @@ function Summary({
           />
         )
       }
-    },
-    {
+    }
+  ]
+
+  if (isEdit) {
+    columns.unshift({
+      title: '排序',
+      dataIndex: 'sort',
+      width: 40,
+      className: 'drag-visible'
+    })
+    columns.push({
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
@@ -125,8 +133,8 @@ function Summary({
           </a>
         ]
       }
-    }
-  ]
+    })
+  }
 
   const handleDragSortEnd = async (
     _beforeIndex: number,
@@ -141,16 +149,18 @@ function Summary({
       <Flex style={{ height: '28px' }} justify={'space-between'} align={'center'}>
         <h4>文字简介</h4>
 
-        <Button
-          type="primary"
-          key="primary"
-          onClick={() => {
-            setSummaryList([...summaryList, { name: '', desc: '', id: Date.now() }])
-            return true
-          }}
-        >
-          <PlusOutlined /> 新建
-        </Button>
+        {isEdit && (
+          <Button
+            type="primary"
+            key="primary"
+            onClick={() => {
+              setSummaryList([...summaryList, { name: '', desc: '', id: Date.now() }])
+              return true
+            }}
+          >
+            <PlusOutlined /> 新建
+          </Button>
+        )}
       </Flex>
 
       <DragSortTable

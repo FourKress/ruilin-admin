@@ -1,4 +1,5 @@
 import React, { FC, useEffect, useState } from 'react'
+import { useLocation, useParams } from 'react-router-dom'
 import { HolderOutlined, PlusOutlined } from '@ant-design/icons'
 import { DragSortTable, ProColumns } from '@ant-design/pro-components'
 import {
@@ -25,13 +26,14 @@ const { confirm } = Modal
 
 const addTagId = Date.now()
 
-function Unit({
-  productId,
-  onUpdate
-}: {
-  productId: string | undefined
-  onUpdate: (data: any[]) => void
-}) {
+function Unit({ onUpdate }: { onUpdate: (data: any[]) => void }) {
+  const { id: productId } = useParams()
+  console.log(productId)
+  const {
+    state: { isEdit }
+  } = useLocation()
+  console.log(isEdit)
+
   const [unitList, setUnitList] = useState<any[]>([])
   const [unitLoading, setUnitLoading] = React.useState<boolean>(false)
   const { token } = theme.useToken()
@@ -41,6 +43,7 @@ function Unit({
   }
 
   const getUnitList = () => {
+    if (!productId) return
     setUnitLoading(true)
     axios
       .get(`/product-unit/list/${productId}`)
@@ -76,7 +79,7 @@ function Unit({
     const { listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: tag.id })
 
     const commonStyle = {
-      cursor: 'move',
+      cursor: isEdit ? 'move' : 'default',
       transition: 'unset',
       height: '32px',
       lineHeight: '32px'
@@ -90,7 +93,7 @@ function Unit({
         }
       : commonStyle
 
-    return tag.type === 'add' ? (
+    return tag.type === 'add' && isEdit ? (
       <Tag style={tagPlusStyle} icon={<PlusOutlined />}>
         <Input
           className={`add-btn_${unit.id}`}
@@ -162,13 +165,14 @@ function Unit({
         }}
       >
         <Space>
-          <HolderOutlined ref={setNodeRef} {...listeners} />
+          {isEdit && <HolderOutlined ref={setNodeRef} {...listeners} />}
           {
             <Input
               size={'small'}
               style={{
                 width: '60px'
               }}
+              readOnly={!isEdit}
               defaultValue={tag.name}
               placeholder="请输入"
               onBlur={async (e) => {
@@ -293,18 +297,13 @@ function Unit({
 
   const columns: ProColumns[] = [
     {
-      title: '排序',
-      dataIndex: 'sort',
-      width: 40,
-      className: 'drag-visible'
-    },
-    {
       title: '规格名称',
       dataIndex: 'name',
       width: 120,
       render: (_, record) => {
         return (
           <Input
+            readOnly={!isEdit}
             defaultValue={record.name}
             placeholder="请输入规格名称"
             onBlur={async (e) => {
@@ -340,9 +339,17 @@ function Unit({
           </ConfigProvider>
         )
       }
-    },
+    }
+  ]
 
-    {
+  if (isEdit) {
+    columns.unshift({
+      title: '排序',
+      dataIndex: 'sort',
+      width: 40,
+      className: 'drag-visible'
+    })
+    columns.push({
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
@@ -366,8 +373,8 @@ function Unit({
           </a>
         ]
       }
-    }
-  ]
+    })
+  }
 
   return (
     <>
@@ -390,15 +397,17 @@ function Unit({
         columns={columns}
         pagination={false}
         toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleAddUnit()
-            }}
-          >
-            <PlusOutlined /> 新建
-          </Button>
+          isEdit && (
+            <Button
+              type="primary"
+              key="primary"
+              onClick={() => {
+                handleAddUnit()
+              }}
+            >
+              <PlusOutlined /> 新建
+            </Button>
+          )
         ]}
       />
     </>

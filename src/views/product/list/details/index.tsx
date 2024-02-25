@@ -1,5 +1,5 @@
 import { FC, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   FooterToolbar,
   PageContainer,
@@ -22,6 +22,11 @@ const { confirm } = Modal
 const SeriesDetails: FC<Record<string, any>> = () => {
   const { id: productId } = useParams()
   const navigate = useNavigate()
+  const {
+    state: { isEdit }
+  } = useLocation()
+  console.log(isEdit)
+
   const [colorList, setColorList] = useState<any[]>([])
   const [unitList, setUnitList] = useState<any[]>([])
   const [bannerInfo, setBannerInfo] = useState<Record<string, any>>([])
@@ -35,74 +40,78 @@ const SeriesDetails: FC<Record<string, any>> = () => {
       <ProForm
         className={'series-details'}
         layout="horizontal"
-        submitter={{
-          render: (props: any, _dom: any) => {
-            return (
-              <FooterToolbar
-                extra={
-                  <Button
-                    type="primary"
-                    danger
-                    onClick={() => {
-                      confirm({
-                        title: '确认操作',
-                        content: '确认删除该商品吗?',
-                        onOk() {
-                          axios.get(`/product/delete/${productId}`).then(async () => {
-                            message.success('删除商品成功')
-                            navigate(-1)
-                          })
-                        }
-                      })
-                    }}
-                  >
-                    删除
-                  </Button>
+        submitter={
+          isEdit
+            ? {
+                render: (props: any, _dom: any) => {
+                  return (
+                    <FooterToolbar
+                      extra={
+                        <Button
+                          type="primary"
+                          danger
+                          onClick={() => {
+                            confirm({
+                              title: '确认操作',
+                              content: '确认删除该商品吗?',
+                              onOk() {
+                                axios.get(`/product/delete/${productId}`).then(async () => {
+                                  message.success('删除商品成功')
+                                  navigate(-1)
+                                })
+                              }
+                            })
+                          }}
+                        >
+                          删除
+                        </Button>
+                      }
+                    >
+                      <Button
+                        type="primary"
+                        onClick={async () => {
+                          props.form?.submit?.()
+                        }}
+                      >
+                        保存
+                      </Button>
+                      <Button
+                        type="primary"
+                        onClick={async () => {
+                          const res: any = await axios.get(`/product/details/${productId}`)
+                          if (!res.name || !res.desc || !res.isComplete) {
+                            confirm({
+                              title: '确认操作',
+                              content: '请先完善相关信息后再上架',
+                              onOk() {}
+                            })
+                            return
+                          } else if (!res.isActive) {
+                            confirm({
+                              title: '确认操作',
+                              content: '确认上架该商品吗?',
+                              onOk() {
+                                axios
+                                  .post(`/product/active`, {
+                                    id: productId,
+                                    isActive: !res.isActive
+                                  })
+                                  .then(async () => {
+                                    message.success('商品上架成功')
+                                  })
+                              }
+                            })
+                          }
+                        }}
+                      >
+                        保存并上架
+                      </Button>
+                    </FooterToolbar>
+                  )
                 }
-              >
-                <Button
-                  type="primary"
-                  onClick={async () => {
-                    props.form?.submit?.()
-                  }}
-                >
-                  保存
-                </Button>
-                <Button
-                  type="primary"
-                  onClick={async () => {
-                    const res: any = await axios.get(`/product/details/${productId}`)
-                    if (!res.name || !res.desc || !res.isComplete) {
-                      confirm({
-                        title: '确认操作',
-                        content: '请先完善相关信息后再上架',
-                        onOk() {}
-                      })
-                      return
-                    } else if (!res.isActive) {
-                      confirm({
-                        title: '确认操作',
-                        content: '确认上架该商品吗?',
-                        onOk() {
-                          axios
-                            .post(`/product/active`, {
-                              id: productId,
-                              isActive: !res.isActive
-                            })
-                            .then(async () => {
-                              message.success('商品上架成功')
-                            })
-                        }
-                      })
-                    }
-                  }}
-                >
-                  保存并上架
-                </Button>
-              </FooterToolbar>
-            )
-          }
-        }}
+              }
+            : false
+        }
         onFinish={async (values) => {
           console.log(values)
           // const { name, desc } = props.form.getFieldValue()
@@ -115,13 +124,16 @@ const SeriesDetails: FC<Record<string, any>> = () => {
           return true
         }}
         request={async () => {
-          return await axios.get(`/product/details/${productId}`)
+          return productId ? await axios.get(`/product/details/${productId}`) : {}
         }}
       >
         <Card title="基础信息" className={'card'} bordered={false}>
           <Row gutter={24}>
             <Col md={8}>
               <ProFormText
+                fieldProps={{
+                  readOnly: !isEdit
+                }}
                 label={'商品名称'}
                 name="name"
                 rules={[{ required: true, message: '请输入商品名称' }]}
@@ -130,6 +142,9 @@ const SeriesDetails: FC<Record<string, any>> = () => {
             </Col>
             <Col md={8}>
               <ProFormText
+                fieldProps={{
+                  readOnly: !isEdit
+                }}
                 label={'商品编码'}
                 name="code"
                 rules={[{ required: true, message: '请输入商品编码' }]}
@@ -139,6 +154,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
             <Col md={8}>
               <ProFormTextArea
                 fieldProps={{
+                  readOnly: !isEdit,
                   autoSize: {
                     minRows: 1
                   }
@@ -155,7 +171,6 @@ const SeriesDetails: FC<Record<string, any>> = () => {
 
       <Card title="商品详情" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
         <Banner
-          productId={productId}
           onBannerUpdate={(data) => {
             setBannerInfo(data)
           }}
@@ -167,7 +182,6 @@ const SeriesDetails: FC<Record<string, any>> = () => {
 
       <Card title="商品颜色" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
         <Color
-          productId={productId}
           onUpdate={(data) => {
             setColorList(data)
           }}
@@ -176,7 +190,6 @@ const SeriesDetails: FC<Record<string, any>> = () => {
 
       <Card title="规格管理" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
         <Unit
-          productId={productId}
           onUpdate={(data) => {
             setUnitList(data)
           }}
@@ -184,7 +197,7 @@ const SeriesDetails: FC<Record<string, any>> = () => {
       </Card>
 
       <Card title="SKU管理" className={'card'} bordered={false}>
-        <Sku productId={productId} colorList={colorList} unitList={unitList} />
+        <Sku colorList={colorList} unitList={unitList} />
       </Card>
     </PageContainer>
   )

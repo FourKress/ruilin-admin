@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLocation, useParams } from 'react-router-dom'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   EditableFormInstance,
@@ -12,17 +13,14 @@ import { Button, Form, Space, Switch } from 'antd'
 
 import './sku.scss'
 
-function Sku({
-  productId,
-  colorList,
-  unitList
-}: {
-  productId: string | undefined
-  colorList: any[]
-  unitList: any[]
-}) {
-  const [form] = Form.useForm()
+function Sku({ colorList, unitList }: { colorList: any[]; unitList: any[] }) {
+  const { id: productId } = useParams()
   console.log(productId)
+  const {
+    state: { isEdit }
+  } = useLocation()
+
+  const [form] = Form.useForm()
   const [editableKeys, setEditableRowKeys] = useState<any[]>(() => [])
   const [dataSource, setDataSource] = useState<any[]>(() => [])
 
@@ -105,9 +103,11 @@ function Sku({
         }
       })
     }
-    console.log(dataList)
+
     setDataSource(dataList)
-    setEditableRowKeys(dataList.map((d: any) => d.id))
+    if (isEdit) {
+      setEditableRowKeys(dataList.map((d: any) => d.id))
+    }
   }
 
   useEffect(() => {
@@ -192,82 +192,93 @@ function Sku({
     {
       title: '状态',
       valueType: 'option',
-      width: 70
+      width: 70,
+      render: (_text: any, record: any, _: any, _action: any) => [
+        <Switch
+          disabled={!isEdit}
+          key={record.id}
+          checkedChildren="已上架"
+          unCheckedChildren="已下架"
+          defaultChecked={record.isActive}
+        />
+      ]
     }
   ]
 
   return (
     <Space size={'middle'} direction={'vertical'} style={{ width: '100%' }}>
-      <ProForm
-        form={form}
-        className={'series-details'}
-        layout="inline"
-        submitter={false}
-        onFinish={async (val) => {
-          const { colorId, price, stock, ...other } = val
-          const unitKeys = Object.keys(other)
-          dataSource
-            .filter((d: any) => {
-              let colorFlag = true
-              let unitFlag = true
-              if (colorId) {
-                colorFlag = d.colorId === colorId
-              }
-              unitKeys.forEach((key) => {
-                if (!unitFlag) return
-                unitFlag = d[key] && d[key] === other[key]
-              })
-              return colorFlag && unitFlag
-            })
-            .forEach((d: any) => {
-              editorFormRef.current?.setRowData?.(d.id, {
-                ...d,
-                stock,
-                price
-              })
-            })
-        }}
-      >
-        <ProFormSelect
-          label={'批量设置'}
-          name={'colorId'}
-          placeholder="请选择颜色"
-          options={colorList.map((d) => {
-            return {
-              label: d.name,
-              value: d.id
-            }
-          })}
-        ></ProFormSelect>
-        {unitList.map((d: any) => {
-          return (
-            <ProFormSelect
-              name={`unit_${d.id}`}
-              placeholder={`请选择${d.name}`}
-              options={d.tags.map((t: any) => {
-                return {
-                  label: t.name,
-                  value: t.name
+      {isEdit && (
+        <ProForm
+          form={form}
+          className={'series-details'}
+          layout="inline"
+          submitter={false}
+          onFinish={async (val) => {
+            const { colorId, price, stock, ...other } = val
+            const unitKeys = Object.keys(other)
+            dataSource
+              .filter((d: any) => {
+                let colorFlag = true
+                let unitFlag = true
+                if (colorId) {
+                  colorFlag = d.colorId === colorId
                 }
-              })}
-            ></ProFormSelect>
-          )
-        })}
+                unitKeys.forEach((key) => {
+                  if (!unitFlag) return
+                  unitFlag = d[key] && d[key] === other[key]
+                })
+                return colorFlag && unitFlag
+              })
+              .forEach((d: any) => {
+                editorFormRef.current?.setRowData?.(d.id, {
+                  ...d,
+                  stock,
+                  price
+                })
+              })
+          }}
+        >
+          <ProFormSelect
+            label={'批量设置'}
+            name={'colorId'}
+            placeholder="请选择颜色"
+            options={colorList.map((d) => {
+              return {
+                label: d.name,
+                value: d.id
+              }
+            })}
+          ></ProFormSelect>
+          {unitList.map((d: any) => {
+            return (
+              <ProFormSelect
+                name={`unit_${d.id}`}
+                placeholder={`请选择${d.name}`}
+                options={d.tags.map((t: any) => {
+                  return {
+                    label: t.name,
+                    value: t.name
+                  }
+                })}
+              ></ProFormSelect>
+            )
+          })}
 
-        <ProFormText name={'stock'} placeholder="当前库存"></ProFormText>
-        <ProFormText name={'price'} placeholder="价格"></ProFormText>
-        <ProFormItem>
-          <Button
-            key="primary"
-            type={'primary'}
-            onClick={() => {
-              form?.submit?.()
-            }}
-          >
-            <PlusOutlined /> 批量设置
-          </Button>
-        </ProFormItem>
-      </ProForm>
+          <ProFormText name={'stock'} placeholder="当前库存"></ProFormText>
+          <ProFormText name={'price'} placeholder="价格"></ProFormText>
+          <ProFormItem>
+            <Button
+              key="primary"
+              type={'primary'}
+              onClick={() => {
+                form?.submit?.()
+              }}
+            >
+              <PlusOutlined /> 批量设置
+            </Button>
+          </ProFormItem>
+        </ProForm>
+      )}
 
       <EditableProTable
         className={'sku-table'}

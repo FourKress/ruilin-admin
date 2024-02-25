@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useLocation, useParams } from 'react-router-dom'
 import { EyeOutlined, PlusOutlined } from '@ant-design/icons'
 import { DndContext, DragEndEvent, PointerSensor, useSensor } from '@dnd-kit/core'
 import {
@@ -38,14 +39,19 @@ const descList = [
 ]
 
 function Banner({
-  productId,
   onBannerUpdate,
   onSummaryUpdate
 }: {
-  productId: string | undefined
   onBannerUpdate: (data: Record<string, any>) => void
   onSummaryUpdate: (data: any[]) => void
 }) {
+  const { id: productId } = useParams()
+  console.log(productId)
+  const {
+    state: { isEdit }
+  } = useLocation()
+  console.log(isEdit)
+
   const [imageFileList, setImageFileList] = useState<any[]>([])
   const [videoFileList, setVideoFileList] = useState<any[]>([])
   const [previewInfo, setPreviewInfo] = useState({
@@ -57,6 +63,7 @@ function Banner({
   const [loading, setLoading] = React.useState<boolean>(false)
 
   const getFileList = () => {
+    if (!productId) return
     setLoading(true)
     axios
       .get(`/product-banner/list/${productId}`)
@@ -123,10 +130,10 @@ function Banner({
     })
   }
 
-  const uploadButton = (
+  const uploadButton = isEdit && (
     <button style={{ border: 0, background: 'none' }} type="button">
       <PlusOutlined />
-      <div style={{ marginTop: 8 }}>上传</div>
+      <div>上传</div>
     </button>
   )
 
@@ -157,7 +164,7 @@ function Banner({
     const style: React.CSSProperties = {
       transform: CSS.Transform.toString(transform),
       transition,
-      cursor: 'move',
+      cursor: isEdit ? 'move' : 'default',
       height: '100%'
     }
 
@@ -166,10 +173,20 @@ function Banner({
         ref={setNodeRef}
         style={style}
         className={isDragging ? 'is-dragging' : ''}
-        {...attributes}
-        {...listeners}
+        {...(isEdit ? attributes : {})}
+        {...(isEdit ? listeners : {})}
       >
-        {file.status === 'error' && isDragging ? originNode.props.children : originNode}
+        <div className={originNode.props.className}>
+          {originNode.props.children[0]}
+          <div className={originNode.props.children[2].props.className}>
+            <EyeOutlined
+              onClick={() => {
+                handlePreview(file)
+              }}
+            />
+            {isEdit && originNode.props.children[2].props.children[2]}
+          </div>
+        </div>
       </div>
     )
   }
@@ -208,7 +225,7 @@ function Banner({
                             handlePreview(file)
                           }}
                         />
-                        {originNode.props.children[2].props.children[2]}
+                        {isEdit && originNode.props.children[2].props.children[2]}
                       </div>
                     </div>
                   )
@@ -235,7 +252,6 @@ function Banner({
                     listType="picture-card"
                     fileList={imageFileList}
                     maxCount={9}
-                    onPreview={handlePreview}
                     onChange={handleChange}
                     beforeUpload={() => false}
                     itemRender={(originNode, file) => (
@@ -253,7 +269,6 @@ function Banner({
       <Row gutter={24}>
         <Col md={24}>
           <Summary
-            productId={productId}
             onSummaryUpdate={(data) => {
               onSummaryUpdate(data)
             }}

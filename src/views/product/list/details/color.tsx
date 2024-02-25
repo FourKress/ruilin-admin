@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useLocation, useParams } from 'react-router-dom'
 import { EyeOutlined, PlusOutlined } from '@ant-design/icons'
 import { DragSortTable, ProColumns } from '@ant-design/pro-components'
 import { DndContext, DragEndEvent, PointerSensor, useSensor } from '@dnd-kit/core'
@@ -39,13 +40,14 @@ const descList = [
   }
 ]
 
-function Color({
-  productId,
-  onUpdate
-}: {
-  productId: string | undefined
-  onUpdate: (data: any[]) => void
-}) {
+function Color({ onUpdate }: { onUpdate: (data: any[]) => void }) {
+  const { id: productId } = useParams()
+  console.log(productId)
+  const {
+    state: { isEdit }
+  } = useLocation()
+  console.log(isEdit)
+
   const [colorList, setColorList] = useState<any[]>([])
   const [colorLoading, setColorLoading] = React.useState<boolean>(false)
   const [previewInfo, setPreviewInfo] = useState({
@@ -55,6 +57,7 @@ function Color({
   })
 
   const getColorList = () => {
+    if (!productId) return
     setColorLoading(true)
     axios
       .get(`/product-color/list/${productId}`)
@@ -133,7 +136,7 @@ function Color({
     )
   }
 
-  const uploadButton = (
+  const uploadButton = isEdit && (
     <button style={{ border: 0, background: 'none' }} type="button">
       <PlusOutlined />
     </button>
@@ -198,7 +201,7 @@ function Color({
     const style: React.CSSProperties = {
       transform: CSS.Transform.toString(transform),
       transition,
-      cursor: 'move',
+      cursor: isEdit ? 'move' : 'default',
       height: '100%'
     }
 
@@ -207,8 +210,8 @@ function Color({
         ref={setNodeRef}
         style={style}
         className={isDragging ? 'is-dragging' : ''}
-        {...attributes}
-        {...listeners}
+        {...(isEdit ? attributes : {})}
+        {...(isEdit ? listeners : {})}
       >
         <div className={originNode.props.className}>
           {originNode.props.children[0]}
@@ -218,7 +221,7 @@ function Color({
                 handlePreview(file)
               }}
             />
-            {originNode.props.children[2].props.children[2]}
+            {isEdit && originNode.props.children[2].props.children[2]}
           </div>
         </div>
       </div>
@@ -227,18 +230,13 @@ function Color({
 
   const columns: ProColumns[] = [
     {
-      title: '排序',
-      dataIndex: 'sort',
-      width: 40,
-      className: 'drag-visible'
-    },
-    {
       title: '颜色名称',
       dataIndex: 'name',
       width: 120,
       render: (_, record) => {
         return (
           <Input
+            readOnly={!isEdit}
             defaultValue={record.name}
             placeholder="请输入颜色名称"
             onBlur={async (e) => {
@@ -269,6 +267,7 @@ function Color({
       render: (_, record) => {
         return (
           <Input
+            readOnly={!isEdit}
             defaultValue={record.desc}
             placeholder="请输入颜色描述"
             onBlur={async (e) => {
@@ -299,9 +298,23 @@ function Color({
             listType="picture-card"
             fileList={record.smallFileList}
             maxCount={1}
-            onPreview={handlePreview}
             onChange={(data) => handleSmallChange(data, record)}
             beforeUpload={() => false}
+            itemRender={(originNode, file) => {
+              return (
+                <div className={originNode.props.className}>
+                  {originNode.props.children[0]}
+                  <div className={originNode.props.children[2].props.className}>
+                    <EyeOutlined
+                      onClick={() => {
+                        handlePreview(file)
+                      }}
+                    />
+                    {isEdit && originNode.props.children[2].props.children[2]}
+                  </div>
+                </div>
+              )
+            }}
           >
             {record.smallFileList.length >= 1 ? null : uploadButton}
           </Upload>
@@ -329,7 +342,6 @@ function Color({
                 listType="picture-card"
                 fileList={record.fileList}
                 maxCount={9}
-                onPreview={handlePreview}
                 onChange={(data) => handleChange(data, record)}
                 beforeUpload={(file: any) => {
                   if (file.type.includes('video')) {
@@ -347,8 +359,17 @@ function Color({
           </DndContext>
         )
       }
-    },
-    {
+    }
+  ]
+
+  if (isEdit) {
+    columns.unshift({
+      title: '排序',
+      dataIndex: 'sort',
+      width: 40,
+      className: 'drag-visible'
+    })
+    columns.push({
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
@@ -372,8 +393,8 @@ function Color({
           </a>
         ]
       }
-    }
-  ]
+    })
+  }
 
   return (
     <>
@@ -401,15 +422,17 @@ function Color({
         columns={columns}
         pagination={false}
         toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleAddColor()
-            }}
-          >
-            <PlusOutlined /> 新建
-          </Button>
+          isEdit && (
+            <Button
+              type="primary"
+              key="primary"
+              onClick={() => {
+                handleAddColor()
+              }}
+            >
+              <PlusOutlined /> 新建
+            </Button>
+          )
         ]}
       />
 
