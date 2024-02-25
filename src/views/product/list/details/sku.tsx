@@ -13,7 +13,15 @@ import { Button, Form, Space, Switch } from 'antd'
 
 import './sku.scss'
 
-function Sku({ colorList, unitList }: { colorList: any[]; unitList: any[] }) {
+function Sku({
+  colorList,
+  unitList,
+  onUpdate
+}: {
+  colorList: any[]
+  unitList: any[]
+  onUpdate: (data: any[]) => void
+}) {
   const { id: productId } = useParams()
   console.log(productId)
   const {
@@ -191,17 +199,19 @@ function Sku({ colorList, unitList }: { colorList: any[]; unitList: any[] }) {
     },
     {
       title: '状态',
-      valueType: 'option',
+      dataIndex: 'isActive',
       width: 70,
-      render: (_text: any, record: any, _: any, _action: any) => [
-        <Switch
-          disabled={!isEdit}
-          key={record.id}
-          checkedChildren="已上架"
-          unCheckedChildren="已下架"
-          defaultChecked={record.isActive}
-        />
-      ]
+      renderFormItem: (_: any, { record }: { record: any }, _form: any) => {
+        return (
+          <Switch
+            disabled={!isEdit}
+            key={record.id}
+            checkedChildren="已上架"
+            unCheckedChildren="已下架"
+            defaultChecked={record.isActive}
+          />
+        )
+      }
     }
   ]
 
@@ -216,7 +226,7 @@ function Sku({ colorList, unitList }: { colorList: any[]; unitList: any[] }) {
           onFinish={async (val) => {
             const { colorId, price, stock, ...other } = val
             const unitKeys = Object.keys(other)
-            dataSource
+            const targetList = dataSource
               .filter((d: any) => {
                 let colorFlag = true
                 let unitFlag = true
@@ -229,13 +239,28 @@ function Sku({ colorList, unitList }: { colorList: any[]; unitList: any[] }) {
                 })
                 return colorFlag && unitFlag
               })
-              .forEach((d: any) => {
-                editorFormRef.current?.setRowData?.(d.id, {
+              .map((d: any) => {
+                const data = {
                   ...d,
                   stock,
                   price
-                })
+                }
+                editorFormRef.current?.setRowData?.(d.id, data)
+                return data
               })
+
+            const data = dataSource.map((d: any) => {
+              const target = targetList.find((f: any) => f.id === d.id)
+              if (target) {
+                return {
+                  ...target
+                }
+              }
+              return {
+                ...d
+              }
+            })
+            onUpdate(data)
           }}
         >
           <ProFormSelect
@@ -286,28 +311,17 @@ function Sku({ colorList, unitList }: { colorList: any[]; unitList: any[] }) {
         columns={columns}
         rowKey="id"
         value={dataSource}
-        onChange={(val) => {
-          console.log(val)
-          console.log(setDataSource)
-        }}
         recordCreatorProps={false}
         editable={{
+          type: 'multiple',
           editableKeys,
-          actionRender: (row) => {
-            return [
-              <Switch
-                key={row.id}
-                checkedChildren="已上架"
-                unCheckedChildren="已下架"
-                defaultChecked={row.isActive}
-              />
-            ]
+          actionRender: () => {
+            return []
           },
           onValuesChange: (_record, recordList) => {
-            console.log(recordList)
             setDataSource(recordList)
-          },
-          onChange: setEditableRowKeys
+            onUpdate(recordList)
+          }
         }}
       />
     </Space>

@@ -31,9 +31,11 @@ const SeriesDetails: FC<Record<string, any>> = () => {
   const [unitList, setUnitList] = useState<any[]>([])
   const [bannerInfo, setBannerInfo] = useState<Record<string, any>>([])
   const [summaryList, setSummaryList] = useState<any[]>([])
+  const [skuList, setSkuList] = useState<any[]>([])
 
   console.log('bannerInfo', bannerInfo)
   console.log('summaryList', summaryList)
+  console.log('skuList', skuList)
 
   return (
     <PageContainer breadcrumbRender={false}>
@@ -78,30 +80,34 @@ const SeriesDetails: FC<Record<string, any>> = () => {
                       <Button
                         type="primary"
                         onClick={async () => {
-                          const res: any = await axios.get(`/product/details/${productId}`)
-                          if (!res.name || !res.desc || !res.isComplete) {
-                            confirm({
-                              title: '确认操作',
-                              content: '请先完善相关信息后再上架',
-                              onOk() {}
-                            })
-                            return
-                          } else if (!res.isActive) {
-                            confirm({
-                              title: '确认操作',
-                              content: '确认上架该商品吗?',
-                              onOk() {
-                                axios
-                                  .post(`/product/active`, {
-                                    id: productId,
-                                    isActive: !res.isActive
-                                  })
-                                  .then(async () => {
-                                    message.success('商品上架成功')
-                                  })
-                              }
-                            })
-                          }
+                          props.form?.validateFields?.().then(async () => {
+                            const res: Record<string, any> = await axios.get(
+                              `/product/details/${productId}`
+                            )
+                            if (!res.name || !res.desc || !res.isComplete) {
+                              confirm({
+                                title: '确认操作',
+                                content: '请先完善相关信息后再上架',
+                                onOk() {}
+                              })
+                              return
+                            } else if (!res.isActive) {
+                              confirm({
+                                title: '确认操作',
+                                content: '确认上架该商品吗?',
+                                onOk() {
+                                  axios
+                                    .post(`/product/active`, {
+                                      id: productId,
+                                      isActive: !res.isActive
+                                    })
+                                    .then(async () => {
+                                      message.success('商品保存并上架成功')
+                                    })
+                                }
+                              })
+                            }
+                          })
                         }}
                       >
                         保存并上架
@@ -113,14 +119,11 @@ const SeriesDetails: FC<Record<string, any>> = () => {
             : false
         }
         onFinish={async (values) => {
-          console.log(values)
-          // const { name, desc } = props.form.getFieldValue()
-          // await axios.post(`/product/update`, {
-          //   name,
-          //   desc,
-          //   id: productId
-          // })
-          message.success('提交成功')
+          await axios.post(`/product/update`, {
+            ...values,
+            id: productId
+          })
+          message.success('保存成功')
           return true
         }}
         request={async () => {
@@ -197,7 +200,14 @@ const SeriesDetails: FC<Record<string, any>> = () => {
       </Card>
 
       <Card title="SKU管理" className={'card'} bordered={false}>
-        <Sku colorList={colorList} unitList={unitList} />
+        <Sku
+          colorList={colorList}
+          unitList={unitList}
+          onUpdate={(data) => {
+            console.log(data)
+            setSkuList(data)
+          }}
+        />
       </Card>
     </PageContainer>
   )
