@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { EyeOutlined, PlusOutlined } from '@ant-design/icons'
 import { DndContext, DragEndEvent, PointerSensor, useSensor } from '@dnd-kit/core'
@@ -38,22 +38,21 @@ const descList = [
   }
 ]
 
-function Banner({
-  onBannerUpdate,
-  onSummaryUpdate
-}: {
-  onBannerUpdate: (data: Record<string, any>) => void
-  onSummaryUpdate: (data: any[]) => void
-}) {
+interface DetailsRef {
+  getBannerData: () => any
+  getSummaryData: () => any
+}
+
+const Banner = forwardRef<DetailsRef>((_props, ref) => {
   const { id: productId } = useParams()
-  console.log(productId)
   const {
     state: { isEdit }
   } = useLocation()
-  console.log(isEdit)
 
   const [imageFileList, setImageFileList] = useState<any[]>([])
   const [videoFileList, setVideoFileList] = useState<any[]>([])
+  const [imageRemoveList, setImageRemoveList] = useState<any[]>([])
+  const [videoRemoveList, setVideoRemoveList] = useState<any[]>([])
   const [previewInfo, setPreviewInfo] = useState({
     visible: false,
     url: '',
@@ -61,6 +60,7 @@ function Banner({
   })
 
   const [loading, setLoading] = React.useState<boolean>(false)
+  const summaryRef = useRef<any>()
 
   const getFileList = () => {
     if (!productId) return
@@ -98,12 +98,17 @@ function Banner({
     getFileList()
   }, [])
 
-  useEffect(() => {
-    onBannerUpdate({
-      imageFileList: imageFileList,
-      videoFileList: videoFileList
-    })
-  }, [imageFileList, videoFileList])
+  useImperativeHandle(ref, () => ({
+    getBannerData: (): any => {
+      return {
+        image: { upload: imageFileList.filter((d: any) => !d.status), removeIds: imageRemoveList },
+        video: { upload: videoFileList.filter((d: any) => !d.status), removeIds: videoRemoveList }
+      }
+    },
+    getSummaryData: () => {
+      return summaryRef.current?.getData()
+    }
+  }))
 
   const handleChange: UploadProps['onChange'] = ({ file, fileList }) => {
     const length = fileList.length
@@ -211,6 +216,11 @@ function Banner({
                 fileList={videoFileList}
                 maxCount={1}
                 onChange={handleVideoChange}
+                onRemove={(file: any) => {
+                  if (productId && file.id) {
+                    setVideoRemoveList([...videoRemoveList, file.id])
+                  }
+                }}
                 beforeUpload={(file: any) => {
                   file.url = URL.createObjectURL(file)
                   return false
@@ -253,6 +263,11 @@ function Banner({
                     fileList={imageFileList}
                     maxCount={9}
                     onChange={handleChange}
+                    onRemove={(file: any) => {
+                      if (productId && file.id) {
+                        setImageRemoveList([...imageRemoveList, file.id])
+                      }
+                    }}
                     beforeUpload={() => false}
                     itemRender={(originNode, file) => (
                       <DraggableUploadListItem originNode={originNode} file={file} />
@@ -268,11 +283,7 @@ function Banner({
       </Row>
       <Row gutter={24}>
         <Col md={24}>
-          <Summary
-            onSummaryUpdate={(data) => {
-              onSummaryUpdate(data)
-            }}
-          />
+          <Summary ref={summaryRef} />
         </Col>
       </Row>
       <Image
@@ -306,6 +317,6 @@ function Banner({
       />
     </Space>
   )
-}
+})
 
 export default Banner

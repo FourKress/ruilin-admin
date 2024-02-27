@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { EyeOutlined, PlusOutlined } from '@ant-design/icons'
 import { DragSortTable, ProColumns } from '@ant-design/pro-components'
@@ -40,15 +40,19 @@ const descList = [
   }
 ]
 
-function Color({ onUpdate }: { onUpdate: (data: any[]) => void }) {
+interface ColorRef {
+  getData: () => any
+}
+
+const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpdate }, ref) => {
   const { id: productId } = useParams()
-  console.log(productId)
   const {
     state: { isEdit }
   } = useLocation()
-  console.log(isEdit)
 
   const [colorList, setColorList] = useState<any[]>([])
+  const [colorRemoveList, setColorRemoveList] = useState<any[]>([])
+  const [fileRemoveList, setFileRemoveList] = useState<any[]>([])
   const [colorLoading, setColorLoading] = React.useState<boolean>(false)
   const [previewInfo, setPreviewInfo] = useState({
     visible: false,
@@ -63,10 +67,30 @@ function Color({ onUpdate }: { onUpdate: (data: any[]) => void }) {
       .get(`/product-color/list/${productId}`)
       .then((res: any) => {
         const list = res.map((d: any) => {
+          const smallFileList: any[] = []
+          const fileList: any[] = []
+
+          d.fileList?.forEach((d: any) => {
+            const item = {
+              uid: d.uid,
+              name: d.fileName,
+              type: d.fileType,
+              id: d.id,
+              url: d.url,
+              status: 'done'
+            }
+            if (d.type === 'header') {
+              smallFileList.push(item)
+              return
+            }
+
+            fileList.push(item)
+          })
+
           return {
             ...d,
-            smallFileList: [],
-            fileList: []
+            smallFileList,
+            fileList
           }
         })
         setColorList(list)
@@ -88,6 +112,16 @@ function Color({ onUpdate }: { onUpdate: (data: any[]) => void }) {
     if (!list.length) return
     onUpdate(list)
   }, [colorList])
+
+  useImperativeHandle(ref, () => ({
+    getData: (): any => {
+      return {
+        removeIds: colorRemoveList,
+        fileRemoveIds: fileRemoveList,
+        editList: colorList.filter((d: any) => d.name)
+      }
+    }
+  }))
 
   const handlePreview = (file: UploadFile) => {
     const url = file.url || file.thumbUrl
@@ -149,8 +183,7 @@ function Color({ onUpdate }: { onUpdate: (data: any[]) => void }) {
         name: '',
         smallFileList: [],
         fileList: [],
-        id: Date.now(),
-        uid: Date.now()
+        id: Date.now()
       }
     ])
   }
@@ -168,12 +201,11 @@ function Color({ onUpdate }: { onUpdate: (data: any[]) => void }) {
       const activeIndex = list.findIndex((d: any) => d.uid === active.id)
       const overIndex = list.findIndex((d: any) => d.uid === over.id)
       const sortList = arrayMove(list, activeIndex, overIndex)
-
       setColorList(
         colorList.map((d: any) => {
           return {
             ...d,
-            fileList: d.uid === item.uid ? sortList : d.fileList
+            fileList: d.id === item.id ? sortList : d.fileList
           }
         })
       )
@@ -300,6 +332,11 @@ function Color({ onUpdate }: { onUpdate: (data: any[]) => void }) {
             maxCount={1}
             onChange={(data) => handleSmallChange(data, record)}
             beforeUpload={() => false}
+            onRemove={(file: any) => {
+              if (productId && file.id) {
+                setFileRemoveList([...fileRemoveList, file.id])
+              }
+            }}
             itemRender={(originNode, file) => {
               return (
                 <div className={originNode.props.className}>
@@ -343,6 +380,11 @@ function Color({ onUpdate }: { onUpdate: (data: any[]) => void }) {
                 fileList={record.fileList}
                 maxCount={9}
                 onChange={(data) => handleChange(data, record)}
+                onRemove={(file: any) => {
+                  if (productId && file.id) {
+                    setFileRemoveList([...fileRemoveList, file.id])
+                  }
+                }}
                 beforeUpload={(file: any) => {
                   if (file.type.includes('video')) {
                     file.url = URL.createObjectURL(file)
@@ -375,7 +417,7 @@ function Color({ onUpdate }: { onUpdate: (data: any[]) => void }) {
       valueType: 'option',
       ellipsis: false,
       width: 40,
-      render: (_, record) => {
+      render: (_, record: Record<string, any>) => {
         return [
           <a
             key="delete"
@@ -385,6 +427,9 @@ function Color({ onUpdate }: { onUpdate: (data: any[]) => void }) {
                 content: '确认删除该颜色吗?',
                 onOk() {
                   setColorList(colorList.filter((d) => d.id !== record.id))
+                  if (productId && record.createTime) {
+                    setColorRemoveList([...colorRemoveList, record.id])
+                  }
                 }
               })
             }}
@@ -467,6 +512,6 @@ function Color({ onUpdate }: { onUpdate: (data: any[]) => void }) {
       />
     </>
   )
-}
+})
 
 export default Color

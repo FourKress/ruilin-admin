@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { HolderOutlined, PlusOutlined } from '@ant-design/icons'
 import { DragSortTable, ProColumns } from '@ant-design/pro-components'
@@ -26,20 +26,27 @@ const { confirm } = Modal
 
 const addTagId = Date.now()
 
-function Unit({ onUpdate }: { onUpdate: (data: any[]) => void }) {
+interface UnitRef {
+  getData: () => any
+}
+
+const Unit = forwardRef<UnitRef, { onUpdate: (data: any[]) => void }>(({ onUpdate }, ref) => {
   const { id: productId } = useParams()
-  console.log(productId)
   const {
     state: { isEdit }
   } = useLocation()
-  console.log(isEdit)
 
   const [unitList, setUnitList] = useState<any[]>([])
+  const [unitRemoveList, setUnitRemoveList] = useState<any[]>([])
+  const [tagRemoveList, setTagRemoveList] = useState<any[]>([])
   const [unitLoading, setUnitLoading] = React.useState<boolean>(false)
   const { token } = theme.useToken()
 
-  const handleDeleteUnit = (id: string) => {
-    setUnitList(unitList.filter((d: any) => d.id !== id))
+  const handleDeleteUnit = (unit: Record<string, any>) => {
+    setUnitList(unitList.filter((d: any) => d.id !== unit.id))
+    if (productId && unit.createTime) {
+      setUnitRemoveList([...unitRemoveList, unit.id])
+    }
   }
 
   const getUnitList = () => {
@@ -69,8 +76,18 @@ function Unit({ onUpdate }: { onUpdate: (data: any[]) => void }) {
     onUpdate(list)
   }, [unitList])
 
+  useImperativeHandle(ref, () => ({
+    getData: (): any => {
+      return {
+        removeIds: unitRemoveList,
+        tagRemoveIds: tagRemoveList,
+        editList: unitList.filter((d: any) => d.name)
+      }
+    }
+  }))
+
   type DraggableTagProps = {
-    tag: any
+    tag: Record<string, any>
     unit: any
   }
 
@@ -161,7 +178,7 @@ function Unit({ onUpdate }: { onUpdate: (data: any[]) => void }) {
         closable
         onClose={async (e) => {
           e.preventDefault()
-          handleClose(tag.id, unit)
+          handleClose(tag, unit)
         }}
       >
         <Space>
@@ -261,23 +278,30 @@ function Unit({ onUpdate }: { onUpdate: (data: any[]) => void }) {
       )
     }
   }
-  const handleClose = (id: string, unit: any) => {
+  const handleClose = (tag: Record<string, any>, unit: Record<string, any>) => {
     if (unit.tags.length === 1) {
       confirm({
         title: '确认操作',
         content: '删除最后一个标签将同步删除整个规格，确认删除吗?',
         onOk: () => {
-          handleDeleteUnit(unit.id)
+          if (productId && tag.createTime) {
+            setTagRemoveList([...tagRemoveList, tag.id])
+          }
+          handleDeleteUnit(unit)
         }
       })
       return
+    }
+
+    if (productId && tag.createTime) {
+      setTagRemoveList([...tagRemoveList, tag.id])
     }
 
     setUnitList(
       unitList.map((d) => {
         return {
           ...d,
-          tags: d.id === unit.id ? d.tags.filter((f: any) => f.id !== id) : d.tags
+          tags: d.id === unit.id ? d.tags.filter((f: any) => f.id !== tag.id) : d.tags
         }
       })
     )
@@ -355,7 +379,7 @@ function Unit({ onUpdate }: { onUpdate: (data: any[]) => void }) {
       valueType: 'option',
       ellipsis: false,
       width: 40,
-      render: (_, record) => {
+      render: (_, record: Record<string, any>) => {
         return [
           <a
             key="delete"
@@ -364,7 +388,7 @@ function Unit({ onUpdate }: { onUpdate: (data: any[]) => void }) {
                 title: '确认操作',
                 content: '确认删除该规格吗?',
                 onOk() {
-                  setUnitList(unitList.filter((d) => d.id !== record.id))
+                  handleDeleteUnit(record)
                 }
               })
             }}
@@ -412,6 +436,6 @@ function Unit({ onUpdate }: { onUpdate: (data: any[]) => void }) {
       />
     </>
   )
-}
+})
 
 export default Unit

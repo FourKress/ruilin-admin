@@ -291,10 +291,13 @@ function OperationsCoupon() {
           ]}
         />
         <ProFormDigit
-          min={1}
+          min={0.01}
           name="faceValue"
           label="面值"
           placeholder={'请输入面值'}
+          fieldProps={{
+            precision: 2
+          }}
           rules={[
             {
               required: true,
@@ -311,9 +314,12 @@ function OperationsCoupon() {
           ]}
         />
         <ProFormDigit
-          min={2}
+          min={0.02}
           name="thresholdValue"
           label="门槛"
+          fieldProps={{
+            precision: 2
+          }}
           placeholder={'请输入门槛'}
           rules={[
             {
@@ -336,6 +342,7 @@ function OperationsCoupon() {
         <ProFormDigit
           min={1}
           max={99}
+          fieldProps={{ precision: 0 }}
           name="validCount"
           label="有效次数"
           placeholder={'请输入有效次数'}

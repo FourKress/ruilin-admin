@@ -229,7 +229,10 @@ function OperationsRule() {
         }}
       >
         <ProFormDigit
-          min={1}
+          min={0.01}
+          fieldProps={{
+            precision: 2
+          }}
           name="faceValue"
           label="面值"
           placeholder={'请输入面值'}
@@ -249,7 +252,10 @@ function OperationsRule() {
           ]}
         />
         <ProFormDigit
-          min={2}
+          min={0.02}
+          fieldProps={{
+            precision: 2
+          }}
           name="thresholdValue"
           label="门槛"
           placeholder={'请输入门槛'}

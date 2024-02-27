@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { PlusOutlined } from '@ant-design/icons'
 import { DragSortTable, ProColumns } from '@ant-design/pro-components'
@@ -8,15 +8,18 @@ import axios from '@/utils/axios.ts'
 
 const { confirm } = Modal
 
-function Summary({ onSummaryUpdate }: { onSummaryUpdate: (data: any[]) => void }) {
+interface SummaryRef {
+  getData: () => any
+}
+
+const Summary = forwardRef<SummaryRef>((_props, ref) => {
   const { id: productId } = useParams()
-  console.log(productId)
   const {
     state: { isEdit }
   } = useLocation()
-  console.log(isEdit)
 
   const [summaryList, setSummaryList] = useState<any[]>([])
+  const [summaryRemoveList, setSummaryRemoveList] = useState<any[]>([])
   const [loading, setLoading] = React.useState<boolean>(false)
 
   const getSummaryList = () => {
@@ -36,9 +39,14 @@ function Summary({ onSummaryUpdate }: { onSummaryUpdate: (data: any[]) => void }
     getSummaryList()
   }, [])
 
-  useEffect(() => {
-    onSummaryUpdate(summaryList)
-  }, [summaryList])
+  useImperativeHandle(ref, () => ({
+    getData: (): any => {
+      return {
+        editList: summaryList,
+        removeIds: summaryRemoveList
+      }
+    }
+  }))
 
   const columns: ProColumns[] = [
     {
@@ -114,7 +122,7 @@ function Summary({ onSummaryUpdate }: { onSummaryUpdate: (data: any[]) => void }
       valueType: 'option',
       ellipsis: false,
       width: 40,
-      render: (_, record) => {
+      render: (_, record: Record<string, any>) => {
         return [
           <a
             key="delete"
@@ -125,6 +133,9 @@ function Summary({ onSummaryUpdate }: { onSummaryUpdate: (data: any[]) => void }
                 onOk() {
                   const { id } = record
                   setSummaryList(summaryList.filter((d) => d.id !== id))
+                  if (productId && record.createTime) {
+                    setSummaryRemoveList([...summaryRemoveList, record.id])
+                  }
                 }
               })
             }}
@@ -182,6 +193,6 @@ function Summary({ onSummaryUpdate }: { onSummaryUpdate: (data: any[]) => void }
       />
     </Space>
   )
-}
+})
 
 export default Summary
