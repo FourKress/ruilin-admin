@@ -62,7 +62,7 @@ const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpd
     if (!productId) return
     setColorLoading(true)
     axios
-      .get(`/product-color/list/${productId}`)
+      .get(`/product-color/${isEdit ? 'list' : 'online-list'}/${productId}`)
       .then((res: any) => {
         const list = res.map((d: any) => {
           const smallFileList: any[] = []

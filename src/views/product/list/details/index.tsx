@@ -457,7 +457,22 @@ const ProductDetails: FC<Record<string, any>> = () => {
             return true
           }}
           request={async () => {
-            return productId ? await axios.get(`/product/details/${productId}`) : {}
+            if (productId) {
+              const res: any = await axios.get(`/product/details/${productId}`)
+              const { code, name, desc, online_code, online_name, online_desc } = res
+              if (isEdit)
+                return {
+                  name,
+                  code,
+                  desc
+                }
+              return {
+                online_code,
+                online_name,
+                online_desc
+              }
+            }
+            return {}
           }}
         >
           <Card title="基础信息" className={'card'} bordered={false}>

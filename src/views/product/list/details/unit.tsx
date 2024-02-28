@@ -51,7 +51,7 @@ const Unit = forwardRef<UnitRef, { onUpdate: (data: any[]) => void }>(({ onUpdat
     if (!productId) return
     setUnitLoading(true)
     axios
-      .get(`/product-unit/list/${productId}`)
+      .get(`/product-unit/${isEdit ? 'list' : 'online-list'}/${productId}`)
       .then((res: any) => {
         setUnitList(res)
       })

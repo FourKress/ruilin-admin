@@ -9,7 +9,18 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Col, Descriptions, Image, Row, Space, Spin, Upload, UploadFile, UploadProps } from 'antd'
+import {
+  Col,
+  Descriptions,
+  Empty,
+  Image,
+  Row,
+  Space,
+  Spin,
+  Upload,
+  UploadFile,
+  UploadProps
+} from 'antd'
 
 import axios from '@/utils/axios.ts'
 import { checkFileSize } from '@/utils/fileUtils.ts'
@@ -64,7 +75,7 @@ const Banner = forwardRef<DetailsRef>((_props, ref) => {
     if (!productId) return
     setLoading(true)
     axios
-      .get(`/product-banner/list/${productId}`)
+      .get(`/product-banner/${isEdit ? 'list' : 'online-list'}/${productId}`)
       .then((res: any) => {
         const imageList: any[] = []
         const videoList: any[] = []
@@ -207,75 +218,82 @@ const Banner = forwardRef<DetailsRef>((_props, ref) => {
           <Space direction={'vertical'}>
             <h4>介绍视频</h4>
             <Spin spinning={loading}>
-              <Upload
-                className={'banner-upload'}
-                accept={'.mp4'}
-                listType="picture-card"
-                fileList={videoFileList}
-                maxCount={1}
-                onChange={handleVideoChange}
-                onRemove={(file: any) => {
-                  if (productId && file.id) {
-                    setVideoRemoveList([...videoRemoveList, file.id])
-                  }
-                }}
-                beforeUpload={(file: any) => {
-                  file.url = URL.createObjectURL(file)
-                  return false
-                }}
-                itemRender={(originNode, file) => {
-                  return (
-                    <div className={originNode.props.className}>
-                      {originNode.props.children[0]}
-                      <div className={originNode.props.children[2].props.className}>
-                        <EyeOutlined
-                          onClick={() => {
-                            handlePreview(file)
-                          }}
-                        />
-                        {isEdit && originNode.props.children[2].props.children[2]}
+              {videoFileList.length ? (
+                <Upload
+                  className={'banner-upload'}
+                  accept={'.mp4'}
+                  listType="picture-card"
+                  fileList={videoFileList}
+                  maxCount={1}
+                  onChange={handleVideoChange}
+                  onRemove={(file: any) => {
+                    if (productId && file.id) {
+                      setVideoRemoveList([...videoRemoveList, file.id])
+                    }
+                  }}
+                  beforeUpload={(file: any) => {
+                    file.url = URL.createObjectURL(file)
+                    return false
+                  }}
+                  itemRender={(originNode, file) => {
+                    return (
+                      <div className={originNode.props.className}>
+                        {originNode.props.children[0]}
+                        <div className={originNode.props.children[2].props.className}>
+                          <EyeOutlined
+                            onClick={() => {
+                              handlePreview(file)
+                            }}
+                          />
+                          {isEdit && originNode.props.children[2].props.children[2]}
+                        </div>
                       </div>
-                    </div>
-                  )
-                }}
-              >
-                {videoFileList.length >= 1 ? null : uploadButton}
-              </Upload>
+                    )
+                  }}
+                >
+                  {videoFileList.length >= 1 ? null : uploadButton}
+                </Upload>
+              ) : (
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              )}
             </Spin>
           </Space>
         </Col>
         <Col flex={1}>
           <Space direction={'vertical'}>
             <h4>轮播图</h4>
-
-            <DndContext sensors={[sensor]} onDragEnd={onDragEnd}>
-              <SortableContext
-                items={imageFileList.map((i) => i.uid)}
-                strategy={verticalListSortingStrategy}
-              >
-                <Spin spinning={loading}>
-                  <Upload
-                    className={'banner-upload'}
-                    accept={'.png,.jpg,.jpeg'}
-                    listType="picture-card"
-                    fileList={imageFileList}
-                    maxCount={9}
-                    onChange={handleChange}
-                    onRemove={(file: any) => {
-                      if (productId && file.id) {
-                        setImageRemoveList([...imageRemoveList, file.id])
-                      }
-                    }}
-                    beforeUpload={() => false}
-                    itemRender={(originNode, file) => (
-                      <DraggableUploadListItem originNode={originNode} file={file} />
-                    )}
-                  >
-                    {imageFileList.length >= 9 ? null : uploadButton}
-                  </Upload>
-                </Spin>
-              </SortableContext>
-            </DndContext>
+            {imageFileList.length ? (
+              <DndContext sensors={[sensor]} onDragEnd={onDragEnd}>
+                <SortableContext
+                  items={imageFileList.map((i) => i.uid)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <Spin spinning={loading}>
+                    <Upload
+                      className={'banner-upload'}
+                      accept={'.png,.jpg,.jpeg'}
+                      listType="picture-card"
+                      fileList={imageFileList}
+                      maxCount={9}
+                      onChange={handleChange}
+                      onRemove={(file: any) => {
+                        if (productId && file.id) {
+                          setImageRemoveList([...imageRemoveList, file.id])
+                        }
+                      }}
+                      beforeUpload={() => false}
+                      itemRender={(originNode, file) => (
+                        <DraggableUploadListItem originNode={originNode} file={file} />
+                      )}
+                    >
+                      {imageFileList.length >= 9 ? null : uploadButton}
+                    </Upload>
+                  </Spin>
+                </SortableContext>
+              </DndContext>
+            ) : (
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+            )}
           </Space>
         </Col>
       </Row>

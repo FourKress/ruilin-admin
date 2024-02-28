@@ -24,7 +24,7 @@ const Summary = forwardRef<SummaryRef>((_props, ref) => {
     if (!productId) return
     setLoading(true)
     axios
-      .get(`/product-summary/list/${productId}`)
+      .get(`/product-summary/${isEdit ? 'list' : 'online-list'}/${productId}`)
       .then((res: any) => {
         setSummaryList(res)
       })

@@ -38,7 +38,7 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
       if (!productId) return
       setSkuLoading(true)
       axios
-        .get(`/product-sku/list/${productId}`)
+        .get(`/product-sku/${isEdit ? 'list' : 'online-list'}/${productId}`)
         .then((res: any) => {
           setSkuList(res)
         })
