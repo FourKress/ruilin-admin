@@ -115,9 +115,8 @@ function Banner() {
                 ]
                 form.setFieldsValue({
                   ...record,
-                  fileList: newFileList
+                  fileInfo: { fileList: newFileList }
                 })
-                console.log(newFileList)
                 setFileList(newFileList)
                 setModalInfo({
                   open: true,
@@ -135,8 +134,8 @@ function Banner() {
                 confirm({
                   title: '确认操作',
                   content: '确认更改轮播图状态吗?',
-                  onOk() {
-                    handleActive(record)
+                  onOk: async () => {
+                    await handleActive(record)
                   }
                 })
               }}
@@ -164,8 +163,8 @@ function Banner() {
                 confirm({
                   title: '确认操作',
                   content: '确认删除轮播图吗?',
-                  onOk() {
-                    handleDelete(record)
+                  onOk: async () => {
+                    await handleDelete(record)
                   }
                 })
               }}
@@ -208,8 +207,8 @@ function Banner() {
     message.success(`轮播图${id ? '编辑' : '新建'}成功`)
   }
 
-  const handleActive = (data: any) => {
-    axios
+  const handleActive = async (data: any) => {
+    await axios
       .post(`/banner/active`, {
         id: data.id,
         isActive: !data.isActive
@@ -220,8 +219,8 @@ function Banner() {
       })
   }
 
-  const handleDelete = (data: any) => {
-    axios.get(`/banner/delete/${data.id}`).then(async () => {
+  const handleDelete = async (data: any) => {
+    await axios.get(`/banner/delete/${data.id}`).then(async () => {
       getBannerPage()
       message.success('删除轮播图成功')
     })
@@ -249,11 +248,12 @@ function Banner() {
               type="primary"
               key="primary"
               onClick={() => {
+                form.resetFields()
                 form.setFieldsValue({
                   name: '',
                   link: '',
                   desc: '',
-                  fileList: [],
+                  fileInfo: [],
                   id: '',
                   url: ''
                 })
@@ -275,6 +275,7 @@ function Banner() {
         name: string
         link: string
         desc: string
+        fileInfo: any
       }>
         open={modalInfo.open}
         initialValues={{}}
@@ -283,16 +284,24 @@ function Banner() {
         autoFocusFirstInput
         width={400}
         modalProps={{
+          destroyOnClose: true,
           onCancel: () => {
             setModalInfo({ open: false })
           }
         }}
         onFinish={async (values) => {
+          console.log(values)
           await handleUpdate(values)
           setModalInfo({
             open: false
           })
           return true
+        }}
+        onValuesChange={(values) => {
+          console.log(values)
+          if (values.fileInfo && values.fileInfo.file?.status === 'removed') {
+            form.setFieldValue('fileInfo', '')
+          }
         }}
       >
         <ProFormText
@@ -348,11 +357,13 @@ function Banner() {
             fileList={fileList}
             maxCount={1}
             onChange={({ file, fileList: newFileList }) => {
-              console.log(file, newFileList)
               if (newFileList.length && !checkFileSize(file)) {
                 return
               }
               setFileList(newFileList)
+            }}
+            onRemove={() => {
+              setFileList([])
             }}
             beforeUpload={() => false}
             onPreview={(file) => {

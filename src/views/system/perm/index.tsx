@@ -77,8 +77,8 @@ function SystemPerm() {
                 confirm({
                   title: '确认操作',
                   content: '确认更改权限状态吗?',
-                  onOk() {
-                    handleActive(record)
+                  onOk: async () => {
+                    await handleActive(record)
                   }
                 })
               }}
@@ -114,8 +114,8 @@ function SystemPerm() {
                 confirm({
                   title: '确认操作',
                   content: '确认删除权限吗?',
-                  onOk() {
-                    handleDelete(record)
+                  onOk: async () => {
+                    await handleDelete(record)
                   }
                 })
               }}
@@ -128,10 +128,10 @@ function SystemPerm() {
     }
   ]
 
-  const handleUpdate = (data: any) => {
+  const handleUpdate = async (data: any) => {
     const id = form.getFieldValue('id')
     const pid = form.getFieldValue('pid')
-    axios
+    await axios
       .post(`/perm/${id ? 'update' : 'create'}`, {
         id: id || undefined,
         pid,
@@ -146,8 +146,8 @@ function SystemPerm() {
       })
   }
 
-  const handleActive = (data: any) => {
-    axios
+  const handleActive = async (data: any) => {
+    await axios
       .post(`/perm/active`, {
         id: data.id,
         isActive: !data.isActive
@@ -158,8 +158,8 @@ function SystemPerm() {
       })
   }
 
-  const handleDelete = (data: any) => {
-    axios.get(`/perm/delete/${data.id}`).then(async () => {
+  const handleDelete = async (data: any) => {
+    await axios.get(`/perm/delete/${data.id}`).then(async () => {
       message.success('删除权限成功')
       actionRef.current?.reloadAndRest?.()
     })

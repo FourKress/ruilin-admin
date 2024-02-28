@@ -80,7 +80,7 @@ function OperationsRule() {
       width: 80,
       render: (_, record) => {
         return [
-          perms.includes('edit-rule') && (
+          perms.includes('edit-rule') && record.isActive && (
             <a
               key="modify"
               onClick={() => {
@@ -105,8 +105,8 @@ function OperationsRule() {
                 confirm({
                   title: '确认操作',
                   content: '确认删除满减规则吗?',
-                  onOk() {
-                    handleDelete(record)
+                  onOk: async () => {
+                    await handleDelete(record)
                   }
                 })
               }}
@@ -119,10 +119,10 @@ function OperationsRule() {
     }
   ]
 
-  const handleUpdate = (data: any) => {
+  const handleUpdate = async (data: any) => {
     const id = form.getFieldValue('id')
     const { validDate, ...other } = data
-    axios
+    await axios
       .post(`/rule/${id ? 'update' : 'create'}`, {
         id: id || undefined,
         ...other,
@@ -138,8 +138,8 @@ function OperationsRule() {
       })
   }
 
-  const handleDelete = (data: any) => {
-    axios.get(`/rule/delete/${data.id}`).then(async () => {
+  const handleDelete = async (data: any) => {
+    await axios.get(`/rule/delete/${data.id}`).then(async () => {
       message.success('删除满减规则成功')
       actionRef.current?.reloadAndRest?.()
     })
@@ -161,10 +161,12 @@ function OperationsRule() {
               type="primary"
               key="primary"
               onClick={() => {
+                form.resetFields()
                 form.setFieldsValue({
                   faceValue: '',
                   thresholdValue: '',
-                  validDate: ''
+                  validDate: '',
+                  id: ''
                 })
                 setModalInfo({
                   open: true,
@@ -225,7 +227,7 @@ function OperationsRule() {
           }
         }}
         onFinish={async (values) => {
-          handleUpdate(values)
+          await handleUpdate(values)
         }}
       >
         <ProFormDigit

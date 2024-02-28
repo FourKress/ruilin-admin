@@ -59,7 +59,7 @@ function ProductList() {
 
                   <Descriptions title="">
                     <Descriptions.Item label="商品编码">
-                      <Tooltip title={`商品编码: ${code}`}>
+                      <Tooltip title={code}>
                         <span>{code.length > 9 ? `${code.slice(0, 20)}...` : code}</span>
                       </Tooltip>
                     </Descriptions.Item>
@@ -81,8 +81,21 @@ function ProductList() {
       hideInSearch: true,
       ellipsis: true,
       dataIndex: 'unit',
-      render: () => {
-        return <span>unit</span>
+      render: (_, record: Record<string, any>) => {
+        const { unitList = [], colorList = [], skuList = [] } = record
+        return (
+          <Descriptions title="" column={1}>
+            <Descriptions.Item label="颜色">
+              <span>{colorList.length}</span>
+            </Descriptions.Item>
+            <Descriptions.Item label="规格">
+              <span>{unitList.length}</span>
+            </Descriptions.Item>
+            <Descriptions.Item label="SKU">
+              <span>{skuList.length}</span>
+            </Descriptions.Item>
+          </Descriptions>
+        )
       }
     },
     {
@@ -90,8 +103,15 @@ function ProductList() {
       hideInSearch: true,
       ellipsis: true,
       dataIndex: 'price',
-      render: () => {
-        return <span>price</span>
+      render: (_, record: Record<string, any>) => {
+        const { skuList = [] } = record
+        if (!skuList.length) return <span>-</span>
+        const skuListSort = skuList.sort((a: any, b: any) => a.price - b.price)
+        return (
+          <span>
+            {skuListSort[0].price} ~ {skuListSort.at(-1).price}
+          </span>
+        )
       }
     },
     {

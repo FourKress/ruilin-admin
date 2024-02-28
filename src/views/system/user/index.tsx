@@ -121,8 +121,8 @@ function SystemUser() {
                 confirm({
                   title: '确认操作',
                   content: '确认更改用户状态吗?',
-                  onOk() {
-                    handleActive(record)
+                  onOk: async () => {
+                    await handleActive(record)
                   }
                 })
               }}
@@ -137,8 +137,8 @@ function SystemUser() {
                 confirm({
                   title: '确认操作',
                   content: '确认重置用户密码吗?',
-                  onOk() {
-                    handleResetPwd(record)
+                  onOk: async () => {
+                    await handleResetPwd(record)
                   }
                 })
               }}
@@ -153,8 +153,8 @@ function SystemUser() {
                 confirm({
                   title: '确认操作',
                   content: '确认删除该用户吗?',
-                  onOk() {
-                    handleDelete(record)
+                  onOk: async () => {
+                    await handleDelete(record)
                   }
                 })
               }}
@@ -167,7 +167,7 @@ function SystemUser() {
     }
   ]
 
-  const handleUpdate = (data: any) => {
+  const handleUpdate = async (data: any) => {
     const id = form.getFieldValue('id')
     let params
     if (id) {
@@ -182,7 +182,7 @@ function SystemUser() {
         password: md5(firstPassword).substring(8, 26)
       }
     }
-    axios
+    await axios
       .post(`/user/${id ? 'update' : 'register'}`, {
         id: id || undefined,
         ...params
@@ -196,8 +196,8 @@ function SystemUser() {
       })
   }
 
-  const handleActive = (data: any) => {
-    axios
+  const handleActive = async (data: any) => {
+    await axios
       .post(`/user/active`, {
         id: data.id,
         isActive: !data.isActive
@@ -208,15 +208,15 @@ function SystemUser() {
       })
   }
 
-  const handleResetPwd = (data: any) => {
-    axios.get(`/user/resetPwd/${data.id}`).then(async () => {
+  const handleResetPwd = async (data: any) => {
+    await axios.get(`/user/resetPwd/${data.id}`).then(async () => {
       message.success('重置密码成功')
       actionRef.current?.reloadAndRest?.()
     })
   }
 
-  const handleDelete = (data: any) => {
-    axios.get(`/user/delete/${data.id}`).then(async () => {
+  const handleDelete = async (data: any) => {
+    await axios.get(`/user/delete/${data.id}`).then(async () => {
       message.success('删除用户成功')
       actionRef.current?.reloadAndRest?.()
     })
@@ -299,7 +299,7 @@ function SystemUser() {
           onCancel: () => setModalInfo({ open: false })
         }}
         onFinish={async (values) => {
-          handleUpdate(values)
+          await handleUpdate(values)
         }}
       >
         <ProFormText

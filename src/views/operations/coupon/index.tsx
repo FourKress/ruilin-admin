@@ -104,7 +104,7 @@ function OperationsCoupon() {
       width: 130,
       render: (_, record) => {
         return [
-          perms.includes('edit-coupon') && (
+          perms.includes('edit-coupon') && record.isActive && (
             <a
               key="modify"
               onClick={() => {
@@ -201,7 +201,8 @@ function OperationsCoupon() {
                   thresholdValue: '',
                   validCount: '',
                   usageCount: '',
-                  validDate: ''
+                  validDate: '',
+                  id: ''
                 })
                 setModalInfo({
                   open: true,

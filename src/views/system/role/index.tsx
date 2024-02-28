@@ -105,8 +105,8 @@ function SystemRole() {
                 confirm({
                   title: '确认操作',
                   content: '确认更改角色状态吗?',
-                  onOk() {
-                    handleActive(record)
+                  onOk: async () => {
+                    await handleActive(record)
                   }
                 })
               }}
@@ -121,8 +121,8 @@ function SystemRole() {
                 confirm({
                   title: '确认操作',
                   content: '确认删除角色吗?',
-                  onOk() {
-                    handleDelete(record)
+                  onOk: async () => {
+                    await handleDelete(record)
                   }
                 })
               }}
@@ -135,10 +135,10 @@ function SystemRole() {
     }
   ]
 
-  const handleUpdate = (data: any) => {
+  const handleUpdate = async (data: any) => {
     const { perms } = data
     const id = form.getFieldValue('id')
-    axios
+    await axios
       .post(`/role/${id ? 'update' : 'create'}`, {
         id: id || undefined,
         ...data,
@@ -153,8 +153,8 @@ function SystemRole() {
       })
   }
 
-  const handleActive = (data: any) => {
-    axios
+  const handleActive = async (data: any) => {
+    await axios
       .post(`/role/active`, {
         id: data.id,
         isActive: !data.isActive
@@ -247,7 +247,7 @@ function SystemRole() {
           }
         }}
         onFinish={async (values) => {
-          handleUpdate(values)
+          await handleUpdate(values)
         }}
       >
         <ProFormText

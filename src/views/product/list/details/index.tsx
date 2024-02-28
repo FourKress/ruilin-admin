@@ -26,7 +26,6 @@ const ProductDetails: FC<Record<string, any>> = () => {
   const navigate = useNavigate()
   const { id, edit } = useParams()
   const isEdit = edit === '1'
-  console.log(11212)
   productId = id
 
   const [refreshKey, setRefreshKey] = useState(0)
@@ -286,7 +285,41 @@ const ProductDetails: FC<Record<string, any>> = () => {
     })
   }
 
-  const handleSave = async (values: any) => {
+  const handleCheckData = () => {
+    const colorInfo = colorRef.current?.getData()
+    const unitInfo = unitRef.current?.getData()
+    const skuInfo = skuRef.current?.getData()
+
+    if (!(colorInfo.editList.length && unitInfo.editList.length && skuInfo.editList.length)) {
+      message.warning('请完善颜色、规格、SKU相关数据').then(() => {})
+      return false
+    }
+
+    let isEmpty = false
+    const hasColorEmptyData = colorInfo.editList.some(
+      (d: any) => !d.name || !d.desc || !d.smallFileList.length
+    )
+    if (hasColorEmptyData) {
+      message.warning('请完善颜色名称、颜色描述、头图的相关数据').then(() => {})
+      isEmpty = true
+    }
+    const hasUnitEmptyData = unitInfo.editList.some((d: any) => !d.name || !d.tags.length)
+    if (hasUnitEmptyData) {
+      message.warning('请完善规格名称、规格属性的相关数据').then(() => {})
+      isEmpty = true
+    }
+    const hasSkuEmptyData = skuInfo.editList.some((d: any) => !d.stock || !d.price)
+    if (hasSkuEmptyData) {
+      message.warning('请完善SKU库存、SKU价格的相关数据').then(() => {})
+      isEmpty = true
+    }
+
+    if (isEmpty) {
+      return false
+    }
+  }
+
+  const handleSave = async (values: any, check = false) => {
     const bannerInfo = detailsRef.current?.getBannerData()
     const summaryInfo = detailsRef.current?.getSummaryData()
     const colorInfo = colorRef.current?.getData()
@@ -298,8 +331,12 @@ const ProductDetails: FC<Record<string, any>> = () => {
     console.log('unitInfo', unitInfo)
     console.log('skuInfo', skuInfo)
 
+    if (check && !handleCheckData()) {
+      return false
+    }
+
     if (skuInfo) {
-      return
+      return false
     }
 
     setLoading(true)
@@ -314,7 +351,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
     }
     if (!createProductStatus) {
       setLoading(false)
-      return
+      return false
     }
 
     if (bannerInfo) {
@@ -348,9 +385,8 @@ const ProductDetails: FC<Record<string, any>> = () => {
       navigate(`/product/list/details/1/${productId}`)
       setRefreshKey(Date.now())
       setLoading(false)
-      return
+      return false
     } else {
-      console.log(colorData, unitData)
       if (colorData?.length) {
         const { editList } = skuInfo
 
@@ -368,177 +404,180 @@ const ProductDetails: FC<Record<string, any>> = () => {
       message.success('保存成功')
     }
     setLoading(false)
+
+    return !isError
   }
 
   return (
-    <PageContainer breadcrumbRender={false} key={refreshKey}>
-      <Spin spinning={loading}>
-        <ProForm
-          className={'series-details'}
-          layout="horizontal"
-          submitter={
-            isEdit
-              ? {
-                  render: (props: any, _dom: any) => {
-                    return (
-                      <FooterToolbar
-                        extra={
-                          <Button
-                            type="primary"
-                            danger
-                            onClick={() => {
-                              confirm({
-                                title: '确认操作',
-                                content: '确认删除该商品吗?',
-                                onOk() {
+    <PageContainer title={'商品详情'} breadcrumbRender={false} key={refreshKey}>
+      <Spin
+        size="large"
+        tip={<div style={{ marginTop: '12px' }}>数据保存中</div>}
+        fullscreen={true}
+        spinning={loading}
+      />
+      <ProForm
+        className={'series-details'}
+        layout="horizontal"
+        submitter={
+          isEdit
+            ? {
+                render: (props: any, _dom: any) => {
+                  return (
+                    <FooterToolbar
+                      extra={
+                        <Button
+                          type="primary"
+                          danger
+                          onClick={() => {
+                            confirm({
+                              title: '确认操作',
+                              content: '确认删除该商品吗?',
+                              onOk() {
+                                return new Promise((resolve) => {
                                   axios.get(`/product/delete/${productId}`).then(async () => {
+                                    resolve(true)
                                     message.success('删除商品成功')
                                     navigate(-1)
                                   })
-                                }
-                              })
-                            }}
-                          >
-                            删除
-                          </Button>
-                        }
-                      >
-                        <Button
-                          type="primary"
-                          onClick={async () => {
-                            props.form?.submit?.()
-                          }}
-                        >
-                          保存
-                        </Button>
-                        <Button
-                          type="primary"
-                          onClick={async () => {
-                            props.form?.validateFields?.().then(async () => {
-                              const res: Record<string, any> = await axios.get(
-                                `/product/details/${productId}`
-                              )
-                              if (!res.name || !res.desc || !res.isComplete) {
-                                confirm({
-                                  title: '确认操作',
-                                  content: '请先完善相关信息后再上架',
-                                  onOk() {}
-                                })
-                                return
-                              } else if (!res.isActive) {
-                                confirm({
-                                  title: '确认操作',
-                                  content: '确认上架该商品吗?',
-                                  onOk() {
-                                    axios
-                                      .post(`/product/active`, {
-                                        id: productId,
-                                        isActive: !res.isActive
-                                      })
-                                      .then(async () => {
-                                        message.success('商品保存并上架成功')
-                                      })
-                                  }
                                 })
                               }
                             })
                           }}
                         >
-                          保存并上架
+                          删除
                         </Button>
-                      </FooterToolbar>
-                    )
-                  }
+                      }
+                    >
+                      <Button
+                        type="primary"
+                        onClick={async () => {
+                          props.form?.submit?.()
+                        }}
+                      >
+                        保存
+                      </Button>
+                      <Button
+                        type="primary"
+                        onClick={async () => {
+                          confirm({
+                            title: '确认操作',
+                            content: '确认保存并上架该商品吗?',
+                            onOk() {
+                              props.form
+                                ?.validateFields?.()
+                                .then(async (values: Record<string, any>) => {
+                                  console.log(values)
+                                  const saveStatus = await handleSave(values, true)
+                                  console.log(saveStatus)
+                                  if (!saveStatus) return
+
+                                  axios
+                                    .post(`/product/active`, {
+                                      id: productId
+                                    })
+                                    .then(async () => {
+                                      message.success('商品保存并上架成功')
+                                    })
+                                })
+                            }
+                          })
+                        }}
+                      >
+                        保存并上架
+                      </Button>
+                    </FooterToolbar>
+                  )
                 }
-              : false
-          }
-          onFinish={async (values) => {
-            await handleSave(values)
-            return true
-          }}
-          request={async () => {
-            if (productId) {
-              const res: any = await axios.get(`/product/details/${productId}`)
-              const { code, name, desc, online_code, online_name, online_desc } = res
-              if (isEdit)
-                return {
-                  name,
-                  code,
-                  desc
-                }
-              return {
-                online_code,
-                online_name,
-                online_desc
               }
+            : false
+        }
+        onFinish={async (values) => {
+          await handleSave(values)
+          return true
+        }}
+        request={async () => {
+          if (productId) {
+            const res: any = await axios.get(`/product/details/${productId}`)
+            const { code, name, desc, online_code, online_name, online_desc } = res
+            if (isEdit)
+              return {
+                name,
+                code,
+                desc
+              }
+            return {
+              online_code,
+              online_name,
+              online_desc
             }
-            return {}
+          }
+          return {}
+        }}
+      >
+        <Card title="基础信息" className={'card'} bordered={false}>
+          <Row gutter={24}>
+            <Col md={8}>
+              <ProFormText
+                fieldProps={{
+                  readOnly: !isEdit
+                }}
+                label={'商品名称'}
+                name="name"
+                rules={[{ required: true, message: '请输入商品名称' }]}
+                placeholder="请输入商品名称"
+              />
+            </Col>
+            <Col md={8}>
+              <ProFormText
+                fieldProps={{
+                  readOnly: !isEdit
+                }}
+                label={'商品编码'}
+                name="code"
+                rules={[{ required: true, message: '请输入商品编码' }]}
+                placeholder="请输入商品编码"
+              />
+            </Col>
+            <Col md={8}>
+              <ProFormTextArea
+                fieldProps={{
+                  readOnly: !isEdit,
+                  autoSize: {
+                    minRows: 1
+                  }
+                }}
+                label={'商品介绍'}
+                name="desc"
+                rules={[{ required: true, message: '请输入商品介绍' }]}
+                placeholder="请输入商品介绍"
+              />
+            </Col>
+          </Row>
+        </Card>
+      </ProForm>
+      <Card title="商品详情" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
+        <Banner ref={detailsRef} />
+      </Card>
+      <Card title="商品颜色" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
+        <Color
+          ref={colorRef}
+          onUpdate={(data) => {
+            setColorList(data)
           }}
-        >
-          <Card title="基础信息" className={'card'} bordered={false}>
-            <Row gutter={24}>
-              <Col md={8}>
-                <ProFormText
-                  fieldProps={{
-                    readOnly: !isEdit
-                  }}
-                  label={'商品名称'}
-                  name="name"
-                  rules={[{ required: true, message: '请输入商品名称' }]}
-                  placeholder="请输入商品名称"
-                />
-              </Col>
-              <Col md={8}>
-                <ProFormText
-                  fieldProps={{
-                    readOnly: !isEdit
-                  }}
-                  label={'商品编码'}
-                  name="code"
-                  rules={[{ required: true, message: '请输入商品编码' }]}
-                  placeholder="请输入商品编码"
-                />
-              </Col>
-              <Col md={8}>
-                <ProFormTextArea
-                  fieldProps={{
-                    readOnly: !isEdit,
-                    autoSize: {
-                      minRows: 1
-                    }
-                  }}
-                  label={'商品介绍'}
-                  name="desc"
-                  rules={[{ required: true, message: '请输入商品介绍' }]}
-                  placeholder="请输入商品介绍"
-                />
-              </Col>
-            </Row>
-          </Card>
-        </ProForm>
-        <Card title="商品详情" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
-          <Banner ref={detailsRef} />
-        </Card>
-        <Card title="商品颜色" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
-          <Color
-            ref={colorRef}
-            onUpdate={(data) => {
-              setColorList(data)
-            }}
-          />
-        </Card>
-        <Card title="规格管理" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
-          <Unit
-            ref={unitRef}
-            onUpdate={(data) => {
-              setUnitList(data)
-            }}
-          />
-        </Card>
-        <Card title="SKU管理" className={'card'} bordered={false}>
-          <Sku ref={skuRef} colorList={colorList} unitList={unitList} />
-        </Card>
-      </Spin>
+        />
+      </Card>
+      <Card title="规格管理" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
+        <Unit
+          ref={unitRef}
+          onUpdate={(data) => {
+            setUnitList(data)
+          }}
+        />
+      </Card>
+      <Card title="SKU管理" className={'card'} bordered={false}>
+        <Sku ref={skuRef} colorList={colorList} unitList={unitList} />
+      </Card>
     </PageContainer>
   )
 }
