@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { EyeOutlined, PlusOutlined } from '@ant-design/icons'
 import { DragSortTable, ProColumns } from '@ant-design/pro-components'
 import { DndContext, DragEndEvent, PointerSensor, useSensor } from '@dnd-kit/core'
@@ -45,10 +45,8 @@ interface ColorRef {
 }
 
 const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpdate }, ref) => {
-  const { id: productId } = useParams()
-  const {
-    state: { isEdit }
-  } = useLocation()
+  const { id: productId, edit } = useParams()
+  const isEdit = edit === '1'
 
   const [colorList, setColorList] = useState<any[]>([])
   const [colorRemoveList, setColorRemoveList] = useState<any[]>([])
@@ -428,6 +426,13 @@ const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpd
                 onOk() {
                   setColorList(colorList.filter((d) => d.id !== record.id))
                   if (productId && record.createTime) {
+                    console.log(record)
+                    const ids = [...record.fileList, ...record.smallFileList]
+                      .filter((d: Record<string, any>) => productId && d.id)
+                      .map((d: any) => d.id)
+
+                    setFileRemoveList([...fileRemoveList, ...ids])
+
                     setColorRemoveList([...colorRemoveList, record.id])
                   }
                 }

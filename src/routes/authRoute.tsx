@@ -28,7 +28,7 @@ const AuthRoute = () => {
         <Route path="/product/list" element={<ProductList />} />
       )}
       {checkAuthCode('add-product') | checkAuthCode('edit-product') && (
-        <Route path="/product/list/details/:id?" element={<ProductListDetails />} />
+        <Route path="/product/list/details/:edit/:id?" element={<ProductListDetails />} />
       )}
       {checkAuthCode('operations-coupon-manager') && (
         <Route path="/operations/coupon" element={<OperationsCoupon />} />

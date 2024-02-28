@@ -65,7 +65,7 @@ Axios['interceptors'].response.use(
       return data.data
     } else {
       if (code === 10100) {
-        await message.warning(data.message)
+        data.message && message.warning(data.message)
       }
       if (data) return Promise.reject(data)
     }
@@ -89,7 +89,7 @@ Axios['interceptors'].response.use(
         }
       })
     } else {
-      await message.warning(msg)
+      message.warning(msg)
     }
     return Promise.reject(err)
   }

@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { PlusOutlined } from '@ant-design/icons'
 import { DragSortTable, ProColumns } from '@ant-design/pro-components'
 import { Button, Flex, Input, message, Modal, Space } from 'antd'
@@ -13,10 +13,8 @@ interface SummaryRef {
 }
 
 const Summary = forwardRef<SummaryRef>((_props, ref) => {
-  const { id: productId } = useParams()
-  const {
-    state: { isEdit }
-  } = useLocation()
+  const { id: productId, edit } = useParams()
+  const isEdit = edit === '1'
 
   const [summaryList, setSummaryList] = useState<any[]>([])
   const [summaryRemoveList, setSummaryRemoveList] = useState<any[]>([])

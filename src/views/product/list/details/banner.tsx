@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { EyeOutlined, PlusOutlined } from '@ant-design/icons'
 import { DndContext, DragEndEvent, PointerSensor, useSensor } from '@dnd-kit/core'
 import {
@@ -44,10 +44,8 @@ interface DetailsRef {
 }
 
 const Banner = forwardRef<DetailsRef>((_props, ref) => {
-  const { id: productId } = useParams()
-  const {
-    state: { isEdit }
-  } = useLocation()
+  const { id: productId, edit } = useParams()
+  const isEdit = edit === '1'
 
   const [imageFileList, setImageFileList] = useState<any[]>([])
   const [videoFileList, setVideoFileList] = useState<any[]>([])

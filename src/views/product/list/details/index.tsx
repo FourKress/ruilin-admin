@@ -1,5 +1,5 @@
 import { FC, useRef, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   FooterToolbar,
   PageContainer,
@@ -20,13 +20,16 @@ import './style.scss'
 
 const { confirm } = Modal
 
-const ProductDetails: FC<Record<string, any>> = () => {
-  const { id: productId } = useParams()
-  const navigate = useNavigate()
-  const {
-    state: { isEdit }
-  } = useLocation()
+let productId: string | undefined = ''
 
+const ProductDetails: FC<Record<string, any>> = () => {
+  const navigate = useNavigate()
+  const { id, edit } = useParams()
+  const isEdit = edit === '1'
+  console.log(11212)
+  productId = id
+
+  const [refreshKey, setRefreshKey] = useState(0)
   const [loading, setLoading] = useState(false)
   const [colorList, setColorList] = useState<any[]>([])
   const [unitList, setUnitList] = useState<any[]>([])
@@ -90,7 +93,8 @@ const ProductDetails: FC<Record<string, any>> = () => {
     await axios.post(`/product-banner/edit`, {
       imageList,
       videoList,
-      removeIds
+      removeIds,
+      productId: productId
     })
   }
 
@@ -108,7 +112,8 @@ const ProductDetails: FC<Record<string, any>> = () => {
     })
     await axios.post(`/product-summary/edit`, {
       editList,
-      removeIds
+      removeIds,
+      productId: productId
     })
   }
 
@@ -143,7 +148,8 @@ const ProductDetails: FC<Record<string, any>> = () => {
     return await axios.post(`/product-color/edit`, {
       editList,
       removeIds,
-      fileRemoveIds
+      fileRemoveIds,
+      productId: productId
     })
   }
 
@@ -176,12 +182,13 @@ const ProductDetails: FC<Record<string, any>> = () => {
     return await axios.post(`/product-unit/edit`, {
       editList,
       removeIds,
-      tagRemoveIds
+      tagRemoveIds,
+      productId: productId
     })
   }
 
-  const handleUpdateProductInfo = async (values: any) => {
-    await axios.post(`/product/${productId ? 'update' : 'create'}`, {
+  const handleUpdateProductInfo = async (values: any): Promise<any> => {
+    return await axios.post(`/product/${productId ? 'update' : 'create'}`, {
       ...values,
       id: productId || undefined
     })
@@ -238,7 +245,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
 
     return dataList.map((d, index) => {
       const { colorId } = d
-      const sku = skuEditList[index]
+      const sku: Record<string, any> = skuEditList[index]
       const { isActive, price, code, stock } = sku
       const unitKeyList = Object.keys(d).filter((key) => key.includes('unit'))!
       return {
@@ -249,7 +256,8 @@ const ProductDetails: FC<Record<string, any>> = () => {
         stock,
         unitIds: unitKeyList.map((k) => k.replace(/unit_/, '')),
         tagIds: unitKeyList.map((k) => d[k]),
-        productId: productId
+        productId: productId,
+        id: sku.createTime ? sku.id : undefined
       }
     })
   }
@@ -264,10 +272,10 @@ const ProductDetails: FC<Record<string, any>> = () => {
       colorRemoveIds = colorInfo.removeIds
     }
     if (unitInfo.removeIds?.length) {
-      unitRemoveIds = colorInfo.removeIds
+      unitRemoveIds = unitInfo.removeIds
     }
     if (unitInfo.tagRemoveIds?.length) {
-      tagRemoveIds = colorInfo.removeIds
+      tagRemoveIds = unitInfo.tagRemoveIds
     }
     await axios.post(`/product-sku/edit`, {
       editList,
@@ -295,26 +303,30 @@ const ProductDetails: FC<Record<string, any>> = () => {
     }
 
     setLoading(true)
-    const errorMessageList: string[] = []
-
-    handleUpdateProductInfo(values).catch(() => {
-      errorMessageList.push('商品基本信息保存失败')
-    })
+    let createProductStatus = true
+    if (!productId) {
+      const res = await handleUpdateProductInfo(values).catch(() => {
+        createProductStatus = false
+      })
+      productId = res.id
+    } else {
+      handleUpdateProductInfo(values).then(() => {})
+    }
+    if (!createProductStatus) {
+      setLoading(false)
+      return
+    }
 
     if (bannerInfo) {
       const { image, video } = bannerInfo
-      handleBannerEdit(image.upload, video.upload, [...image.removeIds, ...video.removeIds]).catch(
-        () => {
-          errorMessageList.push('商品详情图片视频保存失败')
-        }
+      handleBannerEdit(image.upload, video.upload, [...image.removeIds, ...video.removeIds]).then(
+        () => {}
       )
     }
 
     if (summaryInfo) {
       const { editList, removeIds } = summaryInfo
-      handleSummaryEdit(editList, removeIds).catch(() => {
-        errorMessageList.push('商品详情文字简介保存失败')
-      })
+      handleSummaryEdit(editList, removeIds).then(() => {})
     }
 
     let colorData: any = {}
@@ -324,18 +336,18 @@ const ProductDetails: FC<Record<string, any>> = () => {
       const { editList, removeIds, fileRemoveIds } = colorInfo
       colorData = await handleColorEdit(editList, removeIds, fileRemoveIds).catch(() => {
         isError = true
-        errorMessageList.push('商品颜色保存失败')
       })
     }
     if (unitInfo) {
       const { editList, removeIds, tagRemoveIds } = unitInfo
       unitData = await handleUnitEdit(editList, removeIds, tagRemoveIds).catch(() => {
         isError = true
-        errorMessageList.push('商品规格保存失败')
       })
     }
     if (isError) {
-      message.error(errorMessageList.join('，'))
+      navigate(`/product/list/details/1/${productId}`)
+      setRefreshKey(Date.now())
+      setLoading(false)
       return
     } else {
       console.log(colorData, unitData)
@@ -343,23 +355,23 @@ const ProductDetails: FC<Record<string, any>> = () => {
         const { editList } = skuInfo
 
         const skuEditList: any[] = handleFormSkuData(colorData, unitData, editList)
-        handleEditSku(skuEditList).catch(() => {
+        await handleEditSku(skuEditList).catch(() => {
           isError = true
-          errorMessageList.push('商品SKU保存失败')
         })
       }
     }
 
-    if (!errorMessageList.length) {
+    navigate(`/product/list/details/1/${productId}`)
+    setRefreshKey(Date.now())
+
+    if (!isError) {
       message.success('保存成功')
-    } else {
-      message.error(errorMessageList.join('，'))
     }
     setLoading(false)
   }
 
   return (
-    <PageContainer breadcrumbRender={false}>
+    <PageContainer breadcrumbRender={false} key={refreshKey}>
       <Spin spinning={loading}>
         <ProForm
           className={'series-details'}

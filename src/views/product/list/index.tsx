@@ -34,7 +34,7 @@ function ProductList() {
       dataIndex: 'name',
       width: 140,
       render: (_, record: Record<string, any>) => {
-        const { code = 'A10100001', name, id } = record
+        const { code = '', name, id } = record
         return (
           <Row style={{ height: '60px' }}>
             <Space size={'middle'}>
@@ -50,12 +50,7 @@ function ProductList() {
                       type="link"
                       style={{ padding: 0 }}
                       onClick={() => {
-                        console.log(id)
-                        navigate(`/product/list/details/${record.id}`, {
-                          state: {
-                            isEdit: false
-                          }
-                        })
+                        navigate(`/product/list/details/0/${id}`)
                       }}
                     >
                       {name}
@@ -122,22 +117,6 @@ function ProductList() {
       }
     },
     {
-      title: '30日销量',
-      hideInSearch: true,
-      dataIndex: 'salesRang',
-      render: () => {
-        return <span>12322222</span>
-      }
-    },
-    {
-      title: '累计销量',
-      hideInSearch: true,
-      dataIndex: 'sales',
-      render: () => {
-        return <span>123</span>
-      }
-    },
-    {
       title: '商品状态',
       dataIndex: 'isActive',
       defaultFilteredValue: null,
@@ -178,11 +157,7 @@ function ProductList() {
             <a
               key="modify"
               onClick={async () => {
-                navigate(`/product/list/details/${record.id}`, {
-                  state: {
-                    isEdit: true
-                  }
-                })
+                navigate(`/product/list/details/1/${record.id}`)
               }}
             >
               编辑
@@ -197,11 +172,7 @@ function ProductList() {
                     title: '确认操作',
                     content: '请先编辑完善相关信息后再上架',
                     onOk() {
-                      navigate(`/product/list/details/${record.id}`, {
-                        state: {
-                          isEdit: true
-                        }
-                      })
+                      navigate(`/product/list/details/1/${record.id}`)
                     }
                   })
                   return
@@ -254,11 +225,7 @@ function ProductList() {
               type="primary"
               key="primary"
               onClick={() => {
-                navigate(`/product/list/details`, {
-                  state: {
-                    isEdit: true
-                  }
-                })
+                navigate(`/product/list/details/1`)
               }}
             >
               <PlusOutlined /> 新建商品

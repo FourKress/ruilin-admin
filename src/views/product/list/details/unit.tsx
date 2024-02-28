@@ -1,5 +1,5 @@
 import React, { FC, forwardRef, useEffect, useImperativeHandle, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { HolderOutlined, PlusOutlined } from '@ant-design/icons'
 import { DragSortTable, ProColumns } from '@ant-design/pro-components'
 import {
@@ -31,10 +31,8 @@ interface UnitRef {
 }
 
 const Unit = forwardRef<UnitRef, { onUpdate: (data: any[]) => void }>(({ onUpdate }, ref) => {
-  const { id: productId } = useParams()
-  const {
-    state: { isEdit }
-  } = useLocation()
+  const { id: productId, edit } = useParams()
+  const isEdit = edit === '1'
 
   const [unitList, setUnitList] = useState<any[]>([])
   const [unitRemoveList, setUnitRemoveList] = useState<any[]>([])
@@ -388,6 +386,13 @@ const Unit = forwardRef<UnitRef, { onUpdate: (data: any[]) => void }>(({ onUpdat
                 title: '确认操作',
                 content: '确认删除该规格吗?',
                 onOk() {
+                  if (productId && record.tags) {
+                    const ids = record.tags
+                      .filter((d: Record<string, any>) => productId && d.createTime)
+                      .map((d: any) => d.id)
+
+                    setTagRemoveList([...tagRemoveList, ...ids])
+                  }
                   handleDeleteUnit(record)
                 }
               })

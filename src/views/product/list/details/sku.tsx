@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   EditableFormInstance,
@@ -21,11 +21,8 @@ interface SkuRef {
 
 const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
   ({ colorList, unitList }, ref) => {
-    const { id: productId } = useParams()
-    console.log(productId)
-    const {
-      state: { isEdit }
-    } = useLocation()
+    const { id: productId, edit } = useParams()
+    const isEdit = edit === '1'
 
     const [form] = Form.useForm()
     const [editForm] = Form.useForm()
@@ -58,10 +55,10 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
       getData: (): any => {
         return {
           editList: dataSource.map((d) => {
-            const { stock, price, code, isActive } = d
+            const { stock, price, isActive } = d
             return {
               ...d,
-              isActive: !stock || !price || code === '' ? false : isActive
+              isActive: !stock || !price ? false : isActive
             }
           })
         }
@@ -89,11 +86,9 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
                 },
                 colorName: color.name,
                 colorId: color.id,
-                stock: '',
-                price: '',
+                stock: 0,
+                price: 0.0,
                 code: '',
-                sales: '',
-                totalSales: '',
                 isActive: false
               }
             })
@@ -135,17 +130,15 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
             id,
             colorName: name,
             colorId: id,
-            stock: '',
-            price: '',
+            stock: 0,
+            price: 0.0,
             code: '',
-            sales: '',
-            totalSales: '',
             isActive: false
           }
         })
       }
       if (skuList?.length || backupDataSource.length) {
-        const historyList = backupDataSource || skuList
+        const historyList = backupDataSource?.length ? backupDataSource : skuList
         dataList = [
           ...dataList.map((d: any) => {
             const { colorId } = d
@@ -160,12 +153,14 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
                   JSON.stringify(s.tagIds.sort()) === tagIds
                 )
               } else {
-                const HunitKeyList = Object.keys(s).filter((key) => key.includes('unit_'))!
-                const HunitIds = JSON.stringify(
-                  HunitKeyList.map((k) => k.replace(/unit_/, '')).sort()
+                const backupUnitKeyList = Object.keys(s).filter((key) => key.includes('unit_'))!
+                const backupUnitIds = JSON.stringify(
+                  backupUnitKeyList.map((k) => k.replace(/unit_/, '')).sort()
                 )
-                const HtagIds = JSON.stringify(HunitKeyList.map((k: any) => s[k]?.value).sort())
-                return s.colorId === colorId && HunitIds === unitIds && HtagIds === tagIds
+                const backupTagIds = JSON.stringify(
+                  backupUnitKeyList.map((k: any) => s[k]?.value).sort()
+                )
+                return s.colorId === colorId && backupUnitIds === unitIds && backupTagIds === tagIds
               }
             })
             return {
@@ -273,7 +268,7 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
         }
       },
       {
-        title: 'SKU编码',
+        title: 'SKU编码(选填)',
         dataIndex: 'code',
         editable: true,
         renderFormItem: (_: any, { record }: { record: any }, _form: any) => {
@@ -281,24 +276,14 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
         }
       },
       {
-        title: '30天销量',
-        dataIndex: 'sales',
-        editable: false
-      },
-      {
-        title: '累计销量',
-        dataIndex: 'totalSales',
-        editable: false
-      },
-      {
         title: '状态',
         dataIndex: 'isActive',
         width: 70,
         renderFormItem: (_: any, { record }: { record: any }, _form: any) => {
-          const { isActive, code, price, stock } = record
+          const { isActive, price, stock } = record
           return (
             <Switch
-              disabled={!isEdit || !(code && price && stock)}
+              disabled={!isEdit || !(price && stock)}
               key={record.id}
               checkedChildren="上架"
               unCheckedChildren="上架"
@@ -334,12 +319,12 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
                   return colorFlag && unitFlag
                 })
                 .map((d: any) => {
-                  const { code, isActive } = d
+                  const { isActive } = d
                   const data = {
                     ...d,
                     stock,
                     price,
-                    isActive: !stock || !price || code === '' ? false : isActive
+                    isActive: !stock || !price ? false : isActive
                   }
                   editorFormRef.current?.setRowData?.(d.id, {
                     ...data
@@ -350,10 +335,10 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
 
               setBackupDataSource([
                 ...editList.map((d: any) => {
-                  const { stock, price, code, isActive } = d
+                  const { stock, price, isActive } = d
                   return {
                     ...d,
-                    isActive: !stock || !price || code === '' ? false : isActive
+                    isActive: !stock || !price ? false : isActive
                   }
                 })
               ])
@@ -424,7 +409,7 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
           rowKey="id"
           value={dataSource}
           recordCreatorProps={false}
-          controlled
+          // controlled
           editable={{
             form: editForm,
             type: 'multiple',
@@ -433,19 +418,19 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
               return []
             },
             onValuesChange: (record, recordList) => {
-              const { stock, price, code, id } = record
+              const { stock, price, id } = record
               setDataSource(recordList)
               setBackupDataSource([
                 ...recordList.map((d: any) => {
-                  const { stock, price, code, isActive } = d
+                  const { stock, price, isActive } = d
                   return {
                     ...d,
-                    isActive: !stock || !price || code === '' ? false : isActive
+                    isActive: !stock || !price ? false : isActive
                   }
                 })
               ])
 
-              if (!stock || !price || code === '') {
+              if (!stock || !price) {
                 editorFormRef.current?.setRowData?.(id, {
                   ...record,
                   isActive: false
