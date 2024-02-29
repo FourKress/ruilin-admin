@@ -13,6 +13,7 @@ import {
   Row,
   Select,
   Space,
+  Tag,
   Tooltip
 } from 'antd'
 import lodash from 'lodash'
@@ -106,7 +107,7 @@ function ProductList() {
       render: (_, record: Record<string, any>) => {
         return (
           <span>
-            {record.min_price} ~ {record.max_price}
+            {record.min_price} - {record.max_price}
           </span>
         )
       }
@@ -116,7 +117,22 @@ function ProductList() {
       hideInSearch: true,
       dataIndex: 'stock',
       render: (_, record: Record<string, any>) => {
-        return <span>{record.total_stock}</span>
+        const { sku_count, total_stock, has_low_stock, min_stock } = record
+        return (
+          <Space direction={'vertical'}>
+            {sku_count > 0 ? total_stock : '-'}
+            {!!sku_count && has_low_stock > 0 && (
+              <Tag bordered={false} color="error">
+                有SKU库存紧张
+              </Tag>
+            )}
+            {!!sku_count && min_stock === 0 && (
+              <Tag bordered={false} color="warning">
+                有SKU售罄
+              </Tag>
+            )}
+          </Space>
+        )
       },
       renderFormItem: () => {
         return (

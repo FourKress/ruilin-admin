@@ -72,7 +72,7 @@ const menuList = [
   }
 ]
 
-const getMenuConfig = (perms: string[]): any[] => {
+const getMenuConfig = (perms: string[], isSuperAdmin: boolean): any[] => {
   const checkAuthCode = (authCode: string) => (perms || []).includes(authCode)
 
   return menuList.map((menu) => {
@@ -81,6 +81,7 @@ const getMenuConfig = (perms: string[]): any[] => {
       route = menu
       if (menu?.routes?.length) {
         route.routes = menu.routes.filter((d) => {
+          if (d.authCode === 'sys-perm-manager' && !isSuperAdmin) return false
           if (!d?.authCode) {
             return true
           } else if (checkAuthCode(d.authCode)) {

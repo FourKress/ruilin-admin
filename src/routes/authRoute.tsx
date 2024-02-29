@@ -11,7 +11,7 @@ import SystemRole from '@/views/system/role'
 import SystemUser from '@/views/system/user'
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-const { perms = [] } = userInfo
+const { perms = [], isSuperAdmin = false } = userInfo
 
 const checkAuthCode = (authCode: string) => perms.includes(authCode)
 
@@ -23,7 +23,9 @@ const AuthRoute = () => {
       <Route path="/dashboard" element={<Dashboard />} />
       {checkAuthCode('sys-user-manager') && <Route path="/system/user" element={<SystemUser />} />}
       {checkAuthCode('sys-role-manager') && <Route path="/system/role" element={<SystemRole />} />}
-      {checkAuthCode('sys-perm-manager') && <Route path="/system/perm" element={<SystemPerm />} />}
+      {checkAuthCode('sys-perm-manager') && isSuperAdmin && (
+        <Route path="/system/perm" element={<SystemPerm />} />
+      )}
       {checkAuthCode('product-list-manager') && (
         <Route path="/product/list" element={<ProductList />} />
       )}

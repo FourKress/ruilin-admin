@@ -87,7 +87,7 @@ function MyLayout() {
         }}
         route={{
           path: '/',
-          routes: getMenuConfig(userInfo.perms)
+          routes: getMenuConfig(userInfo.perms, userInfo.isSuperAdmin)
         }}
       >
         <AuthRoute />
