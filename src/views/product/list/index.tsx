@@ -187,16 +187,6 @@ function ProductList() {
             <a
               key="active"
               onClick={() => {
-                if (!record.isComplete) {
-                  confirm({
-                    title: '确认操作',
-                    content: '请先编辑完善商品相关信息后再上架',
-                    onOk() {
-                      navigate(`/product/list/details/1/${record.id}`)
-                    }
-                  })
-                  return
-                }
                 const tips = record.isActive
                   ? '此操作将导致该商品下所有的SKU下架，确认下架该商品吗?'
                   : '确认上架该商品吗?'
@@ -221,10 +211,10 @@ function ProductList() {
     await axios
       .post(`/product/active`, {
         id: data.id,
-        isActive: true
+        isActive: !data.isActive
       })
       .then(async () => {
-        message.success('商品上架成功')
+        message.success(`商品${data.isActive ? '下架' : '上架'}成功`)
         actionRef.current?.reloadAndRest?.()
       })
   }
