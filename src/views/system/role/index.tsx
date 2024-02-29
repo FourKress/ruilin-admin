@@ -86,7 +86,14 @@ function SystemRole() {
                 const details = await getRoleDetails(record.id)
                 form.setFieldsValue({
                   ...details,
-                  perms: details.perms.map((d: any) => d.id)
+                  perms: details.perms.map((d: any) => {
+                    const { children, name, id } = d
+                    return {
+                      label: name,
+                      value: id,
+                      children
+                    }
+                  })
                 })
 
                 setModalInfo({
@@ -142,7 +149,7 @@ function SystemRole() {
       .post(`/role/${id ? 'update' : 'create'}`, {
         id: id || undefined,
         ...data,
-        perms: perms.map((d: any) => d.value)
+        perms: perms.map((d: any) => d?.value || d)
       })
       .then(async () => {
         message.success(`角色${id ? '编辑' : '新建'}成功`)
