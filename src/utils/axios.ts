@@ -11,6 +11,7 @@ const Axios = axios.create({
 Axios.defaults.headers.post['Content-Type'] = 'application/json'
 
 let requestCount = 0
+let modalInstance: any = null
 
 const showLoading = () => {
   if (requestCount === 0) {
@@ -78,16 +79,18 @@ Axios['interceptors'].response.use(
     if (statusCode === 401) {
       localStorage.clear()
       sessionStorage.clear()
-      Modal.error({
-        centered: true,
-        content: '登录失效，请重新登录',
-        keyboard: false,
-        title: '提示',
-        okText: '确定',
-        okButtonProps: {
-          href: '/#/login'
-        }
-      })
+      if (!modalInstance) {
+        modalInstance = Modal.error({
+          centered: true,
+          content: '登录失效，请重新登录',
+          keyboard: false,
+          title: '提示',
+          okText: '确定',
+          okButtonProps: {
+            href: '/#/login'
+          }
+        })
+      }
     } else {
       message.warning(msg)
     }
