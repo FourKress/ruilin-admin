@@ -82,17 +82,17 @@ function ProductList() {
       ellipsis: true,
       dataIndex: 'unit',
       render: (_, record: Record<string, any>) => {
-        const { unitList = [], colorList = [], skuList = [] } = record
+        const { unit_count = 0, color_count = 0, sku_count = 0 } = record
         return (
           <Descriptions title="" column={1}>
             <Descriptions.Item label="颜色">
-              <span>{colorList.length}</span>
+              <span>{unit_count}</span>
             </Descriptions.Item>
             <Descriptions.Item label="规格">
-              <span>{unitList.length}</span>
+              <span>{color_count}</span>
             </Descriptions.Item>
             <Descriptions.Item label="SKU">
-              <span>{skuList.length}</span>
+              <span>{sku_count}</span>
             </Descriptions.Item>
           </Descriptions>
         )
@@ -104,12 +104,9 @@ function ProductList() {
       ellipsis: true,
       dataIndex: 'price',
       render: (_, record: Record<string, any>) => {
-        const { skuList = [] } = record
-        if (!skuList.length) return <span>-</span>
-        const skuListSort = skuList.sort((a: any, b: any) => a.price - b.price)
         return (
           <span>
-            {skuListSort[0].price} ~ {skuListSort.at(-1).price}
+            {record.min_price} ~ {record.max_price}
           </span>
         )
       }
@@ -118,8 +115,8 @@ function ProductList() {
       title: '总库存',
       hideInSearch: true,
       dataIndex: 'stock',
-      render: () => {
-        return <span>stock</span>
+      render: (_, record: Record<string, any>) => {
+        return <span>{record.total_stock}</span>
       },
       renderFormItem: () => {
         return (
