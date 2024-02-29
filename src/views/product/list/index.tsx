@@ -190,7 +190,7 @@ function ProductList() {
                 if (!record.isComplete) {
                   confirm({
                     title: '确认操作',
-                    content: '请先编辑完善相关信息后再上架',
+                    content: '请先编辑完善商品相关信息后再上架',
                     onOk() {
                       navigate(`/product/list/details/1/${record.id}`)
                     }
@@ -203,8 +203,8 @@ function ProductList() {
                 confirm({
                   title: '确认操作',
                   content: tips,
-                  onOk() {
-                    handleActive(record)
+                  onOk: async () => {
+                    await handleActive(record)
                   }
                 })
               }}
@@ -217,14 +217,14 @@ function ProductList() {
     }
   ]
 
-  const handleActive = (data: any) => {
-    axios
+  const handleActive = async (data: any) => {
+    await axios
       .post(`/product/active`, {
         id: data.id,
-        isActive: !data.isActive
+        isActive: true
       })
       .then(async () => {
-        message.success('产品系列状态修改成功')
+        message.success('商品上架成功')
         actionRef.current?.reloadAndRest?.()
       })
   }

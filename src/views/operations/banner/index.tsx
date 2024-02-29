@@ -290,7 +290,6 @@ function Banner() {
           }
         }}
         onFinish={async (values) => {
-          console.log(values)
           await handleUpdate(values)
           setModalInfo({
             open: false
@@ -298,7 +297,6 @@ function Banner() {
           return true
         }}
         onValuesChange={(values) => {
-          console.log(values)
           if (values.fileInfo && values.fileInfo.file?.status === 'removed') {
             form.setFieldValue('fileInfo', '')
           }

@@ -7,7 +7,7 @@ import {
   ProFormText,
   ProFormTextArea
 } from '@ant-design/pro-components'
-import { Button, Card, Col, message, Modal, Row, Spin } from 'antd'
+import { Button, Card, Col, message, Modal, Row, Space, Spin } from 'antd'
 
 import axios from '@/utils/axios.ts'
 import { uploadFile } from '@/utils/fileUtils.ts'
@@ -314,9 +314,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
       isEmpty = true
     }
 
-    if (isEmpty) {
-      return false
-    }
+    return !isEmpty
   }
 
   const handleSave = async (values: any, check = false) => {
@@ -336,7 +334,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
     }
 
     if (skuInfo) {
-      return false
+      // return false
     }
 
     setLoading(true)
@@ -408,6 +406,13 @@ const ProductDetails: FC<Record<string, any>> = () => {
     return !isError
   }
 
+  const handleActive = async (isActive: boolean) => {
+    await axios.post(`/product/active`, {
+      id: productId,
+      isActive
+    })
+  }
+
   return (
     <PageContainer title={'商品详情'} breadcrumbRender={false} key={refreshKey}>
       <Spin
@@ -426,27 +431,43 @@ const ProductDetails: FC<Record<string, any>> = () => {
                   return (
                     <FooterToolbar
                       extra={
-                        <Button
-                          type="primary"
-                          danger
-                          onClick={() => {
-                            confirm({
-                              title: '确认操作',
-                              content: '确认删除该商品吗?',
-                              onOk() {
-                                return new Promise((resolve) => {
-                                  axios.get(`/product/delete/${productId}`).then(async () => {
-                                    resolve(true)
-                                    message.success('删除商品成功')
+                        <Space size={'middle'}>
+                          <Button
+                            type="primary"
+                            danger
+                            onClick={() => {
+                              confirm({
+                                title: '确认操作',
+                                content: '确认删除该商品吗?',
+                                onOk: async () => {
+                                  await axios.get(`/product/delete/${productId}`).then(async () => {
+                                    message.success('商品删除成功')
                                     navigate(-1)
                                   })
-                                })
-                              }
-                            })
-                          }}
-                        >
-                          删除
-                        </Button>
+                                }
+                              })
+                            }}
+                          >
+                            删除
+                          </Button>
+                          <Button
+                            type="primary"
+                            danger
+                            onClick={() => {
+                              confirm({
+                                title: '确认操作',
+                                content: '确认下架该商品吗?',
+                                onOk: async () => {
+                                  await handleActive(false)
+                                  message.success('商品下架成功')
+                                  return true
+                                }
+                              })
+                            }}
+                          >
+                            下架
+                          </Button>
+                        </Space>
                       }
                     >
                       <Button
@@ -471,14 +492,10 @@ const ProductDetails: FC<Record<string, any>> = () => {
                                   const saveStatus = await handleSave(values, true)
                                   console.log(saveStatus)
                                   if (!saveStatus) return
-
-                                  axios
-                                    .post(`/product/active`, {
-                                      id: productId
-                                    })
-                                    .then(async () => {
-                                      message.success('商品保存并上架成功')
-                                    })
+                                  setLoading(true)
+                                  await handleActive(true)
+                                  message.success('商品保存并上架成功')
+                                  setLoading(false)
                                 })
                             }
                           })
@@ -507,9 +524,9 @@ const ProductDetails: FC<Record<string, any>> = () => {
                 desc
               }
             return {
-              online_code,
-              online_name,
-              online_desc
+              code: online_code,
+              name: online_name,
+              desc: online_desc
             }
           }
           return {}

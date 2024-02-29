@@ -218,7 +218,7 @@ const Banner = forwardRef<DetailsRef>((_props, ref) => {
           <Space direction={'vertical'}>
             <h4>介绍视频</h4>
             <Spin spinning={loading}>
-              {videoFileList.length ? (
+              {videoFileList.length || isEdit ? (
                 <Upload
                   className={'banner-upload'}
                   accept={'.mp4'}
@@ -262,7 +262,7 @@ const Banner = forwardRef<DetailsRef>((_props, ref) => {
         <Col flex={1}>
           <Space direction={'vertical'}>
             <h4>轮播图</h4>
-            {imageFileList.length ? (
+            {imageFileList.length || isEdit ? (
               <DndContext sensors={[sensor]} onDragEnd={onDragEnd}>
                 <SortableContext
                   items={imageFileList.map((i) => i.uid)}

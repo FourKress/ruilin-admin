@@ -279,18 +279,33 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
         title: '状态',
         dataIndex: 'isActive',
         width: 70,
-        renderFormItem: (_: any, { record }: { record: any }, _form: any) => {
-          const { isActive, price, stock } = record
-          return (
-            <Switch
-              disabled={!isEdit || !(price && stock)}
-              key={record.id}
-              checkedChildren="上架"
-              unCheckedChildren="上架"
-              value={isActive}
-            />
-          )
-        }
+        ...(isEdit
+          ? {
+              renderFormItem: (_: any, { record }: { record: any }, _form: any) => {
+                const { isActive, price, stock } = record
+                return (
+                  <Switch
+                    disabled={!isEdit || !(price && stock)}
+                    key={record.id}
+                    checkedChildren="上架"
+                    unCheckedChildren="上架"
+                    value={isActive}
+                  />
+                )
+              }
+            }
+          : {
+              render: (_text: any, record: any, _: any, _action: any) => {
+                return (
+                  <Switch
+                    defaultValue={record.isActive}
+                    disabled={true}
+                    checkedChildren="已上架"
+                    unCheckedChildren="未上架"
+                  />
+                )
+              }
+            })
       }
     ]
 

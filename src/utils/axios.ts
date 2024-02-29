@@ -5,7 +5,7 @@ import { closeLoading, createLoading } from '@/components/loading/utils.tsx'
 
 const Axios = axios.create({
   baseURL: `${import.meta.env.VITE_APP_BASE_URL}/${import.meta.env.VITE_APP_BASE_PREFIX}`,
-  timeout: 30000
+  timeout: 60000
 })
 
 Axios.defaults.headers.post['Content-Type'] = 'application/json'
