@@ -43,7 +43,7 @@ Axios['interceptors'].request.use(
     if (headers.isLoading) {
       showLoading()
     }
-
+    modalInstance = null
     return config
   },
   (err) => {
@@ -79,6 +79,7 @@ Axios['interceptors'].response.use(
     if (statusCode === 401) {
       localStorage.clear()
       sessionStorage.clear()
+      console.log(modalInstance)
       if (!modalInstance) {
         modalInstance = Modal.error({
           centered: true,

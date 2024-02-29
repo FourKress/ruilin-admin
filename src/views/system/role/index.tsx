@@ -35,6 +35,8 @@ function SystemRole() {
   })
   const [permList, setPermList] = useState<any[]>([])
   const [form] = Form.useForm()
+  const [selectList, setSelectList] = useState<string[]>([])
+  const [removeList, setRemoveList] = useState<string[]>([])
 
   const columns: ProColumns[] = [
     {
@@ -84,6 +86,8 @@ function SystemRole() {
                 setPermList(permTree)
 
                 const details = await getRoleDetails(record.id)
+                setSelectList([])
+                setRemoveList([])
                 form.setFieldsValue({
                   ...details,
                   perms: details.perms.map((d: any) => {
@@ -143,13 +147,18 @@ function SystemRole() {
   ]
 
   const handleUpdate = async (data: any) => {
-    const { perms } = data
+    const { code, name } = data
+    const selectIds = [...new Set(selectList)].filter((item) => !removeList.includes(item))
+    const removeIds = [...new Set(removeList)].filter((item) => !selectList.includes(item))
+
     const id = form.getFieldValue('id')
     await axios
       .post(`/role/${id ? 'update' : 'create'}`, {
         id: id || undefined,
-        ...data,
-        perms: perms.map((d: any) => d?.value || d)
+        code,
+        name,
+        selectIds: selectIds.length ? selectIds : undefined,
+        removeIds: removeIds.length ? removeIds : undefined
       })
       .then(async () => {
         message.success(`角色${id ? '编辑' : '新建'}成功`)
@@ -195,6 +204,8 @@ function SystemRole() {
               type="primary"
               key="primary"
               onClick={async () => {
+                setSelectList([])
+                setRemoveList([])
                 form.setFieldsValue({
                   name: '',
                   code: '',
@@ -247,8 +258,8 @@ function SystemRole() {
         form={form}
         autoFocusFirstInput
         width={400}
-        submitTimeout={2000}
         modalProps={{
+          destroyOnClose: true,
           onCancel: () => {
             setModalInfo({ open: false })
           }
@@ -305,7 +316,18 @@ function SystemRole() {
             },
             treeCheckable: true,
             treeCheckStrictly: true,
-            showCheckedStrategy: 'SHOW_ALL'
+            showCheckedStrategy: 'SHOW_ALL',
+            maxTagCount: 3,
+            maxTagPlaceholder: '点击查看更多...',
+            treeDefaultExpandAll: true,
+            onChange: (_value, _label, extra: Record<string, any>) => {
+              const { triggerValue, checked } = extra
+              if (checked) {
+                setSelectList([...selectList, triggerValue])
+              } else {
+                setRemoveList([...removeList, triggerValue])
+              }
+            }
           }}
           request={async () => {
             return permList

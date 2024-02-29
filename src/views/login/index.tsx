@@ -36,6 +36,7 @@ function Login() {
         localStorage.setItem('token', token)
         localStorage.setItem('userInfo', JSON.stringify(other))
         navigate('/')
+        location.reload()
       })
       .catch((err) => {
         const { code, data }: { code: number; data: { userId: string } } = err
@@ -131,7 +132,6 @@ function Login() {
             form={form}
             autoFocusFirstInput
             width={500}
-            submitTimeout={2000}
             modalProps={{
               destroyOnClose: true,
               onCancel: () => setOpenModal(false)

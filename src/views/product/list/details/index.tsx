@@ -20,6 +20,9 @@ import './style.scss'
 
 const { confirm } = Modal
 
+const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+const { perms = [] } = userInfo
+
 let productId: string | undefined = ''
 
 const ProductDetails: FC<Record<string, any>> = () => {
@@ -432,24 +435,28 @@ const ProductDetails: FC<Record<string, any>> = () => {
                     <FooterToolbar
                       extra={
                         <Space size={'middle'}>
-                          <Button
-                            type="primary"
-                            danger
-                            onClick={() => {
-                              confirm({
-                                title: '确认操作',
-                                content: '确认删除该商品吗?',
-                                onOk: async () => {
-                                  await axios.get(`/product/delete/${productId}`).then(async () => {
-                                    message.success('商品删除成功')
-                                    navigate(-1)
-                                  })
-                                }
-                              })
-                            }}
-                          >
-                            删除
-                          </Button>
+                          {perms.includes('delete-product') && (
+                            <Button
+                              type="primary"
+                              danger
+                              onClick={() => {
+                                confirm({
+                                  title: '确认操作',
+                                  content: '确认删除该商品吗?',
+                                  onOk: async () => {
+                                    await axios
+                                      .get(`/product/delete/${productId}`)
+                                      .then(async () => {
+                                        message.success('商品删除成功')
+                                        navigate(-1)
+                                      })
+                                  }
+                                })
+                              }}
+                            >
+                              删除
+                            </Button>
+                          )}
                           <Button
                             type="primary"
                             danger

@@ -293,7 +293,6 @@ function SystemUser() {
         form={form}
         autoFocusFirstInput
         width={400}
-        submitTimeout={2000}
         modalProps={{
           destroyOnClose: true,
           onCancel: () => setModalInfo({ open: false })
