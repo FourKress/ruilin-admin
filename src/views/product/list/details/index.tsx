@@ -341,18 +341,15 @@ const ProductDetails: FC<Record<string, any>> = () => {
     }
 
     setLoading(true)
-    let createProductStatus = true
     if (!productId) {
-      const res = await handleUpdateProductInfo(values).catch(() => {
-        createProductStatus = false
-      })
+      const res = await handleUpdateProductInfo(values).catch(() => {})
+      if (!res) {
+        setLoading(false)
+        return false
+      }
       productId = res.id
     } else {
       handleUpdateProductInfo(values).then(() => {})
-    }
-    if (!createProductStatus) {
-      setLoading(false)
-      return false
     }
 
     if (bannerInfo) {
