@@ -427,7 +427,6 @@ const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpd
                 onOk() {
                   setColorList(colorList.filter((d) => d.id !== record.id))
                   if (productId && record.createTime) {
-                    console.log(record)
                     const ids = [...record.fileList, ...record.smallFileList]
                       .filter((d: Record<string, any>) => productId && d.id)
                       .map((d: any) => d.id)

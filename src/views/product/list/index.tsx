@@ -87,10 +87,10 @@ function ProductList() {
         return (
           <Descriptions title="" column={1}>
             <Descriptions.Item label="颜色">
-              <span>{unit_count}</span>
+              <span>{color_count}</span>
             </Descriptions.Item>
             <Descriptions.Item label="规格">
-              <span>{color_count}</span>
+              <span>{unit_count}</span>
             </Descriptions.Item>
             <Descriptions.Item label="SKU">
               <span>{sku_count}</span>

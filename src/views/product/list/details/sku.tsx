@@ -329,7 +329,7 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
                   }
                   unitKeys.forEach((key) => {
                     if (!unitFlag) return
-                    unitFlag = d[key] && d[key].value === other[key]
+                    unitFlag = d[key] && other[key].includes(d[key].value)
                   })
                   return colorFlag && unitFlag
                 })
@@ -376,6 +376,7 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
                   key={`unit_${d.id}`}
                   name={`unit_${d.id}`}
                   placeholder={`请选择${d.name}`}
+                  mode={'multiple'}
                   options={d.tags.map((t: any) => {
                     return {
                       label: t.name,

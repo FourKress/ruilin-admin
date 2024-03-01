@@ -36,12 +36,14 @@ const Unit = forwardRef<UnitRef, { onUpdate: (data: any[]) => void }>(({ onUpdat
 
   const [unitList, setUnitList] = useState<any[]>([])
   const [unitRemoveList, setUnitRemoveList] = useState<any[]>([])
+  const [unitAddIds, setUnitAddIds] = useState<any[]>([])
   const [tagRemoveList, setTagRemoveList] = useState<any[]>([])
   const [unitLoading, setUnitLoading] = React.useState<boolean>(false)
   const { token } = theme.useToken()
 
   const handleDeleteUnit = (unit: Record<string, any>) => {
     setUnitList(unitList.filter((d: any) => d.id !== unit.id))
+    setUnitAddIds(unitAddIds.filter((d: any) => d !== unit.id))
     if (productId && unit.createTime) {
       setUnitRemoveList([...unitRemoveList, unit.id])
     }
@@ -77,6 +79,7 @@ const Unit = forwardRef<UnitRef, { onUpdate: (data: any[]) => void }>(({ onUpdat
   useImperativeHandle(ref, () => ({
     getData: (): any => {
       return {
+        isAddUnit: unitAddIds.length > 0,
         removeIds: unitRemoveList,
         tagRemoveIds: tagRemoveList,
         editList: unitList.filter((d: any) => d.name)
@@ -307,7 +310,9 @@ const Unit = forwardRef<UnitRef, { onUpdate: (data: any[]) => void }>(({ onUpdat
   }
 
   const handleAddUnit = () => {
-    setUnitList([...unitList, { name: '', tags: [], id: Date.now() }])
+    const id = Date.now()
+    setUnitAddIds([...unitAddIds, id])
+    setUnitList([...unitList, { name: '', tags: [], id }])
   }
 
   const handleDragSortEnd = async (

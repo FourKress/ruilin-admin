@@ -264,7 +264,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
     })
   }
 
-  const handleEditSku = async (editList: any[]) => {
+  const handleEditSku = async (editList: any[], isAddUnit: boolean) => {
     const colorInfo = colorRef.current?.getData()
     const unitInfo = unitRef.current?.getData()
     let colorRemoveIds = []
@@ -284,6 +284,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
       colorRemoveIds,
       unitRemoveIds,
       tagRemoveIds,
+      isAddUnit,
       productId: productId
     })
   }
@@ -334,10 +335,6 @@ const ProductDetails: FC<Record<string, any>> = () => {
 
     if (check && !handleCheckData()) {
       return false
-    }
-
-    if (skuInfo) {
-      // return false
     }
 
     let isBaseError = false
@@ -396,7 +393,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
         const { editList } = skuInfo
 
         const skuEditList: any[] = handleFormSkuData(colorData, unitData, editList)
-        await handleEditSku(skuEditList).catch(() => {
+        await handleEditSku(skuEditList, unitInfo.isAddUnit).catch(() => {
           isError = true
         })
       }
@@ -413,11 +410,18 @@ const ProductDetails: FC<Record<string, any>> = () => {
     return !isError
   }
 
-  const handleActive = async () => {
-    await axios.post(`/product/active`, {
-      id: productId,
-      isActive: true
-    })
+  const handleActive = () => {
+    axios
+      .post(`/product/active`, {
+        id: productId,
+        isActive: true
+      })
+      .then(() => {
+        message.success('商品保存并上架成功')
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }
 
   return (
@@ -451,7 +455,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
                                   onOk: async () => {
                                     await axios.get(`/product/delete/${productId}`)
                                     message.success('商品删除成功')
-                                    navigate(-1)
+                                    navigate('/product/list')
                                   }
                                 })
                               }}
@@ -485,9 +489,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
                                   console.log(saveStatus)
                                   if (!saveStatus) return
                                   setLoading(true)
-                                  await handleActive()
-                                  message.success('商品保存并上架成功')
-                                  setLoading(false)
+                                  handleActive()
                                 })
                             }
                           })

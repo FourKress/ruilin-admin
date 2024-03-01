@@ -22,11 +22,11 @@ function Login() {
   const [phoneNum, setPhoneNum] = useState<number>(0)
   const navigate = useNavigate()
 
-  const handleLogin = (data: ILoginForm) => {
+  const handleLogin = async (data: ILoginForm) => {
     const { password, username } = data
     setPhoneNum(username)
 
-    axios
+    await axios
       .post('/auth/login', {
         username,
         password: md5(password).substring(8, 26)
@@ -47,8 +47,8 @@ function Login() {
       })
   }
 
-  const handleModifyPwd = (value: string) => {
-    axios
+  const handleModifyPwd = async (value: string) => {
+    await axios
       .post('/user/modifyPwd', {
         id: userId,
         password: md5(value).substring(8, 26)
@@ -73,7 +73,9 @@ function Login() {
             initialValues={{
               autoLogin: true
             }}
-            onFinish={async (data: ILoginForm) => handleLogin(data)}
+            onFinish={async (data: ILoginForm) => {
+              await handleLogin(data)
+            }}
           >
             <ProFormText
               name="username"
@@ -137,7 +139,7 @@ function Login() {
               onCancel: () => setOpenModal(false)
             }}
             onFinish={async (values) => {
-              handleModifyPwd(values.firstPassword)
+              await handleModifyPwd(values.firstPassword)
             }}
           >
             <ProFormText.Password
