@@ -87,7 +87,6 @@ Axios['interceptors'].response.use(
           title: '提示',
           okText: '确定',
           okButtonProps: {
-            // href: '/#/login'
             onClick: () => {
               location.href = `${location.origin}/#/login`
               modalInstance.destroy()
