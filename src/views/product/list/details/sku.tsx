@@ -288,7 +288,7 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
                     disabled={!isEdit || !(price && stock)}
                     key={record.id}
                     checkedChildren="上架"
-                    unCheckedChildren="上架"
+                    unCheckedChildren="下架"
                     value={isActive}
                   />
                 )

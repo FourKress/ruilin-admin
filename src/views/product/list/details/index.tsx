@@ -444,12 +444,9 @@ const ProductDetails: FC<Record<string, any>> = () => {
                                   title: '确认操作',
                                   content: '确认删除该商品吗?',
                                   onOk: async () => {
-                                    await axios
-                                      .get(`/product/delete/${productId}`)
-                                      .then(async () => {
-                                        message.success('商品删除成功')
-                                        navigate(-1)
-                                      })
+                                    await axios.get(`/product/delete/${productId}`)
+                                    message.success('商品删除成功')
+                                    navigate(-1)
                                   }
                                 })
                               }}
