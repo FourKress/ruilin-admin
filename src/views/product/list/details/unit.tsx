@@ -280,7 +280,8 @@ const Unit = forwardRef<UnitRef, { onUpdate: (data: any[]) => void }>(({ onUpdat
     if (unit.tags.length === 1) {
       confirm({
         title: '确认操作',
-        content: '删除最后一个标签将同步删除整个规格，确认删除吗?',
+        content:
+          '删除最后一个属性将同步删除整个规格，删除规格会导致现有SKU发生变化，SKU、库存及价格将被重置，且本操作不能撤销！，确认删除吗?',
         onOk: () => {
           if (productId && tag.createTime) {
             setTagRemoveList([...tagRemoveList, tag.id])
@@ -380,12 +381,14 @@ const Unit = forwardRef<UnitRef, { onUpdate: (data: any[]) => void }>(({ onUpdat
       render: (_, record: Record<string, any>) => {
         return [
           <a
+            style={{ color: 'red' }}
             key="delete"
             onClick={() => {
               confirm({
-                title: '确认操作',
-                content: '确认删除该规格吗?',
-                onOk() {
+                title: '确认删除规格？',
+                content: '本操作会导致现有SKU发生变化，SKU、库存及价格将被重置，且本操作不能撤销！',
+                onOk: () => {
+                  handleAddUnit()
                   if (productId && record.tags) {
                     const ids = record.tags
                       .filter((d: Record<string, any>) => productId && d.createTime)
@@ -431,7 +434,14 @@ const Unit = forwardRef<UnitRef, { onUpdate: (data: any[]) => void }>(({ onUpdat
               type="primary"
               key="primary"
               onClick={() => {
-                handleAddUnit()
+                confirm({
+                  title: '确认新增规格？',
+                  content:
+                    '本操作会导致现有SKU发生变化，SKU、库存及价格将被重置，且本操作不能撤销！',
+                  onOk: () => {
+                    handleAddUnit()
+                  }
+                })
               }}
             >
               <PlusOutlined /> 新建

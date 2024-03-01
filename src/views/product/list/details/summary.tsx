@@ -123,6 +123,7 @@ const Summary = forwardRef<SummaryRef>((_props, ref) => {
       render: (_, record: Record<string, any>) => {
         return [
           <a
+            style={{ color: 'red' }}
             key="delete"
             onClick={() => {
               confirm({

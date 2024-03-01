@@ -418,6 +418,7 @@ const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpd
       render: (_, record: Record<string, any>) => {
         return [
           <a
+            style={{ color: 'red' }}
             key="delete"
             onClick={() => {
               confirm({

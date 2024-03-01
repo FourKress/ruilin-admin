@@ -533,17 +533,6 @@ const ProductDetails: FC<Record<string, any>> = () => {
               />
             </Col>
             <Col md={8}>
-              <ProFormText
-                fieldProps={{
-                  readOnly: !isEdit
-                }}
-                label={'商品编码'}
-                name="code"
-                rules={[{ required: true, message: '请输入商品编码' }]}
-                placeholder="请输入商品编码"
-              />
-            </Col>
-            <Col md={8}>
               <ProFormTextArea
                 fieldProps={{
                   readOnly: !isEdit,
@@ -555,6 +544,16 @@ const ProductDetails: FC<Record<string, any>> = () => {
                 name="desc"
                 rules={[{ required: true, message: '请输入商品介绍' }]}
                 placeholder="请输入商品介绍"
+              />
+            </Col>
+            <Col md={8}>
+              <ProFormText
+                fieldProps={{
+                  readOnly: !isEdit
+                }}
+                label={'商品编码'}
+                name="code"
+                placeholder="请输入商品编码"
               />
             </Col>
           </Row>

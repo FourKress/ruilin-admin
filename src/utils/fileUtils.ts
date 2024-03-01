@@ -3,8 +3,10 @@ import { message } from 'antd'
 import axios from '@/utils/axios.ts'
 
 const uploadFile = async (file: any, objectKey: string) => {
+  const size = file.type.includes('image') ? 10 : 50
   const res: Record<string, any> = await axios.post('/file/auth', {
-    objectKey
+    objectKey,
+    size
   })
 
   const formData = new FormData()
@@ -36,11 +38,18 @@ const deleteFile = async (objectKey: string) => {
 }
 
 const checkFileSize = (file: any) => {
-  const isLt10M = file.size / 1024 / 1024 < 10
-  if (!isLt10M) {
-    message.error('文件须小于 10MB !').then(() => {})
+  const isImageLt10M = file.size / 1024 / 1024 < 10
+  const isVideoLt10M = file.size / 1024 / 1024 < 50
+  if (file.type.includes('image')) {
+    if (!isImageLt10M) {
+      message.error('图片须小于 10MB !').then(() => {})
+    }
+    return isImageLt10M
   }
-  return isLt10M
+  if (!isVideoLt10M) {
+    message.error('视频须小于 50MB !').then(() => {})
+  }
+  return isVideoLt10M
 }
 
 export { checkFileSize, deleteFile, previewFile, uploadFile }
