@@ -409,10 +409,10 @@ const ProductDetails: FC<Record<string, any>> = () => {
     return !isError
   }
 
-  const handleActive = async (isActive: boolean) => {
+  const handleActive = async () => {
     await axios.post(`/product/active`, {
       id: productId,
-      isActive
+      isActive: true
     })
   }
 
@@ -454,23 +454,6 @@ const ProductDetails: FC<Record<string, any>> = () => {
                               删除
                             </Button>
                           )}
-                          <Button
-                            type="primary"
-                            danger
-                            onClick={() => {
-                              confirm({
-                                title: '确认操作',
-                                content: '确认下架该商品吗?',
-                                onOk: async () => {
-                                  await handleActive(false)
-                                  message.success('商品下架成功')
-                                  return true
-                                }
-                              })
-                            }}
-                          >
-                            下架
-                          </Button>
                         </Space>
                       }
                     >
@@ -497,7 +480,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
                                   console.log(saveStatus)
                                   if (!saveStatus) return
                                   setLoading(true)
-                                  await handleActive(true)
+                                  await handleActive()
                                   message.success('商品保存并上架成功')
                                   setLoading(false)
                                 })
