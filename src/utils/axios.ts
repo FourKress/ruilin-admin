@@ -43,7 +43,7 @@ Axios['interceptors'].request.use(
     if (headers.isLoading) {
       showLoading()
     }
-    modalInstance = null
+
     return config
   },
   (err) => {
@@ -79,7 +79,6 @@ Axios['interceptors'].response.use(
     if (statusCode === 401) {
       localStorage.clear()
       sessionStorage.clear()
-      console.log(modalInstance)
       if (!modalInstance) {
         modalInstance = Modal.error({
           centered: true,
@@ -88,7 +87,12 @@ Axios['interceptors'].response.use(
           title: '提示',
           okText: '确定',
           okButtonProps: {
-            href: '/#/login'
+            // href: '/#/login'
+            onClick: () => {
+              location.href = `${location.origin}/#/login`
+              modalInstance.destroy()
+              modalInstance = null
+            }
           }
         })
       }
