@@ -150,6 +150,29 @@ function ProductList() {
       }
     },
     {
+      title: '数据状态',
+      dataIndex: 'isDraft',
+      defaultFilteredValue: null,
+      render: (status) => {
+        const color = status ? 'red' : 'blue'
+        return [<Badge key={color} color={color} text={status ? '草稿' : '线上'} />]
+      },
+      renderFormItem: () => {
+        return (
+          <Select
+            placeholder={'请选择'}
+            allowClear={{
+              clearIcon: <CloseCircleFilled />
+            }}
+            options={[
+              { value: true, label: '草稿' },
+              { value: false, label: '线上' }
+            ]}
+          />
+        )
+      }
+    },
+    {
       title: '商品状态',
       dataIndex: 'isActive',
       defaultFilteredValue: null,
