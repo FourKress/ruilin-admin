@@ -317,8 +317,9 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
             className={'series-details'}
             layout="inline"
             submitter={false}
+            initialValues={{ isActive: undefined, stock: undefined, price: undefined }}
             onFinish={async (val) => {
-              const { colorId, price, stock, ...other } = val
+              const { colorId, price, stock, isActive, ...other } = val
               const unitKeys = Object.keys(other)
               const editList = dataSource
                 .filter((d: any) => {
@@ -334,12 +335,18 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
                   return colorFlag && unitFlag
                 })
                 .map((d: any) => {
-                  const { isActive } = d
+                  const realStock = stock || d.stock
+                  const realPrice = price || d.price
                   const data = {
                     ...d,
-                    stock,
-                    price,
-                    isActive: !stock || !price ? false : isActive
+                    stock: realStock,
+                    price: realPrice,
+                    isActive:
+                      !realStock || !realPrice
+                        ? false
+                        : isActive === undefined
+                          ? d.isActive
+                          : isActive
                   }
                   editorFormRef.current?.setRowData?.(d.id, {
                     ...data
@@ -403,6 +410,20 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
                 min: 0
               }}
             ></ProFormDigit>
+            <ProFormSelect
+              name={'isActive'}
+              placeholder="上架/下架状态"
+              options={[
+                {
+                  label: '上架',
+                  value: true
+                },
+                {
+                  label: '下架',
+                  value: false
+                }
+              ]}
+            ></ProFormSelect>
             <ProFormItem>
               <Button
                 key="primary"
@@ -425,7 +446,6 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
           rowKey="id"
           value={dataSource}
           recordCreatorProps={false}
-          // controlled
           editable={{
             form: editForm,
             type: 'multiple',
