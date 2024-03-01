@@ -181,8 +181,8 @@ function SystemRole() {
       })
   }
 
-  const handleDelete = (data: any) => {
-    axios.get(`/role/delete/${data.id}`).then(async () => {
+  const handleDelete = async (data: any) => {
+    await axios.get(`/role/delete/${data.id}`).then(async () => {
       message.success('删除角色成功')
       actionRef.current?.reloadAndRest?.()
     })

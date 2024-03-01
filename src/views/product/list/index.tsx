@@ -35,7 +35,7 @@ function ProductList() {
       dataIndex: 'name',
       width: 140,
       render: (_, record: Record<string, any>) => {
-        const { code = '-', name, id } = record
+        const { code = '', name, id } = record
         return (
           <Row style={{ height: '60px' }}>
             <Space size={'middle'}>

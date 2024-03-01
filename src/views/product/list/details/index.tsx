@@ -340,6 +340,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
       // return false
     }
 
+    let isBaseError = false
     setLoading(true)
     if (!productId) {
       const res = await handleUpdateProductInfo(values).catch(() => {})
@@ -349,19 +350,25 @@ const ProductDetails: FC<Record<string, any>> = () => {
       }
       productId = res.id
     } else {
-      handleUpdateProductInfo(values).then(() => {})
+      handleUpdateProductInfo(values).catch(() => {
+        isBaseError = true
+      })
     }
 
     if (bannerInfo) {
       const { image, video } = bannerInfo
-      handleBannerEdit(image.upload, video.upload, [...image.removeIds, ...video.removeIds]).then(
-        () => {}
+      handleBannerEdit(image.upload, video.upload, [...image.removeIds, ...video.removeIds]).catch(
+        () => {
+          isBaseError = true
+        }
       )
     }
 
     if (summaryInfo) {
       const { editList, removeIds } = summaryInfo
-      handleSummaryEdit(editList, removeIds).then(() => {})
+      handleSummaryEdit(editList, removeIds).catch(() => {
+        isBaseError = true
+      })
     }
 
     let colorData: any = {}
@@ -398,7 +405,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
     navigate(`/product/list/details/1/${productId}`)
     setRefreshKey(Date.now())
 
-    if (!isError) {
+    if (!isError && !isBaseError) {
       message.success('保存成功')
     }
     setLoading(false)
@@ -424,6 +431,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
       <ProForm
         className={'series-details'}
         layout="horizontal"
+        initialValues={{ name: '', desc: '', code: '' }}
         submitter={
           isEdit
             ? {
