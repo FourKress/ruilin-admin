@@ -135,14 +135,15 @@ const ProductDetails: FC<Record<string, any>> = () => {
       if (createTime) {
         return {
           ...d,
-          fileList: [...editFileList, ...editSmallFileList],
-          smallFileList: undefined
+          fileList: editFileList,
+          smallFileList: editSmallFileList
         }
       }
       return {
         name,
         desc,
-        fileList: [...editFileList, ...editSmallFileList],
+        fileList: editFileList,
+        smallFileList: editSmallFileList,
         productId: productId
       }
     })

@@ -65,21 +65,16 @@ const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpd
       .get(`/product-color/${isEdit ? 'list' : 'online-list'}/${productId}`)
       .then((res: any) => {
         const list = res.map((d: any) => {
-          const smallFileList: any[] = []
           const fileList: any[] = []
 
-          d.fileList?.forEach((d: any) => {
+          d.fileList?.forEach((f: any) => {
             const item = {
-              uid: d.uid,
-              name: d.fileName,
-              type: d.fileType,
-              id: d.id,
-              url: d.url,
+              uid: f.uid,
+              name: f.fileName,
+              type: f.fileType,
+              id: f.id,
+              url: f.url,
               status: 'done'
-            }
-            if (d.type === 'header') {
-              smallFileList.push(item)
-              return
             }
 
             fileList.push(item)
@@ -87,7 +82,18 @@ const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpd
 
           return {
             ...d,
-            smallFileList,
+            smallFileList: d.objectKey
+              ? [
+                  {
+                    uid: d.uid,
+                    name: d.fileName,
+                    type: d.fileType,
+                    id: d.id,
+                    url: d.url,
+                    status: 'done'
+                  }
+                ]
+              : [],
             fileList
           }
         })
@@ -330,11 +336,6 @@ const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpd
             maxCount={1}
             onChange={(data) => handleSmallChange(data, record)}
             beforeUpload={() => false}
-            onRemove={(file: any) => {
-              if (productId && file.id) {
-                setFileRemoveList([...fileRemoveList, file.id])
-              }
-            }}
             itemRender={(originNode, file) => {
               return (
                 <div className={originNode.props.className}>
@@ -427,7 +428,7 @@ const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpd
                 onOk() {
                   setColorList(colorList.filter((d) => d.id !== record.id))
                   if (productId && record.createTime) {
-                    const ids = [...record.fileList, ...record.smallFileList]
+                    const ids = record.fileList
                       .filter((d: Record<string, any>) => productId && d.id)
                       .map((d: any) => d.id)
 
