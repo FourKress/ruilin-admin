@@ -418,7 +418,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
         isActive: true
       })
       .then(() => {
-        message.success('商品保存并上架成功')
+        message.success('商品保存并上架成功').then(() => {})
       })
       .finally(() => {
         setLoading(false)
