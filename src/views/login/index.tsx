@@ -55,7 +55,7 @@ function Login() {
       })
       .then(async () => {
         message.success('修改成功')
-        handleLogin({
+        await handleLogin({
           username: phoneNum,
           password: value
         })
