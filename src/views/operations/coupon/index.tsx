@@ -153,15 +153,15 @@ function OperationsCoupon() {
     }
   ]
 
-  const handleUpdate = (data: any) => {
+  const handleUpdate = async (data: any) => {
     const id = form.getFieldValue('id')
     const { validDate, ...other } = data
-    axios
+    await axios
       .post(`/coupon/${id ? 'update' : 'create'}`, {
         id: id || undefined,
         ...other,
         validStartDate: dayjs(validDate[0]).valueOf(),
-        validEndDate: dayjs(validDate[1]).valueOf()
+        validEndDate: dayjs(validDate[1]).endOf('date').valueOf()
       })
       .then(async () => {
         message.success(`优惠码${id ? '编辑' : '新建'}成功`)
@@ -266,7 +266,7 @@ function OperationsCoupon() {
           }
         }}
         onFinish={async (values) => {
-          handleUpdate(values)
+          await handleUpdate(values)
         }}
       >
         <ProFormText
@@ -377,7 +377,7 @@ function OperationsCoupon() {
           ]}
           fieldProps={{
             disabledDate: (current) => {
-              return current && current < dayjs().endOf('day')
+              return current && current < dayjs().subtract(1, 'day').endOf('day')
             }
           }}
         />

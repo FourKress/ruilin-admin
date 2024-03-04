@@ -127,7 +127,7 @@ function OperationsRule() {
         id: id || undefined,
         ...other,
         validStartDate: dayjs(validDate[0]).valueOf(),
-        validEndDate: dayjs(validDate[1]).valueOf()
+        validEndDate: dayjs(validDate[1]).endOf('date').valueOf()
       })
       .then(async () => {
         message.success(`满减规则${id ? '编辑' : '新建'}成功`)
@@ -291,7 +291,7 @@ function OperationsRule() {
           ]}
           fieldProps={{
             disabledDate: (current) => {
-              return current && current < dayjs().endOf('day')
+              return current && current < dayjs().subtract(1, 'day').endOf('day')
             }
           }}
         />
