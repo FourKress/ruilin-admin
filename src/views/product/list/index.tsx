@@ -238,7 +238,7 @@ function ProductList() {
               {record.isActive ? '下架' : '上架'}
             </a>
           ),
-          perms.includes('edit-product') && (
+          perms.includes('delete-product') && (
             <a
               key="delete"
               onClick={() => {

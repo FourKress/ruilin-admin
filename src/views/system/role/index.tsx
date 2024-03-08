@@ -148,8 +148,8 @@ function SystemRole() {
 
   const handleUpdate = async (data: any) => {
     const { code, name } = data
-    const selectIds = [...new Set(selectList)].filter((item) => !removeList.includes(item))
-    const removeIds = [...new Set(removeList)].filter((item) => !selectList.includes(item))
+    const selectIds = [...new Set(selectList)].filter((item) => item && !removeList.includes(item))
+    const removeIds = [...new Set(removeList)].filter((item) => item && !selectList.includes(item))
 
     const id = form.getFieldValue('id')
     await axios
