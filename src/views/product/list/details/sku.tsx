@@ -319,14 +319,14 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
             submitter={false}
             initialValues={{ isActive: undefined, stock: undefined, price: undefined }}
             onFinish={async (val) => {
-              const { colorId, price, stock, isActive, ...other } = val
+              const { colorIds, price, stock, isActive, ...other } = val
               const unitKeys = Object.keys(other)
               const editList = dataSource
                 .filter((d: any) => {
                   let colorFlag = true
                   let unitFlag = true
-                  if (colorId) {
-                    colorFlag = d.colorId === colorId
+                  if (colorIds) {
+                    colorFlag = colorIds.includes(d.colorId)
                   }
                   unitKeys.forEach((key) => {
                     if (!unitFlag) return
@@ -335,40 +335,41 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
                   return colorFlag && unitFlag
                 })
                 .map((d: any) => {
-                  const realStock = stock || d.stock
-                  const realPrice = price || d.price
                   const data = {
                     ...d,
-                    stock: realStock,
-                    price: realPrice,
+                    stock,
+                    price,
                     isActive:
-                      !realStock || !realPrice
-                        ? false
-                        : isActive === undefined
-                          ? d.isActive
-                          : isActive
+                      !stock || !price ? false : isActive === undefined ? d.isActive : isActive
                   }
-                  editorFormRef.current?.setRowData?.(d.id, {
-                    ...data
-                  })
+                  if (editorFormRef.current?.setRowData) {
+                    editorFormRef.current?.setRowData(d.id, {
+                      ...data
+                    })
+                  }
 
                   return { ...data }
                 })
 
-              setBackupDataSource([
-                ...editList.map((d: any) => {
-                  const { stock, price, isActive } = d
+              const newData = dataSource.map((d: any) => {
+                const target = editList.find((f: any) => f.id === d.id)
+                if (target) {
                   return {
-                    ...d,
-                    isActive: !stock || !price ? false : isActive
+                    ...target
                   }
-                })
-              ])
+                }
+                return {
+                  ...d
+                }
+              })
+              setDataSource(newData)
+              setBackupDataSource([...newData])
             }}
           >
             <ProFormSelect
               label={'批量设置'}
-              name={'colorId'}
+              name={'colorIds'}
+              mode={'multiple'}
               placeholder="请选择颜色"
               options={colorList.map((d) => {
                 return {
@@ -455,22 +456,23 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
             },
             onValuesChange: (record, recordList) => {
               const { stock, price, id } = record
-              setDataSource(recordList)
-              setBackupDataSource([
-                ...recordList.map((d: any) => {
-                  const { stock, price, isActive } = d
-                  return {
-                    ...d,
-                    isActive: !stock || !price ? false : isActive
-                  }
-                })
-              ])
+              const newData = recordList.map((d: any) => {
+                const { stock, price, isActive } = d
+                return {
+                  ...d,
+                  isActive: !stock || !price ? false : isActive
+                }
+              })
+              setDataSource(newData)
+              setBackupDataSource([...newData])
 
               if (!stock || !price) {
-                editorFormRef.current?.setRowData?.(id, {
-                  ...record,
-                  isActive: false
-                })
+                if (editorFormRef.current?.setRowData) {
+                  editorFormRef.current?.setRowData(id, {
+                    ...record,
+                    isActive: false
+                  })
+                }
               }
             }
           }}
