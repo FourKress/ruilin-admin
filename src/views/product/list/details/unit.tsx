@@ -176,7 +176,7 @@ const Unit = forwardRef<UnitRef, { onUpdate: (data: any[]) => void }>(({ onUpdat
       <Tag
         style={style}
         key={tag.id}
-        closable
+        closable={isEdit}
         onClose={async (e) => {
           e.preventDefault()
           handleClose(tag, unit)
@@ -346,6 +346,7 @@ const Unit = forwardRef<UnitRef, { onUpdate: (data: any[]) => void }>(({ onUpdat
       dataIndex: 'smallFileList',
       ellipsis: true,
       render: (_, record) => {
+        const tags = isEdit ? [...record.tags, { type: 'add', id: addTagId }] : [...record.tags]
         return (
           <ConfigProvider theme={{ algorithm: [theme.defaultAlgorithm] }}>
             <Space size={[0, 4]} wrap>
@@ -358,7 +359,7 @@ const Unit = forwardRef<UnitRef, { onUpdate: (data: any[]) => void }>(({ onUpdat
                   items={record.tags.map((i: any) => i.id)}
                   strategy={horizontalListSortingStrategy}
                 >
-                  {[...record.tags, { type: 'add', id: addTagId }].map((tag: any) => {
+                  {tags.map((tag: any) => {
                     return <DraggableTag tag={tag} key={tag.id} unit={record} />
                   })}
                 </SortableContext>

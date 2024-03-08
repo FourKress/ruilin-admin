@@ -206,7 +206,7 @@ function ProductList() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 80,
+      width: 100,
       render: (_, record: Record<string, any>) => {
         return [
           perms.includes('edit-product') && (
@@ -236,6 +236,24 @@ function ProductList() {
               }}
             >
               {record.isActive ? '下架' : '上架'}
+            </a>
+          ),
+          perms.includes('edit-product') && (
+            <a
+              key="delete"
+              onClick={() => {
+                confirm({
+                  title: '确认操作',
+                  content: '确认删除该商品吗?',
+                  onOk: async () => {
+                    await axios.get(`/product/delete/${record.id}`)
+                    actionRef.current?.reloadAndRest?.()
+                    message.success('商品删除成功')
+                  }
+                })
+              }}
+            >
+              删除
             </a>
           )
         ]
