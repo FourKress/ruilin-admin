@@ -1,6 +1,6 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { EyeOutlined, PlusOutlined } from '@ant-design/icons'
+import { EyeOutlined, PlayCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import { DndContext, DragEndEvent, PointerSensor, useSensor } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -238,7 +238,12 @@ const Banner = forwardRef<DetailsRef>((_props, ref) => {
                   itemRender={(originNode, file) => {
                     return (
                       <div className={originNode.props.className}>
-                        {originNode.props.children[0]}
+                        <div
+                          className={originNode.props.children[0].props.className}
+                          style={{ marginTop: '6px' }}
+                        >
+                          <PlayCircleOutlined />
+                        </div>
                         <div className={originNode.props.children[2].props.className}>
                           <EyeOutlined
                             onClick={() => {

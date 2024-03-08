@@ -1,6 +1,6 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { EyeOutlined, PlusOutlined } from '@ant-design/icons'
+import { EyeOutlined, PlayCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import { DragSortTable, ProColumns } from '@ant-design/pro-components'
 import { DndContext, DragEndEvent, PointerSensor, useSensor } from '@dnd-kit/core'
 import {
@@ -226,7 +226,7 @@ const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpd
 
   interface DraggableUploadListItemProps {
     originNode: React.ReactElement<any, string | React.JSXElementConstructor<any>>
-    file: UploadFile<any>
+    file: any
   }
 
   const DraggableUploadListItem = ({ originNode, file }: DraggableUploadListItemProps) => {
@@ -250,7 +250,17 @@ const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpd
         {...(isEdit ? listeners : {})}
       >
         <div className={originNode.props.className}>
-          {originNode.props.children[0]}
+          {file.type.includes('video') ? (
+            <div
+              className={originNode.props.children[0].props.className}
+              style={{ marginTop: '6px' }}
+            >
+              <PlayCircleOutlined />
+            </div>
+          ) : (
+            originNode.props.children[0]
+          )}
+
           <div className={originNode.props.children[2].props.className}>
             <EyeOutlined
               onClick={() => {

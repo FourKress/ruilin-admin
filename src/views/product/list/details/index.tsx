@@ -41,10 +41,10 @@ const ProductDetails: FC<Record<string, any>> = () => {
   const colorRef = useRef<any>()
   const skuRef = useRef<any>()
 
-  const handleFileUpdate = (file: any) => {
+  const handleFileUpdate = async (file: any) => {
     const { uid, type, name } = file
     const objectKey = `${uid}.${type.replace(/[\w\W]+\//, '')}`
-    uploadFile(file.originFileObj, objectKey).catch(async () => {
+    await uploadFile(file.originFileObj, objectKey).catch(async () => {
       message.error('文件上传失败')
     })
     return {
@@ -56,7 +56,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
     }
   }
 
-  const handleColorFileUpdate = (file: Record<string, any>, type: string) => {
+  const handleColorFileUpdate = async (file: Record<string, any>, type: string) => {
     if (file.status) {
       return {
         ...file,
@@ -65,7 +65,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
       }
     }
 
-    const result = handleFileUpdate(file)
+    const result = await handleFileUpdate(file)
     return {
       ...result,
       productId: productId,
@@ -83,7 +83,8 @@ const ProductDetails: FC<Record<string, any>> = () => {
     await Promise.all(
       [...imageFileList, ...videoFileList].map(async (d: any) => {
         const { type } = d
-        const result = handleFileUpdate(d)
+        const result = await handleFileUpdate(d)
+        console.log(1111)
         if (type.includes('video')) {
           videoList.push(result)
         } else {
@@ -91,7 +92,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
         }
       })
     )
-
+    console.log(2)
     await axios.post(`/product-banner/edit`, {
       imageList,
       videoList,
@@ -124,29 +125,35 @@ const ProductDetails: FC<Record<string, any>> = () => {
     removeIds: string[],
     fileRemoveIds: string[]
   ) => {
-    const editList = colorList.map((d: Record<string, any>) => {
-      const { createTime, name, desc, smallFileList = [], fileList = [] } = d
-      const editFileList = fileList.map((file: Record<string, any>) => {
-        return handleColorFileUpdate(file, 'carousel')
-      })
-      const editSmallFileList = smallFileList.map((file: Record<string, any>) => {
-        return handleColorFileUpdate(file, 'header')
-      })
-      if (createTime) {
-        return {
-          ...d,
-          fileList: editFileList,
-          smallFileList: editSmallFileList
+    const editList = await Promise.all(
+      colorList.map(async (d: Record<string, any>) => {
+        const { createTime, name, desc, smallFileList = [], fileList = [] } = d
+        const editFileList = await Promise.all(
+          fileList.map(async (file: Record<string, any>) => {
+            return await handleColorFileUpdate(file, 'carousel')
+          })
+        )
+        const editSmallFileList = await Promise.all(
+          smallFileList.map(async (file: Record<string, any>) => {
+            return await handleColorFileUpdate(file, 'header')
+          })
+        )
+        if (createTime) {
+          return {
+            ...d,
+            fileList: editFileList,
+            smallFileList: editSmallFileList
+          }
         }
-      }
-      return {
-        name,
-        desc,
-        fileList: editFileList,
-        smallFileList: editSmallFileList,
-        productId: productId
-      }
-    })
+        return {
+          name,
+          desc,
+          fileList: editFileList,
+          smallFileList: editSmallFileList,
+          productId: productId
+        }
+      })
+    )
 
     return await axios.post(`/product-color/edit`, {
       editList,
@@ -338,77 +345,58 @@ const ProductDetails: FC<Record<string, any>> = () => {
       return false
     }
 
-    let isBaseError = false
     setLoading(true)
-    if (!productId) {
-      const res = await handleUpdateProductInfo(values).catch(() => {})
-      if (!res) {
-        setLoading(false)
-        return false
-      }
-      productId = res.id
-    } else {
-      handleUpdateProductInfo(values).catch(() => {
-        isBaseError = true
-      })
-    }
 
-    if (bannerInfo) {
-      const { image, video } = bannerInfo
-      handleBannerEdit(image.upload, video.upload, [...image.removeIds, ...video.removeIds]).catch(
-        () => {
-          isBaseError = true
+    try {
+      if (!productId) {
+        const res = await handleUpdateProductInfo(values)
+        if (!res) {
+          setLoading(false)
+          return false
         }
-      )
-    }
+        productId = res.id
+      } else {
+        await handleUpdateProductInfo(values)
+      }
 
-    if (summaryInfo) {
-      const { editList, removeIds } = summaryInfo
-      handleSummaryEdit(editList, removeIds).catch(() => {
-        isBaseError = true
-      })
-    }
+      if (bannerInfo) {
+        const { image, video } = bannerInfo
+        await handleBannerEdit(image.upload, video.upload, [...image.removeIds, ...video.removeIds])
+      }
 
-    let colorData: any = {}
-    let unitData: any = {}
-    let isError = false
-    if (colorInfo) {
-      const { editList, removeIds, fileRemoveIds } = colorInfo
-      colorData = await handleColorEdit(editList, removeIds, fileRemoveIds).catch(() => {
-        isError = true
-      })
-    }
-    if (unitInfo) {
-      const { editList, removeIds, tagRemoveIds } = unitInfo
-      unitData = await handleUnitEdit(editList, removeIds, tagRemoveIds).catch(() => {
-        isError = true
-      })
-    }
-    if (isError) {
+      if (summaryInfo) {
+        const { editList, removeIds } = summaryInfo
+        await handleSummaryEdit(editList, removeIds)
+      }
+
+      let colorData: any = []
+      let unitData: any = []
+      if (colorInfo) {
+        const { editList, removeIds, fileRemoveIds } = colorInfo
+        colorData = await handleColorEdit(editList, removeIds, fileRemoveIds)
+      }
+      if (unitInfo) {
+        const { editList, removeIds, tagRemoveIds } = unitInfo
+        unitData = await handleUnitEdit(editList, removeIds, tagRemoveIds)
+      }
+
+      if (colorData.length && unitData.length) {
+        const { editList } = skuInfo
+        const skuEditList: any[] = handleFormSkuData(colorData, unitData, editList)
+        await handleEditSku(skuEditList, unitInfo.isAddUnit)
+      }
+
       navigate(`/product/list/details/1/${productId}`)
       setRefreshKey(Date.now())
-      setLoading(false)
-      return false
-    } else {
-      if (colorData?.length) {
-        const { editList } = skuInfo
-
-        const skuEditList: any[] = handleFormSkuData(colorData, unitData, editList)
-        await handleEditSku(skuEditList, unitInfo.isAddUnit).catch(() => {
-          isError = true
-        })
-      }
-    }
-
-    navigate(`/product/list/details/1/${productId}`)
-    setRefreshKey(Date.now())
-
-    if (!isError && !isBaseError) {
       message.success('保存成功')
-    }
-    setLoading(false)
+      setLoading(false)
 
-    return !isError
+      return true
+    } catch (e) {
+      setLoading(false)
+
+      return false
+    }
   }
 
   const handleActive = () => {
