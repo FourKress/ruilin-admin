@@ -320,7 +320,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
       message.warning('请完善规格名称、规格属性的相关数据').then(() => {})
       isEmpty = true
     }
-    const hasSkuEmptyData = skuInfo.editList.some((d: any) => !d.stock || !d.price)
+    const hasSkuEmptyData = skuInfo.editList.some((d: any) => d.isActive && (!d.stock || !d.price))
     if (hasSkuEmptyData) {
       message.warning('请完善SKU库存、SKU价格的相关数据').then(() => {})
       isEmpty = true
