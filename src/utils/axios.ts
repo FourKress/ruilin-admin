@@ -28,7 +28,7 @@ const hideLoading = () => {
   }
 }
 
-const whitelist = ['/auth/adminLogin', ':9000/dev', ':9000/prod']
+const whitelist = ['/auth/adminLogin', 'assets.vinnhair.com/dev', 'assets.vinnhair.com/prod']
 
 // 请求前拦截
 Axios['interceptors'].request.use(

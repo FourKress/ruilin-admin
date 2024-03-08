@@ -180,7 +180,7 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
       setDataSource([])
       editForm.resetFields()
       handleFormData()
-    }, [unitList, colorList])
+    }, [unitList, colorList, skuList])
 
     const columns: any[] = [
       {
