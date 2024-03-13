@@ -2,7 +2,8 @@ import {
   AppstoreOutlined,
   CarryOutOutlined,
   DashboardOutlined,
-  SettingOutlined
+  SettingOutlined,
+  TeamOutlined
 } from '@ant-design/icons'
 
 const menuList = [
@@ -44,6 +45,19 @@ const menuList = [
         path: '/product/list',
         name: '商品列表',
         authCode: 'product-list-manager'
+      }
+    ]
+  },
+  {
+    path: '/customer',
+    name: '客户管理',
+    icon: <TeamOutlined />,
+    authCode: 'customer-manager',
+    routes: [
+      {
+        path: '/customer/list',
+        name: '客户列表',
+        authCode: 'customer-list-manager'
       }
     ]
   },

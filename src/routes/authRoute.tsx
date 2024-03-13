@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
+import Customer from '@/views/customer'
 import Dashboard from '@/views/dashboard'
 import OperationsBanner from '@/views/operations/banner'
 import OperationsCoupon from '@/views/operations/coupon'
@@ -40,6 +41,9 @@ const AuthRoute = () => {
       )}
       {checkAuthCode('operations-banner-manager') && (
         <Route path="/operations/banner" element={<OperationsBanner />} />
+      )}
+      {checkAuthCode('customer-list-manager') && (
+        <Route path="/customer/list" element={<Customer />} />
       )}
     </Routes>
   ) : (
