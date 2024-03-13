@@ -414,7 +414,23 @@ const ProductDetails: FC<Record<string, any>> = () => {
   }
 
   return (
-    <PageContainer title={'商品详情'} breadcrumbRender={false} key={refreshKey}>
+    <PageContainer
+      breadcrumbRender={false}
+      key={refreshKey}
+      header={{
+        title: '商品详情',
+        extra: [
+          <Button
+            type="primary"
+            onClick={() => {
+              navigate(`/product/list`)
+            }}
+          >
+            返回
+          </Button>
+        ]
+      }}
+    >
       <Spin
         size="large"
         tip={<div style={{ marginTop: '12px' }}>数据保存中</div>}
