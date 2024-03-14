@@ -2,8 +2,8 @@ import {
   AppstoreOutlined,
   CarryOutOutlined,
   DashboardOutlined,
-  SettingOutlined,
-  TeamOutlined
+  DollarOutlined,
+  SettingOutlined
 } from '@ant-design/icons'
 
 const menuList = [
@@ -13,51 +13,51 @@ const menuList = [
     icon: <DashboardOutlined />
   },
   {
-    path: '/operations',
-    name: '运营管理',
-    icon: <CarryOutOutlined />,
-    authCode: 'operations-manager',
+    path: '/trade',
+    name: '交易管理',
+    icon: <DollarOutlined />,
+    authCode: 'trade-manager',
     routes: [
       {
-        path: '/operations/coupon',
-        name: '优惠码管理',
-        authCode: 'operations-coupon-manager'
-      },
-      {
-        path: '/operations/rule',
-        name: '满减规则管理',
-        authCode: 'operations-rule-manager'
-      },
-      {
-        path: '/operations/banner',
-        name: '首页轮播图管理',
-        authCode: 'operations-banner-manager'
+        path: '/trade/customer',
+        name: '客户管理',
+        authCode: 'trade-customer-manager'
       }
     ]
   },
   {
     path: '/product',
     name: '商品管理',
-    icon: <AppstoreOutlined />,
+    icon: <CarryOutOutlined />,
     authCode: 'product-manager',
     routes: [
       {
         path: '/product/list',
         name: '商品列表',
         authCode: 'product-list-manager'
+      },
+      {
+        path: '/product/rule',
+        name: '满减管理',
+        authCode: 'product-rule-manager'
+      },
+      {
+        path: '/product/coupon',
+        name: '优惠码管理',
+        authCode: 'product-coupon-manager'
       }
     ]
   },
   {
-    path: '/customer',
-    name: '客户管理',
-    icon: <TeamOutlined />,
-    authCode: 'customer-manager',
+    path: '/mall',
+    name: '商城管理',
+    icon: <AppstoreOutlined />,
+    authCode: 'mall-manager',
     routes: [
       {
-        path: '/customer/list',
-        name: '客户列表',
-        authCode: 'customer-list-manager'
+        path: '/mall/banner',
+        name: '首页轮播图管理',
+        authCode: 'mall-banner-manager'
       }
     ]
   },

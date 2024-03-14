@@ -1,15 +1,15 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
-import Customer from '@/views/customer'
 import Dashboard from '@/views/dashboard'
-import OperationsBanner from '@/views/operations/banner'
-import OperationsCoupon from '@/views/operations/coupon'
-import OperationsRule from '@/views/operations/rule'
+import MallBanner from '@/views/mall/banner'
+import ProductCoupon from '@/views/product/coupon'
 import ProductList from '@/views/product/list'
 import ProductListDetails from '@/views/product/list/details'
+import ProductRule from '@/views/product/rule'
 import SystemPerm from '@/views/system/perm'
 import SystemRole from '@/views/system/role'
 import SystemUser from '@/views/system/user'
+import TradeCustomer from '@/views/trade/customer'
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [], isSuperAdmin = false } = userInfo
@@ -33,17 +33,17 @@ const AuthRoute = () => {
       {checkAuthCode('add-product') | checkAuthCode('edit-product') && (
         <Route path="/product/list/details/:edit/:id?" element={<ProductListDetails />} />
       )}
-      {checkAuthCode('operations-coupon-manager') && (
-        <Route path="/operations/coupon" element={<OperationsCoupon />} />
+      {checkAuthCode('product-coupon-manager') && (
+        <Route path="/product/coupon" element={<ProductCoupon />} />
       )}
-      {checkAuthCode('operations-rule-manager') && (
-        <Route path="/operations/rule" element={<OperationsRule />} />
+      {checkAuthCode('product-rule-manager') && (
+        <Route path="/product/rule" element={<ProductRule />} />
       )}
-      {checkAuthCode('operations-banner-manager') && (
-        <Route path="/operations/banner" element={<OperationsBanner />} />
+      {checkAuthCode('mall-banner-manager') && (
+        <Route path="/mall/banner" element={<MallBanner />} />
       )}
-      {checkAuthCode('customer-list-manager') && (
-        <Route path="/customer/list" element={<Customer />} />
+      {checkAuthCode('trade-customer-manager') && (
+        <Route path="/trade/customer" element={<TradeCustomer />} />
       )}
     </Routes>
   ) : (

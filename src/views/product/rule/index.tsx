@@ -24,7 +24,7 @@ function OperationsRule() {
   const actionRef = useRef<ActionType>()
   const [modalInfo, setModalInfo] = useState<Record<string, any>>({
     open: false,
-    title: '编辑满减规则'
+    title: '编辑满减'
   })
   const [form] = Form.useForm()
 
@@ -91,7 +91,7 @@ function OperationsRule() {
                 })
                 setModalInfo({
                   open: true,
-                  title: '编辑满减规则码'
+                  title: '编辑满减'
                 })
               }}
             >
@@ -104,7 +104,7 @@ function OperationsRule() {
               onClick={() => {
                 confirm({
                   title: '确认操作',
-                  content: '确认删除满减规则吗?',
+                  content: '确认删除满减吗?',
                   onOk: async () => {
                     await handleDelete(record)
                   }
@@ -130,7 +130,7 @@ function OperationsRule() {
         validEndDate: dayjs(validDate[1]).endOf('date').valueOf()
       })
       .then(async () => {
-        message.success(`满减规则${id ? '编辑' : '新建'}成功`)
+        message.success(`满减${id ? '编辑' : '新建'}成功`)
         actionRef.current?.reloadAndRest?.()
         setModalInfo({
           open: false
@@ -140,7 +140,7 @@ function OperationsRule() {
 
   const handleDelete = async (data: any) => {
     await axios.get(`/rule/delete/${data.id}`).then(async () => {
-      message.success('删除满减规则成功')
+      message.success('删除满减成功')
       actionRef.current?.reloadAndRest?.()
     })
   }
@@ -152,7 +152,7 @@ function OperationsRule() {
           labelWidth: 'auto'
         }}
         rowKey="id"
-        headerTitle="满减规则列表"
+        headerTitle="满减列表"
         actionRef={actionRef}
         columns={columns}
         toolBarRender={() => [
@@ -170,7 +170,7 @@ function OperationsRule() {
                 })
                 setModalInfo({
                   open: true,
-                  title: '新建满减规则'
+                  title: '新建满减'
                 })
               }}
             >
