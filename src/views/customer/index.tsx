@@ -24,6 +24,13 @@ function Customer() {
       dataIndex: 'email'
     },
     {
+      title: '手机号',
+      dataIndex: 'phone',
+      render: (_, record: Record<string, any>) => {
+        return record.phone ? `+${record.code} ${record.phone}` : '-'
+      }
+    },
+    {
       title: '创建登录时间',
       dataIndex: 'createTime',
       hideInSearch: true,
