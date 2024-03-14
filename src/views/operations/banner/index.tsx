@@ -8,7 +8,7 @@ import {
   ProFormItem,
   ProFormText
 } from '@ant-design/pro-components'
-import { Badge, Button, Form, Image, message, Modal, Upload } from 'antd'
+import { Badge, Button, Descriptions, Form, Image, message, Modal, Upload } from 'antd'
 
 import axios from '@/utils/axios.ts'
 import { checkFileSize, uploadFile } from '@/utils/fileUtils.ts'
@@ -282,7 +282,7 @@ function Banner() {
         title={modalInfo.title}
         form={form}
         autoFocusFirstInput
-        width={400}
+        width={420}
         modalProps={{
           destroyOnClose: true,
           onCancel: () => {
@@ -349,6 +349,11 @@ function Banner() {
             }
           ]}
         >
+          <Descriptions title="">
+            <Descriptions.Item label="素材限制" contentStyle={{ color: 'rgba(0, 0, 0, 0.45)' }}>
+              图片宽高比例为4:3。图片宽高均大于1200px，大小10M以内
+            </Descriptions.Item>
+          </Descriptions>
           <Upload
             accept={'.png,.jpg,.jpeg'}
             listType="picture-card"
