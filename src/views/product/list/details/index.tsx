@@ -16,8 +16,6 @@ import Color from '@/views/product/list/details/color.tsx'
 import Sku from '@/views/product/list/details/sku.tsx'
 import Unit from '@/views/product/list/details/unit.tsx'
 
-import './style.scss'
-
 const { confirm } = Modal
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
@@ -421,6 +419,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
         title: '商品详情',
         extra: [
           <Button
+            key={'back'}
             type="primary"
             onClick={() => {
               navigate(`/product/list`)
@@ -531,7 +530,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
           return {}
         }}
       >
-        <Card title="基础信息" className={'card'} bordered={false}>
+        <Card title="基础信息" style={{ marginBottom: '24px' }} bordered={false}>
           <Row gutter={24}>
             <Col md={8}>
               <ProFormText
@@ -571,10 +570,10 @@ const ProductDetails: FC<Record<string, any>> = () => {
           </Row>
         </Card>
       </ProForm>
-      <Card title="商品详情" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
+      <Card title="商品详情" bordered={false} style={{ marginBottom: '24px' }}>
         <Banner ref={detailsRef} />
       </Card>
-      <Card title="商品颜色" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
+      <Card title="商品颜色" bordered={false} style={{ marginBottom: '24px' }}>
         <Color
           ref={colorRef}
           onUpdate={(data) => {
@@ -582,7 +581,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
           }}
         />
       </Card>
-      <Card title="规格管理" className={'card'} bordered={false} style={{ marginBottom: '24px' }}>
+      <Card title="规格管理" bordered={false} style={{ marginBottom: '24px' }}>
         <Unit
           ref={unitRef}
           onUpdate={(data) => {
@@ -590,7 +589,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
           }}
         />
       </Card>
-      <Card title="SKU管理" className={'card'} bordered={false}>
+      <Card title="SKU管理" bordered={false}>
         <Sku ref={skuRef} colorList={colorList} unitList={unitList} />
       </Card>
     </PageContainer>

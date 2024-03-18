@@ -1,8 +1,9 @@
+import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
+import { DollarOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import { ProLayout } from '@ant-design/pro-components'
 import { useSessionStorageState } from 'ahooks'
-import { Avatar, ConfigProvider, Dropdown, Space, theme } from 'antd'
+import { Avatar, Badge, ConfigProvider, Dropdown, Space, theme } from 'antd'
 
 import Logo from '@/assets/images/Logo.png'
 import AuthRoute from '@/routes/authRoute.tsx'
@@ -16,6 +17,20 @@ function MyLayout() {
     defaultValue: '/dashboard'
   })
   const userInfo: Record<string, any> = JSON.parse(localStorage.getItem('userInfo') || '{}')
+
+  const [statistics, setStatistics] = useSessionStorageState('statistics', {
+    defaultValue: []
+  })
+
+  useEffect(() => {
+    getStatistics()
+  }, [pathname])
+
+  const getStatistics = () => {
+    axios.get(`/order/statistics`).then((res: any) => {
+      setStatistics(res)
+    })
+  }
 
   const handleLogout = () => {
     axios.get(`/auth/logout/${userInfo.userId}`).finally(() => {
@@ -70,10 +85,28 @@ function MyLayout() {
             )
           }
         }}
+        subMenuItemRender={(itemProps, defaultDom: React.ReactNode, menuProps) => {
+          const showBadge = statistics?.length && statistics.some((d: any) => d.notifyCount > 0)
+
+          return itemProps.key === '/trade' ? (
+            menuProps.collapsed ? (
+              <Badge dot={!!showBadge} className={'menu-badge'} offset={[-10, 8]}>
+                <DollarOutlined />
+              </Badge>
+            ) : (
+              <Badge dot={!!showBadge} offset={[10, 6]}>
+                {defaultDom}
+              </Badge>
+            )
+          ) : (
+            defaultDom
+          )
+        }}
         menuItemRender={(item, dom) => {
           if (item.isUrl || !item.path) {
             return dom
           }
+          const showBadge = statistics?.length && statistics.some((d: any) => d.notifyCount > 0)
           return (
             <Link
               onClick={() => {
@@ -81,7 +114,15 @@ function MyLayout() {
               }}
               to={item.path}
             >
-              {item.path === '/dashboard' ? dom : item.name}
+              {item.path === '/dashboard' ? (
+                dom
+              ) : item.path === '/trade/order' ? (
+                <Badge dot={!!showBadge} offset={[10, 5]}>
+                  {item.name}
+                </Badge>
+              ) : (
+                item.name
+              )}
             </Link>
           )
         }}

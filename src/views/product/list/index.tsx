@@ -122,12 +122,12 @@ function ProductList() {
           <Space direction={'vertical'}>
             {sku_count > 0 ? total_stock : '-'}
             {!!sku_count && has_low_stock > 0 && (
-              <Tag bordered={false} color="error">
+              <Tag bordered={false} color="warning">
                 有SKU库存紧张
               </Tag>
             )}
             {!!sku_count && min_stock === 0 && (
-              <Tag bordered={false} color="warning">
+              <Tag bordered={false} color="error">
                 有SKU售罄
               </Tag>
             )}

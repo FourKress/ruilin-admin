@@ -19,6 +19,11 @@ const menuList = [
     authCode: 'trade-manager',
     routes: [
       {
+        path: '/trade/order',
+        name: '订单管理',
+        authCode: 'trade-customer-manager'
+      },
+      {
         path: '/trade/customer',
         name: '客户管理',
         authCode: 'trade-customer-manager'
