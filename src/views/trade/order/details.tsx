@@ -12,7 +12,6 @@ import {
   ModalForm,
   PageContainer,
   ProFormDigit,
-  ProFormItem,
   ProFormText
 } from '@ant-design/pro-components'
 import {
@@ -23,7 +22,6 @@ import {
   Flex,
   message,
   Modal,
-  Segmented,
   Space,
   Spin,
   Statistic,
@@ -63,7 +61,6 @@ const OrderDetails: FC<Record<string, any>> = () => {
   const [isModalOpen, setIisModalOpen] = useState<boolean>(false)
   const [orderInfo, setOrderInfo] = useState<Record<string, any>>({})
   const [goodsList, setGoodsList] = useState<any[]>([])
-  const [modifyType, setModifyType] = useState<number>(0)
   const [modifyAmount, setModifyAmount] = useState<number>(0)
   const [stepsCurrent, setStepsCurrent] = useState<number>(0)
   const [stepsItems, setStepsItems] = useState<any[]>([
@@ -141,6 +138,8 @@ const OrderDetails: FC<Record<string, any>> = () => {
         } else {
           setStepsCurrent(stepsItems.findIndex((d) => d.value === res.status))
         }
+
+        setModifyAmount(res.modifyAmount)
       })
       .finally(() => {
         setLoading(false)
@@ -724,12 +723,12 @@ const OrderDetails: FC<Record<string, any>> = () => {
                               {orderInfo.modifyAmount ? `$ ${orderInfo.modifyAmount}` : '-'}
                             </span>
 
-                            {orderInfo.status === 0 && (
+                            {orderInfo.status !== 0 && (
                               <ModalForm<{
                                 modifyAmount: string
                               }>
                                 width={400}
-                                title="商家改价"
+                                title="商家降价"
                                 trigger={
                                   <span
                                     style={{
@@ -738,51 +737,35 @@ const OrderDetails: FC<Record<string, any>> = () => {
                                       cursor: 'pointer'
                                     }}
                                   >
-                                    改价
+                                    降价
                                   </span>
                                 }
                                 autoFocusFirstInput
                                 modalProps={{
-                                  destroyOnClose: true
+                                  destroyOnClose: true,
+                                  onCancel: () => {
+                                    setModifyAmount(0)
+                                  }
                                 }}
                                 onFinish={async (values) => {
-                                  console.log(values)
                                   await axios
                                     .post(`/order/modifyAmount`, {
                                       id: orderId,
-                                      ...values
+                                      amount: values.modifyAmount
                                     })
                                     .then(async () => {
-                                      message.success('商家改价成功')
+                                      setModifyAmount(0)
+                                      message.success('商家降价成功')
                                       getOrderDetails()
                                     })
                                   return true
                                 }}
                               >
-                                <ProFormItem>
-                                  <Segmented
-                                    defaultValue={0}
-                                    options={[
-                                      {
-                                        label: '降价',
-                                        value: 0
-                                      },
-                                      {
-                                        label: '涨价',
-                                        value: 1
-                                      }
-                                    ]}
-                                    block
-                                    onChange={(value) => {
-                                      setModifyType(value as number)
-                                    }}
-                                  />
-                                </ProFormItem>
                                 <ProFormDigit
                                   min={0}
-                                  max={modifyType ? Number.MAX_SAFE_INTEGER : orderInfo.payAmount}
+                                  max={orderInfo.payAmount}
                                   name="modifyAmount"
-                                  placeholder={'请输入金额'}
+                                  placeholder={'请输入降价金额'}
                                   initialValue={orderInfo.modifyAmount || ''}
                                   fieldProps={{
                                     onChange: (value) => {
@@ -792,19 +775,26 @@ const OrderDetails: FC<Record<string, any>> = () => {
                                   rules={[
                                     {
                                       required: true,
-                                      message: '请输入金额'
+                                      message: '请输入降价金额'
                                     }
                                   ]}
                                 />
                                 <Space direction={'vertical'}>
+                                  <span>
+                                    原始价格: $&nbsp;
+                                    {
+                                      currency(orderInfo.payAmount).add(orderInfo.modifyAmount)
+                                        .value
+                                    }
+                                  </span>
                                   <span>目前价格: $ {orderInfo.payAmount}</span>
                                   <span>
-                                    调整后价格:
-                                    {` $ ${
-                                      modifyType
-                                        ? currency(orderInfo.payAmount).add(modifyAmount).value
-                                        : currency(orderInfo.payAmount).subtract(modifyAmount).value
-                                    }`}
+                                    降价后价格: $&nbsp;
+                                    {
+                                      currency(orderInfo.payAmount)
+                                        .add(orderInfo.modifyAmount)
+                                        .subtract(modifyAmount).value
+                                    }
                                   </span>
                                 </Space>
                               </ModalForm>
@@ -856,23 +846,69 @@ const OrderDetails: FC<Record<string, any>> = () => {
                         )}
                         {perms.includes('delete-product') &&
                           ![-1, 5, 8].includes(orderInfo.status) && (
-                            <Button
-                              type="primary"
-                              danger
-                              onClick={() => {
-                                confirm({
-                                  title: '确认操作',
-                                  content: '确认关闭该订单吗?',
-                                  onOk: async () => {
-                                    await axios.get(`/order/cancel/${orderId}`)
-                                    message.success('订单关闭成功')
-                                    navigate('/trade/order')
-                                  }
+                            <ModalForm<{
+                              refundRemark: string
+                            }>
+                              width={400}
+                              title="关闭订单"
+                              trigger={
+                                <Button type="primary" danger>
+                                  关闭订单
+                                </Button>
+                              }
+                              autoFocusFirstInput
+                              modalProps={{
+                                destroyOnClose: true
+                              }}
+                              onFinish={async (values) => {
+                                await axios.post(`/order/cancel/${orderId}`, {
+                                  refundRemark: orderInfo.paymentTime ? values?.refundRemark : ''
                                 })
+                                message.success('订单关闭成功')
+                                navigate('/trade/order')
+                                return true
                               }}
                             >
-                              关闭订单
-                            </Button>
+                              <Descriptions
+                                title={''}
+                                column={1}
+                                size={'small'}
+                                style={{ marginBottom: '10px' }}
+                              >
+                                <Descriptions.Item label="">
+                                  <span>你确认要关闭订单吗？该操作不能撤销！</span>
+                                </Descriptions.Item>
+                                {orderInfo.paymentTime && (
+                                  <>
+                                    <Descriptions.Item label="">
+                                      <span>订单关闭后，钱款将原路退还给客户</span>
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label="">
+                                      <span>
+                                        订单商品如已发货，请及时联系物流或用户，以退回商品
+                                      </span>
+                                    </Descriptions.Item>
+                                  </>
+                                )}
+                              </Descriptions>
+
+                              {orderInfo.paymentTime && (
+                                <>
+                                  <ProFormText
+                                    name="refundRemark"
+                                    placeholder={'请输入退款备注，该消息客户可见'}
+                                  />
+                                  <Space direction={'vertical'}>
+                                    <span>
+                                      退款金额:&nbsp;
+                                      <span style={{ color: 'red' }}>
+                                        $&nbsp;{orderInfo.payAmount}
+                                      </span>
+                                    </span>
+                                  </Space>
+                                </>
+                              )}
+                            </ModalForm>
                           )}
                       </Space>
                     }

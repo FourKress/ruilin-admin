@@ -334,14 +334,19 @@ function Order() {
                 autoFocusFirstInput
                 modalProps={{
                   destroyOnClose: true,
-                  onCancel: () => console.log('run')
+                  onCancel: () => {
+                    setModifyAmount(0)
+                    setModifyType(0)
+                  }
                 }}
                 onFinish={async (values) => {
                   console.log(values)
                   await axios
                     .post(`/order/modifyAmount`, {
                       id: record.id,
-                      ...values
+                      amount: modifyType
+                        ? values.modifyAmount
+                        : currency(0).subtract(values.modifyAmount).value
                     })
                     .then(async () => {
                       message.success('商家改价成功')
@@ -482,8 +487,20 @@ function Order() {
       <ProCard.Group direction={'row'} style={{ marginBottom: '16px' }}>
         {statisticList.map((d: any) => {
           const target: any = statistics?.find((s: any) => s.status === d.status) || {}
-          const count = target?.count || d.count
-          const notifyCount = target?.notifyCount || d.notifyCount
+          let count = target?.count || d.count
+          let notifyCount = target?.notifyCount || d.notifyCount
+
+          if (d.status === 0) {
+            const awaitItem: any = statistics?.find((s: any) => s.status === 7) || {}
+            count = Number(count) + Number(awaitItem.count || 0)
+            notifyCount = Number(notifyCount) + Number(awaitItem.notifyCount || 0)
+          }
+
+          if (d.status === 8) {
+            const awaitItem: any = statistics?.find((s: any) => s.status === 6) || {}
+            count = Number(count) + Number(awaitItem.count || 0)
+            notifyCount = Number(notifyCount) + Number(awaitItem.notifyCount || 0)
+          }
 
           return (
             <ProCard key={d.status}>
