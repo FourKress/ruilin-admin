@@ -723,7 +723,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                               {orderInfo.modifyAmount ? `$ ${orderInfo.modifyAmount}` : '-'}
                             </span>
 
-                            {orderInfo.status !== 0 && (
+                            {orderInfo.status === 0 && (
                               <ModalForm<{
                                 modifyAmount: string
                               }>
