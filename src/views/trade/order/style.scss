@@ -19,8 +19,9 @@
     .details {
       @apply flex
       items-center
-      justify-start
+      justify-between
       m-t-4px
+      w-450px
       pr-24px;
 
       .pic {
@@ -41,7 +42,7 @@
         @apply flex
         flex-col
         h-80px
-        min-w-256px;
+        flex-1;
 
         .name {
           font-weight: bold;
@@ -56,8 +57,8 @@
       .pic-list {
         @apply w-full
         grid
-        justify-between
-        w-328px;
+        justify-start
+        flex-1;
 
         grid-template-columns: repeat(5, 60px);
         row-gap: 2px;
@@ -65,8 +66,7 @@
       }
 
       .price {
-        @apply m-l-24px
-        text-right;
+        @apply text-right;
       }
     }
   }

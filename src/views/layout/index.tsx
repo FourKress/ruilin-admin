@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { DollarOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import { ProLayout } from '@ant-design/pro-components'
-import { useSessionStorageState } from 'ahooks'
+import { useDebounce, useSessionStorageState } from 'ahooks'
 import { Avatar, Badge, ConfigProvider, Dropdown, Space, theme } from 'antd'
 
 import Logo from '@/assets/images/Logo.png'
@@ -13,6 +13,10 @@ import axios from '@/utils/axios.ts'
 import './style.scss'
 
 function MyLayout() {
+  const locationPathname = useLocation().pathname
+
+  const debouncedValue = useDebounce(locationPathname)
+
   const [pathname, setPathname] = useSessionStorageState('pathname', {
     defaultValue: '/dashboard'
   })
@@ -23,8 +27,10 @@ function MyLayout() {
   })
 
   useEffect(() => {
-    getStatistics()
-  }, [pathname])
+    setTimeout(() => {
+      getStatistics()
+    }, 1000)
+  }, [debouncedValue])
 
   const getStatistics = () => {
     axios.get(`/order/statistics`).then((res: any) => {

@@ -253,7 +253,7 @@ function Banner() {
                   name: '',
                   link: '',
                   desc: '',
-                  fileInfo: [],
+                  fileInfo: null,
                   id: '',
                   url: ''
                 })
@@ -297,6 +297,7 @@ function Banner() {
           return true
         }}
         onValuesChange={(values) => {
+          console.log(values)
           if (values.fileInfo && values.fileInfo.file?.status === 'removed') {
             form.setFieldValue('fileInfo', '')
           }
@@ -346,7 +347,15 @@ function Banner() {
             {
               required: true,
               message: '请选择图片'
-            }
+            },
+            () => ({
+              validator(_, value) {
+                if (value && !value.fileList.length) {
+                  return Promise.reject(new Error('请选择图片'))
+                }
+                return Promise.resolve()
+              }
+            })
           ]}
         >
           <Descriptions title="">
@@ -359,11 +368,13 @@ function Banner() {
             listType="picture-card"
             fileList={fileList}
             maxCount={1}
-            onChange={({ file, fileList: newFileList }) => {
+            onChange={async ({ file, fileList: newFileList }) => {
               if (newFileList.length && !checkFileSize(file)) {
                 return
               }
+              form.setFieldValue('fileInfo', { fileList: [...newFileList] })
               setFileList(newFileList)
+              await form.validateFields()
             }}
             onRemove={() => {
               setFileList([])

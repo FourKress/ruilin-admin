@@ -55,7 +55,6 @@ const orderStatusTipsMap: Record<any, any> = {
 const OrderDetails: FC<Record<string, any>> = () => {
   const navigate = useNavigate()
   const { orderId } = useParams()
-  console.log(orderId)
 
   const [loading, setLoading] = useState<boolean>(false)
   const [isModalOpen, setIisModalOpen] = useState<boolean>(false)
@@ -236,7 +235,10 @@ const OrderDetails: FC<Record<string, any>> = () => {
                                 }
                               }}
                             >
-                              <Countdown value={orderInfo.countdown} format="HH:mm:ss" />
+                              <Countdown
+                                value={Date.now() + orderInfo.countdown}
+                                format="HH:mm:ss"
+                              />
                             </ConfigProvider>
                           </Flex>
                         )}
@@ -449,7 +451,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                               width={400}
                               title="修改收货人"
                               trigger={
-                                orderInfo.status !== -1 ? (
+                                orderInfo.receiver ? (
                                   <EditOutlined
                                     style={{
                                       color: '#1677ff',
@@ -540,7 +542,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                                 }}
                               >
                                 <ProFormText
-                                  name="receiver"
+                                  name="email"
                                   label="邮箱"
                                   initialValue={orderInfo.email || ''}
                                   rules={[
@@ -602,9 +604,9 @@ const OrderDetails: FC<Record<string, any>> = () => {
                               ]
                                 .reverse()
                                 .splice(0, 3)
-                                .map((d: any) => {
+                                .map((d: any, index: number) => {
                                   return (
-                                    <Space key={d.time} size={'middle'}>
+                                    <Space key={index} size={'middle'}>
                                       <span>[{d.time}]</span>
                                       {d.status === 0 && <span>订单已提交，等待用户支付</span>}
                                       {d.status === 1 && <span>订单已支付，等待用户审核</span>}
@@ -994,7 +996,8 @@ const OrderDetails: FC<Record<string, any>> = () => {
                                 paddingRight: '0px',
                                 display: 'flex',
                                 justifyContent: 'space-between',
-                                alignItems: 'center'
+                                alignItems: 'center',
+                                width: '100%'
                               }}
                             >
                               <div className="pic">

@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { EyeOutlined, PlayCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import { DragSortTable, ProColumns } from '@ant-design/pro-components'
@@ -57,6 +57,8 @@ const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpd
     url: '',
     type: ''
   })
+
+  const videoRef = useRef<any>()
 
   const getColorList = () => {
     if (!productId) return
@@ -503,6 +505,7 @@ const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpd
         preview={{
           visible: previewInfo.visible,
           onVisibleChange: (value) => {
+            videoRef?.current?.pause()
             setPreviewInfo({
               visible: value,
               url: '',
@@ -514,7 +517,7 @@ const Color = forwardRef<ColorRef, { onUpdate: (data: any[]) => void }>(({ onUpd
             ? {
                 imageRender: () => {
                   return (
-                    <video width="420" height="440" controls>
+                    <video ref={videoRef} width="420" height="440" controls>
                       <source src={previewInfo.url} type="video/mp4" />
                       您的浏览器不支持 Video 标签。
                     </video>

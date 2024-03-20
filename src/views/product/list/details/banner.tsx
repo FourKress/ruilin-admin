@@ -68,6 +68,7 @@ const Banner = forwardRef<DetailsRef>((_props, ref) => {
     type: ''
   })
 
+  const videoRef = useRef<any>()
   const [loading, setLoading] = React.useState<boolean>(false)
   const summaryRef = useRef<any>()
 
@@ -313,6 +314,7 @@ const Banner = forwardRef<DetailsRef>((_props, ref) => {
         preview={{
           visible: previewInfo.visible,
           onVisibleChange: (value) => {
+            videoRef?.current?.pause()
             setPreviewInfo({
               visible: value,
               url: '',
@@ -324,10 +326,12 @@ const Banner = forwardRef<DetailsRef>((_props, ref) => {
             ? {
                 imageRender: () => {
                   return (
-                    <video width="420" height="440" controls>
-                      <source src={previewInfo.url} type="video/mp4" />
-                      您的浏览器不支持 Video 标签。
-                    </video>
+                    previewInfo.visible && (
+                      <video ref={videoRef} width="420" height="440" controls>
+                        <source src={previewInfo.url} type="video/mp4" />
+                        您的浏览器不支持 Video 标签。
+                      </video>
+                    )
                   )
                 }
               }

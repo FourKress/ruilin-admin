@@ -39,6 +39,18 @@ const orderStatusTipsMap: Record<any, any> = {
   8: '退款审核' // 退款审核
 }
 
+const getPriceRange = (list: any[]) => {
+  const [first, ...other] = list.sort(
+    (a: any, b: any) =>
+      currency(a['quantity']).multiply(a.price).value -
+      currency(b['quantity']).multiply(b.price).value
+  )
+  const last = other.pop()
+  return `$ ${currency(first['quantity']).multiply(first.price)} ~ $ ${currency(
+    last['quantity']
+  ).multiply(last.price)}`
+}
+
 function Order() {
   const actionRef = useRef<ActionType>()
   const navigate = useNavigate()
@@ -116,6 +128,16 @@ function Order() {
                             )
                           })}
                         </div>
+
+                        <Space direction={'vertical'} className={'price'}>
+                          <span>{getPriceRange(d.children)}</span>
+                          <span>
+                            x
+                            {d.children.reduce((pre: number, cur: any) => {
+                              return pre + cur['quantity']
+                            }, 0)}
+                          </span>
+                        </Space>
                       </>
                     ) : (
                       <>
@@ -132,13 +154,13 @@ function Order() {
                             )
                           })}
                         </div>
+
+                        <Space direction={'vertical'} className={'price'}>
+                          <span>$ {d.children[0].price}</span>
+                          <span>x {d.children[0]['quantity']}</span>
+                        </Space>
                       </>
                     )}
-
-                    <Space direction={'vertical'} className={'price'}>
-                      <span>$ {d.children[0].price}</span>
-                      <span>x {d.children[0]['quantity']}</span>
-                    </Space>
                   </div>
                 </div>
               )
