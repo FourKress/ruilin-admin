@@ -1,18 +1,29 @@
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { CopyOutlined } from '@ant-design/icons'
+import { FC, useEffect, useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { CloseCircleFilled, CopyOutlined } from '@ant-design/icons'
 import {
   ActionType,
   ModalForm,
   PageContainer,
-  ProCard,
   ProColumns,
+  ProForm,
   ProFormDigit,
   ProFormText,
   ProTable
 } from '@ant-design/pro-components'
-import { useSessionStorageState } from 'ahooks'
-import { Badge, Descriptions, message, Modal, Space, Statistic, Tag } from 'antd'
+import {
+  Button,
+  Card,
+  DatePicker,
+  Descriptions,
+  Flex,
+  message,
+  Modal,
+  Select,
+  Space,
+  Spin,
+  Tag
+} from 'antd'
 import currency from 'currency.js'
 import dayjs from 'dayjs'
 import lodash from 'lodash'
@@ -27,9 +38,32 @@ const { confirm } = Modal
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
 
-function Order() {
-  const actionRef = useRef<ActionType>()
+const CustomerDetails: FC<Record<string, any>> = () => {
   const navigate = useNavigate()
+  const { customerId } = useParams()
+  console.log(customerId, useParams())
+
+  const actionRef = useRef<ActionType>()
+  const [loading, setLoading] = useState<boolean>(false)
+  const [editorStatus, setEditorStatus] = useState<boolean>(false)
+  const [customerInfo, setCustomerInfo] = useState<Record<string, any>>({})
+
+  const getCustomerDetails = () => {
+    if (!customerId) return
+    setLoading(true)
+    axios
+      .get(`/customer/detailsBySys/${customerId}`)
+      .then((res: Record<string, any>) => {
+        setCustomerInfo(res)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }
+
+  useEffect(() => {
+    getCustomerDetails()
+  }, [])
 
   const [modifyAmount, setModifyAmount] = useState<number>(0)
 
@@ -39,20 +73,14 @@ function Order() {
       dataIndex: 'orderNo',
       hideInTable: true
     },
+
     {
-      title: '收件人邮箱',
-      dataIndex: 'email',
-      hideInTable: true
-    },
-    {
-      title: '收件人手机号',
-      dataIndex: 'phone',
-      hideInTable: true
-    },
-    {
-      title: '物流单号',
-      dataIndex: 'fexExNumber',
-      hideInTable: true
+      title: '下单日期',
+      dataIndex: 'createDate',
+      hideInTable: true,
+      renderFormItem: () => {
+        return <DatePicker.RangePicker inputReadOnly />
+      }
     },
     {
       title: '商品信息',
@@ -149,7 +177,7 @@ function Order() {
       dataIndex: 'payAmount',
       ellipsis: true,
       hideInSearch: true,
-      width: 150,
+      width: 250,
       render: (_, record: Record<string, any>) => {
         return (
           <>
@@ -172,43 +200,8 @@ function Order() {
       }
     },
     {
-      title: '买家/收货人',
-      dataIndex: 'address',
-      ellipsis: true,
-      hideInSearch: true,
-      render: (_, record: Record<string, any>) => {
-        const address = record.address || {
-          details: '',
-          area: '',
-          postal_code: ''
-        }
-        return (
-          <>
-            <Descriptions title={`${address.details}`} column={1}>
-              <Descriptions.Item label="区域/国家">
-                <span>
-                  {address.area} &nbsp;
-                  {address.postal_code}
-                </span>
-              </Descriptions.Item>
-              <Descriptions.Item label="收货人">
-                <span>{record.receiver}</span>
-              </Descriptions.Item>
-              <Descriptions.Item label="电话">
-                <span>{record.phone ? `${record.phoneCode} ${record.phone}` : '-'}</span>
-              </Descriptions.Item>
-              <Descriptions.Item label="邮箱">
-                <span>{record.email}</span>
-              </Descriptions.Item>
-            </Descriptions>
-          </>
-        )
-      }
-    },
-    {
       title: '订单状态',
       dataIndex: 'status',
-      hideInSearch: true,
       width: 200,
       render: (_, record: Record<string, any>) => {
         return (
@@ -230,7 +223,56 @@ function Order() {
             )}
           </Space>
         )
+      },
+      renderFormItem: () => {
+        return (
+          <Select
+            placeholder={'请选择'}
+            allowClear={{
+              clearIcon: <CloseCircleFilled />
+            }}
+            options={[
+              {
+                value: '0',
+                label: <span>待支付</span>
+              },
+              {
+                value: '1',
+                label: <span>待审核</span>
+              },
+              {
+                value: '2',
+                label: <span>待发货</span>
+              },
+              {
+                value: '3',
+                label: <span>运输中</span>
+              },
+              {
+                value: '4',
+                label: <span>待收货</span>
+              },
+              {
+                value: '8',
+                label: <span>售后中</span>
+              },
+              {
+                value: '5',
+                label: <span>已完成</span>
+              },
+              {
+                value: '-1',
+                label: <span>已关闭</span>
+              }
+            ]}
+          />
+        )
       }
+    },
+    {
+      title: '物流单号',
+      dataIndex: 'fexExNumber',
+      hideInTable: true
     },
     {
       title: '操作',
@@ -238,7 +280,7 @@ function Order() {
       valueType: 'option',
       ellipsis: false,
       width: 80,
-      render: (_, record: Record<string, any>) => {
+      render: (_: any, record: Record<string, any>) => {
         const status = record.status
         return (
           <Space direction={'vertical'}>
@@ -403,158 +445,157 @@ function Order() {
     }
   ]
 
-  const [activeKey, setActiveKey] = useState<string>('-2')
-
-  const [statistics, setStatistics] = useSessionStorageState('statistics', {
-    defaultValue: []
-  })
-
-  const statisticList = [
-    { status: 0, count: 0, notifyCount: 0, title: '待支付' },
-    { status: 1, count: 0, notifyCount: 0, title: '待审核' },
-    { status: 2, count: 0, notifyCount: 0, title: '待发货' },
-    { status: 3, count: 0, notifyCount: 0, title: '运输中' },
-    { status: 4, count: 0, notifyCount: 0, title: '待收货' },
-    { status: 8, count: 0, notifyCount: 0, title: '售后中' },
-    { status: 'all', count: 0, notifyCount: 0, title: '全部订单' }
-  ]
-
-  const getStatistics = () => {
-    axios.get(`/order/statistics`).then((res: any) => {
-      setStatistics(res)
-    })
-  }
-
-  useEffect(() => {
-    getStatistics()
-  }, [])
-
   return (
-    <PageContainer breadcrumbRender={false} className={'order'}>
-      <ProCard.Group direction={'row'} style={{ marginBottom: '16px' }}>
-        {statisticList.map((d: any) => {
-          const target: any = statistics?.find((s: any) => s.status === d.status) || {}
-          let count = target?.count || d.count
-          let notifyCount = target?.notifyCount || d.notifyCount
-
-          if (d.status === 0) {
-            const awaitItem: any = statistics?.find((s: any) => s.status === 7) || {}
-            count = Number(count) + Number(awaitItem.count || 0)
-            notifyCount = Number(notifyCount) + Number(awaitItem.notifyCount || 0)
-          }
-
-          if (d.status === 8) {
-            const awaitItem: any = statistics?.find((s: any) => s.status === 6) || {}
-            count = Number(count) + Number(awaitItem.count || 0)
-            notifyCount = Number(notifyCount) + Number(awaitItem.notifyCount || 0)
-          }
-
-          return (
-            <ProCard key={d.status}>
-              <Statistic
-                title={d.title}
-                precision={0}
-                formatter={() => {
-                  return (
-                    <>
-                      <span>{count}</span>
-                      <Badge dot={notifyCount > 0} offset={[0, -12]} />
-                    </>
-                  )
-                }}
-              />
-            </ProCard>
-          )
-        })}
-      </ProCard.Group>
-
-      <ProTable
-        search={{
-          labelWidth: 'auto'
-        }}
-        rowKey="id"
-        headerTitle="订单管理"
-        actionRef={actionRef}
-        columns={columns}
-        request={async (params) => {
-          const { pageSize, current, createDate = [], ...other } = params
-          const [startDate, endDate] = createDate
-          const { records, total }: { records: any; total: number } = await axios.post(
-            '/order/list',
-            {
-              size: pageSize,
-              current,
-              ...(startDate
-                ? {
-                    startDate: dayjs(startDate).startOf('date').format('YYYY-MM-DD HH:mm:ss'),
-                    endDate: dayjs(endDate).endOf('date').format('YYYY-MM-DD HH:mm:ss')
+    <PageContainer
+      breadcrumbRender={false}
+      className={'order'}
+      header={{
+        title: '客户详情',
+        extra: [
+          <Button
+            key={'back'}
+            type="primary"
+            onClick={() => {
+              navigate(`/trade/customer`)
+            }}
+          >
+            返回
+          </Button>
+        ]
+      }}
+    >
+      <Spin
+        size="large"
+        tip={<div style={{ marginTop: '12px' }}>加载中...</div>}
+        spinning={loading}
+      >
+        <div>
+          {customerInfo.id && (
+            <Flex justify={'flex-start'} align={'flex-start'}>
+              <div>
+                <ProTable
+                  search={{
+                    labelWidth: 'auto'
+                  }}
+                  rowKey="id"
+                  headerTitle={'客户订单'}
+                  actionRef={actionRef}
+                  columns={columns}
+                  request={async (params) => {
+                    const { pageSize, current, createDate = [], status, ...other } = params
+                    const [startDate, endDate] = createDate
+                    const { records, total }: { records: any; total: number } = await axios.post(
+                      '/order/list',
+                      {
+                        size: pageSize,
+                        current,
+                        customerId: customerId,
+                        ...(startDate
+                          ? {
+                              startDate: dayjs(startDate)
+                                .startOf('date')
+                                .format('YYYY-MM-DD HH:mm:ss'),
+                              endDate: dayjs(endDate).endOf('date').format('YYYY-MM-DD HH:mm:ss')
+                            }
+                          : {}),
+                        status: !status ? undefined : Number(status),
+                        ...lodash.omitBy(other, (value) => !value && value !== false)
+                      }
+                    )
+                    return {
+                      data: records,
+                      total,
+                      success: true
+                    }
+                  }}
+                  pagination={{
+                    pageSize: 20,
+                    hideOnSinglePage: true
+                  }}
+                />
+              </div>
+              <div style={{ minWidth: '400px', marginLeft: '16px', height: '100%' }}>
+                <Card
+                  title="客户信息"
+                  className={'card order'}
+                  bordered={false}
+                  extra={
+                    perms.includes('details-customer') && (
+                      <span
+                        onClick={() => {
+                          setEditorStatus(!editorStatus)
+                        }}
+                      >
+                        <Button type={'link'}>{editorStatus ? '取消' : '编辑'}</Button>
+                      </span>
+                    )
                   }
-                : {}),
-              status: activeKey === '-2' ? undefined : Number(activeKey),
-              ...lodash.omitBy(other, (value) => !value && value !== false)
-            }
-          )
-          return {
-            data: records,
-            total,
-            success: true
-          }
-        }}
-        toolbar={{
-          menu: {
-            type: 'tab',
-            activeKey: activeKey,
-            items: [
-              {
-                key: '-2',
-                label: <span>全部</span>
-              },
-              {
-                key: '0',
-                label: <span>待支付</span>
-              },
-              {
-                key: '1',
-                label: <span>待审核</span>
-              },
-              {
-                key: '2',
-                label: <span>待发货</span>
-              },
-              {
-                key: '3',
-                label: <span>运输中</span>
-              },
-              {
-                key: '4',
-                label: <span>待收货</span>
-              },
-              {
-                key: '8',
-                label: <span>售后中</span>
-              },
-              {
-                key: '5',
-                label: <span>已完成</span>
-              },
-              {
-                key: '-1',
-                label: <span>已关闭</span>
-              }
-            ],
-            onChange: (key) => {
-              setActiveKey(key as string)
-              actionRef.current?.reloadAndRest?.()
-            }
-          }
-        }}
-        pagination={{
-          pageSize: 20,
-          hideOnSinglePage: true
-        }}
-      />
+                >
+                  <ProForm<{
+                    nickname: string
+                    email: string
+                    code?: string
+                    phone?: string
+                    remark?: string
+                    lastLoginTime?: string
+                    createTime?: string
+                  }>
+                    readonly={!editorStatus}
+                    onFinish={async (values) => {
+                      console.log(values)
+                      setEditorStatus(false)
+                      message.success('提交成功')
+                    }}
+                    initialValues={{
+                      ...customerInfo
+                    }}
+                    submitter={
+                      editorStatus
+                        ? {
+                            render: (props: any, _dom: any) => {
+                              return (
+                                <Button
+                                  type="primary"
+                                  onClick={async () => {
+                                    props.form?.submit?.()
+                                  }}
+                                >
+                                  保存
+                                </Button>
+                              )
+                            }
+                          }
+                        : false
+                    }
+                  >
+                    <ProFormText
+                      name="nickname"
+                      required
+                      label="客户昵称"
+                      placeholder="请输入客户昵称"
+                      rules={[{ required: true, message: '请输入客户昵称' }]}
+                    />
+                    <ProFormText
+                      name="email"
+                      required
+                      label="电子邮箱"
+                      placeholder="请输入电子邮箱"
+                      rules={[{ required: true, message: '请输入电子邮箱' }]}
+                    />
+                    <ProFormText name="code" label="电话国号" placeholder="请输入电话号码" />
+                    <ProFormText name="phone" label="电话号码" placeholder="请输入电话号码" />
+                    <ProFormText name="remark" label="备注" placeholder="备注" />
+                    <ProFormText name="lastLoginTime" label="最后活跃时间" disabled />
+                    <ProFormText name="createTime" label="创建时间" disabled />
+                  </ProForm>
+                </Card>
+              </div>
+            </Flex>
+          )}
+        </div>
+      </Spin>
     </PageContainer>
   )
 }
 
-export default Order
+export default CustomerDetails

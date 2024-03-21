@@ -10,6 +10,7 @@ import SystemPerm from '@/views/system/perm'
 import SystemRole from '@/views/system/role'
 import SystemUser from '@/views/system/user'
 import TradeCustomer from '@/views/trade/customer'
+import TradeCustomerDetails from '@/views/trade/customer/details'
 import TradeOrder from '@/views/trade/order'
 import TradeOrderDetails from '@/views/trade/order/details'
 
@@ -47,10 +48,13 @@ const AuthRoute = () => {
       {checkAuthCode('trade-customer-manager') && (
         <Route path="/trade/customer" element={<TradeCustomer />} />
       )}
-      {checkAuthCode('trade-customer-manager') && (
+      {checkAuthCode('details-customer') && (
+        <Route path="/trade/customer/details/:customerId" element={<TradeCustomerDetails />} />
+      )}
+      {checkAuthCode('trade-order-manager') && (
         <Route path="/trade/order" element={<TradeOrder />} />
       )}
-      {checkAuthCode('trade-customer-manager') && (
+      {checkAuthCode('edit-order') && (
         <Route path="/trade/order/details/:orderId" element={<TradeOrderDetails />} />
       )}
     </Routes>

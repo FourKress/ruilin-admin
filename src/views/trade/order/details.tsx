@@ -31,7 +31,9 @@ import currency from 'currency.js'
 
 import axios from '@/utils/axios.ts'
 
-import './style.scss'
+import { handleCopy } from '../utils'
+
+import '../style.scss'
 
 const { confirm } = Modal
 const { Countdown } = Statistic
@@ -149,17 +151,6 @@ const OrderDetails: FC<Record<string, any>> = () => {
     getOrderDetails()
   }, [])
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(async () => {
-        await message.success('复制成功')
-      })
-      .catch(async () => {
-        await message.error('复制失败')
-      })
-  }
-
   return (
     <PageContainer
       breadcrumbRender={false}
@@ -170,7 +161,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
             key={'back'}
             type="primary"
             onClick={() => {
-              navigate(`/trade/order`)
+              navigate(-1)
             }}
           >
             返回
@@ -302,7 +293,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                               width={400}
                               title="修改备注"
                               trigger={
-                                orderInfo.status !== -1 ? (
+                                perms.includes('edit-order') && orderInfo.status !== -1 ? (
                                   <EditOutlined
                                     style={{
                                       color: '#1677ff',
@@ -370,7 +361,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                                 width={400}
                                 title="修改收货地址"
                                 trigger={
-                                  orderInfo.status !== -1 ? (
+                                  perms.includes('edit-order') && orderInfo.status !== -1 ? (
                                     <EditOutlined
                                       style={{
                                         color: '#1677ff',
@@ -451,7 +442,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                               width={400}
                               title="修改收货人"
                               trigger={
-                                orderInfo.receiver ? (
+                                perms.includes('edit-order') && orderInfo.receiver ? (
                                   <EditOutlined
                                     style={{
                                       color: '#1677ff',
@@ -512,7 +503,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                                 width={400}
                                 title="修改联系方式"
                                 trigger={
-                                  orderInfo.status !== -1 ? (
+                                  perms.includes('edit-order') && orderInfo.status !== -1 ? (
                                     <EditOutlined
                                       style={{
                                         color: '#1677ff',
@@ -827,7 +818,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                   <FooterToolbar
                     extra={
                       <Space size={'middle'}>
-                        {perms.includes('delete-product') && [-1, 5].includes(orderInfo.status) && (
+                        {perms.includes('edit-order') && [-1, 5].includes(orderInfo.status) && (
                           <Button
                             type="primary"
                             danger
@@ -846,76 +837,73 @@ const OrderDetails: FC<Record<string, any>> = () => {
                             删除订单
                           </Button>
                         )}
-                        {perms.includes('delete-product') &&
-                          ![-1, 5, 8].includes(orderInfo.status) && (
-                            <ModalForm<{
-                              refundRemark: string
-                            }>
-                              width={400}
-                              title="关闭订单"
-                              trigger={
-                                <Button type="primary" danger>
-                                  关闭订单
-                                </Button>
-                              }
-                              autoFocusFirstInput
-                              modalProps={{
-                                destroyOnClose: true
-                              }}
-                              onFinish={async (values) => {
-                                await axios.post(`/order/cancel/${orderId}`, {
-                                  refundRemark: orderInfo.paymentTime ? values?.refundRemark : ''
-                                })
-                                message.success('订单关闭成功')
-                                navigate('/trade/order')
-                                return true
-                              }}
+                        {perms.includes('edit-order') && ![-1, 5, 8].includes(orderInfo.status) && (
+                          <ModalForm<{
+                            refundRemark: string
+                          }>
+                            width={400}
+                            title="关闭订单"
+                            trigger={
+                              <Button type="primary" danger>
+                                关闭订单
+                              </Button>
+                            }
+                            autoFocusFirstInput
+                            modalProps={{
+                              destroyOnClose: true
+                            }}
+                            onFinish={async (values) => {
+                              await axios.post(`/order/cancel/${orderId}`, {
+                                refundRemark: orderInfo.paymentTime ? values?.refundRemark : ''
+                              })
+                              message.success('订单关闭成功')
+                              navigate('/trade/order')
+                              return true
+                            }}
+                          >
+                            <Descriptions
+                              title={''}
+                              column={1}
+                              size={'small'}
+                              style={{ marginBottom: '10px' }}
                             >
-                              <Descriptions
-                                title={''}
-                                column={1}
-                                size={'small'}
-                                style={{ marginBottom: '10px' }}
-                              >
-                                <Descriptions.Item label="">
-                                  <span>你确认要关闭订单吗？该操作不能撤销！</span>
-                                </Descriptions.Item>
-                                {orderInfo.paymentTime && (
-                                  <>
-                                    <Descriptions.Item label="">
-                                      <span>订单关闭后，钱款将原路退还给客户</span>
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="">
-                                      <span>
-                                        订单商品如已发货，请及时联系物流或用户，以退回商品
-                                      </span>
-                                    </Descriptions.Item>
-                                  </>
-                                )}
-                              </Descriptions>
-
+                              <Descriptions.Item label="">
+                                <span>你确认要关闭订单吗？该操作不能撤销！</span>
+                              </Descriptions.Item>
                               {orderInfo.paymentTime && (
                                 <>
-                                  <ProFormText
-                                    name="refundRemark"
-                                    placeholder={'请输入退款备注，该消息客户可见'}
-                                  />
-                                  <Space direction={'vertical'}>
-                                    <span>
-                                      退款金额:&nbsp;
-                                      <span style={{ color: 'red' }}>
-                                        $&nbsp;{orderInfo.payAmount}
-                                      </span>
-                                    </span>
-                                  </Space>
+                                  <Descriptions.Item label="">
+                                    <span>订单关闭后，钱款将原路退还给客户</span>
+                                  </Descriptions.Item>
+                                  <Descriptions.Item label="">
+                                    <span>订单商品如已发货，请及时联系物流或用户，以退回商品</span>
+                                  </Descriptions.Item>
                                 </>
                               )}
-                            </ModalForm>
-                          )}
+                            </Descriptions>
+
+                            {orderInfo.paymentTime && (
+                              <>
+                                <ProFormText
+                                  name="refundRemark"
+                                  placeholder={'请输入退款备注，该消息客户可见'}
+                                />
+                                <Space direction={'vertical'}>
+                                  <span>
+                                    退款金额:&nbsp;
+                                    <span style={{ color: 'red' }}>
+                                      $&nbsp;{orderInfo.payAmount}
+                                    </span>
+                                  </span>
+                                </Space>
+                              </>
+                            )}
+                          </ModalForm>
+                        )}
                       </Space>
                     }
                   >
-                    {[1, 8].includes(orderInfo.status) && (
+                    {perms.includes('edit-order') && [1, 8].includes(orderInfo.status) && (
                       <Button
                         type="primary"
                         onClick={async () => {
@@ -942,7 +930,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                         {orderInfo.status === 1 ? '通过审核' : '确认退款'}
                       </Button>
                     )}
-                    {orderInfo.status === 8 && (
+                    {perms.includes('edit-order') && orderInfo.status === 8 && (
                       <Button
                         type="primary"
                         onClick={async () => {
@@ -963,7 +951,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                         拒绝退款
                       </Button>
                     )}
-                    {orderInfo.status === 2 && (
+                    {perms.includes('edit-order') && orderInfo.status === 2 && (
                       <Button
                         type="primary"
                         onClick={async () => {

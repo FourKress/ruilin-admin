@@ -1,7 +1,10 @@
 import { useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { CloseCircleFilled } from '@ant-design/icons'
 import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components'
-import { Badge, message, Modal, Select } from 'antd'
+import { Badge, DatePicker, message, Modal, Select } from 'antd'
+import currency from 'currency.js'
+import dayjs from 'dayjs'
 import lodash from 'lodash'
 
 import axios from '@/utils/axios.ts'
@@ -13,6 +16,7 @@ const { perms = [] } = userInfo
 
 function Customer() {
   const actionRef = useRef<ActionType>()
+  const navigate = useNavigate()
 
   const columns: ProColumns[] = [
     {
@@ -31,10 +35,26 @@ function Customer() {
       }
     },
     {
-      title: '创建登录时间',
-      dataIndex: 'createTime',
+      title: '订单数',
       hideInSearch: true,
-      valueType: 'dateTime'
+      dataIndex: 'orderList',
+      render: (_, record: Record<string, any>) => {
+        return record.orderList.length
+      }
+    },
+    {
+      title: '消费金额',
+      hideInSearch: true,
+      dataIndex: 'totalPrice',
+      render: (_, record: Record<string, any>) => {
+        const orderList = record.orderList
+        const totalPrice = orderList
+          .filter((d: any) => [1, 2, 3, 4, 5].includes(d.status))
+          .reduce((pre: number, cur: any) => {
+            return currency(pre).add(cur['payAmount']).value
+          }, 0)
+        return <span>$ {totalPrice}</span>
+      }
     },
     {
       title: '状态',
@@ -59,11 +79,31 @@ function Customer() {
       }
     },
     {
+      title: '最后活跃时间',
+      dataIndex: 'lastLoginTime',
+      render: (lastLoginTime, _row: any) => {
+        return <span>{lastLoginTime}</span>
+      },
+      renderFormItem: () => {
+        return <DatePicker.RangePicker inputReadOnly />
+      }
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createTime',
+      render: (createTime, _row: any) => {
+        return <span>{createTime}</span>
+      },
+      renderFormItem: () => {
+        return <DatePicker.RangePicker inputReadOnly />
+      }
+    },
+    {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 100,
+      width: 80,
       render: (_, record) => {
         return [
           perms.includes('edit-customer') && (
@@ -82,14 +122,16 @@ function Customer() {
               {record.isActive ? '禁用' : '启用'}
             </a>
           ),
-          <a
-            key="records"
-            onClick={() => {
-              console.log('购买记录')
-            }}
-          >
-            购买记录
-          </a>
+          perms.includes('details-customer') && (
+            <a
+              key="records"
+              onClick={() => {
+                navigate(`/trade/customer/details/${record.id}`)
+              }}
+            >
+              详情
+            </a>
+          )
         ]
       }
     }
@@ -118,12 +160,30 @@ function Customer() {
         actionRef={actionRef}
         columns={columns}
         request={async (params) => {
-          const { pageSize, current, ...other } = params
+          const { pageSize, current, createTime = [], lastLoginTime = [], ...other } = params
+          const [createStartDate, createEndDate] = createTime
+          const [lastStartDate, lastEndDate] = lastLoginTime
           const { records, total }: { records: any; total: number } = await axios.post(
             '/customer/page',
             {
               size: pageSize,
               current,
+              ...(createStartDate
+                ? {
+                    createStartDate: dayjs(createStartDate)
+                      .startOf('date')
+                      .format('YYYY-MM-DD HH:mm:ss'),
+                    createEndDate: dayjs(createEndDate).endOf('date').format('YYYY-MM-DD HH:mm:ss')
+                  }
+                : {}),
+              ...(lastStartDate
+                ? {
+                    lastStartDate: dayjs(lastStartDate)
+                      .startOf('date')
+                      .format('YYYY-MM-DD HH:mm:ss'),
+                    lastEndDate: dayjs(lastEndDate).endOf('date').format('YYYY-MM-DD HH:mm:ss')
+                  }
+                : {}),
               ...lodash.omitBy(other, (value) => !value && value !== false)
             }
           )
