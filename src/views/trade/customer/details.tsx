@@ -45,7 +45,6 @@ const CustomerDetails: FC<Record<string, any>> = () => {
 
   const actionRef = useRef<ActionType>()
   const [loading, setLoading] = useState<boolean>(false)
-  const [editorStatus, setEditorStatus] = useState<boolean>(false)
   const [customerInfo, setCustomerInfo] = useState<Record<string, any>>({})
 
   const getCustomerDetails = () => {
@@ -515,22 +514,7 @@ const CustomerDetails: FC<Record<string, any>> = () => {
                 />
               </div>
               <div style={{ minWidth: '400px', marginLeft: '16px', height: '100%' }}>
-                <Card
-                  title="客户信息"
-                  className={'card order'}
-                  bordered={false}
-                  extra={
-                    perms.includes('details-customer') && (
-                      <span
-                        onClick={() => {
-                          setEditorStatus(!editorStatus)
-                        }}
-                      >
-                        <Button type={'link'}>{editorStatus ? '取消' : '编辑'}</Button>
-                      </span>
-                    )
-                  }
-                >
+                <Card title="客户信息" className={'card order'} bordered={false}>
                   <ProForm<{
                     nickname: string
                     email: string
@@ -540,53 +524,20 @@ const CustomerDetails: FC<Record<string, any>> = () => {
                     lastLoginTime?: string
                     createTime?: string
                   }>
-                    readonly={!editorStatus}
-                    onFinish={async (values) => {
-                      console.log(values)
-                      setEditorStatus(false)
-                      message.success('提交成功')
-                    }}
+                    colon={true}
+                    readonly={true}
                     initialValues={{
                       ...customerInfo
                     }}
-                    submitter={
-                      editorStatus
-                        ? {
-                            render: (props: any, _dom: any) => {
-                              return (
-                                <Button
-                                  type="primary"
-                                  onClick={async () => {
-                                    props.form?.submit?.()
-                                  }}
-                                >
-                                  保存
-                                </Button>
-                              )
-                            }
-                          }
-                        : false
-                    }
+                    submitter={false}
                   >
-                    <ProFormText
-                      name="nickname"
-                      required
-                      label="客户昵称"
-                      placeholder="请输入客户昵称"
-                      rules={[{ required: true, message: '请输入客户昵称' }]}
-                    />
-                    <ProFormText
-                      name="email"
-                      required
-                      label="电子邮箱"
-                      placeholder="请输入电子邮箱"
-                      rules={[{ required: true, message: '请输入电子邮箱' }]}
-                    />
-                    <ProFormText name="code" label="电话国号" placeholder="请输入电话号码" />
-                    <ProFormText name="phone" label="电话号码" placeholder="请输入电话号码" />
-                    <ProFormText name="remark" label="备注" placeholder="备注" />
-                    <ProFormText name="lastLoginTime" label="最后活跃时间" disabled />
-                    <ProFormText name="createTime" label="创建时间" disabled />
+                    <ProFormText name="nickname" label="客户昵称" />
+                    <ProFormText name="email" label="电子邮箱" />
+                    <ProFormText name="code" label="电话国号" />
+                    <ProFormText name="phone" label="电话号码" />
+                    <ProFormText name="remark" label="备注" />
+                    <ProFormText name="lastLoginTime" label="最后活跃时间" />
+                    <ProFormText name="createTime" label="创建时间" />
                   </ProForm>
                 </Card>
               </div>
