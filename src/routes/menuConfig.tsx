@@ -63,6 +63,26 @@ const menuList = [
         path: '/mall/banner',
         name: '首页轮播图管理',
         authCode: 'mall-banner-manager'
+      },
+      {
+        path: '/mall/blog',
+        name: '博客管理',
+        authCode: 'mall-banner-manager'
+      },
+      {
+        path: '/mall/service',
+        name: '客户服务管理',
+        authCode: 'mall-banner-manager'
+      },
+      {
+        path: '/mall/problem',
+        name: '常见问题管理',
+        authCode: 'mall-banner-manager'
+      },
+      {
+        path: '/mall/info',
+        name: '基本信息管理',
+        authCode: 'mall-banner-manager'
       }
     ]
   },

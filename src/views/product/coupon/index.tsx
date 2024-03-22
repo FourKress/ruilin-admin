@@ -139,8 +139,8 @@ function OperationsCoupon() {
                 confirm({
                   title: '确认操作',
                   content: '确认删除优惠码吗?',
-                  onOk() {
-                    handleDelete(record)
+                  onOk: async () => {
+                    await handleDelete(record)
                   }
                 })
               }}
@@ -172,8 +172,8 @@ function OperationsCoupon() {
       })
   }
 
-  const handleDelete = (data: any) => {
-    axios.get(`/coupon/delete/${data.id}`).then(async () => {
+  const handleDelete = async (data: any) => {
+    await axios.get(`/coupon/delete/${data.id}`).then(async () => {
       message.success('删除优惠码成功')
       actionRef.current?.reloadAndRest?.()
     })

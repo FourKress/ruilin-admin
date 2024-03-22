@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import Dashboard from '@/views/dashboard'
 import MallBanner from '@/views/mall/banner'
+import MallBlog from '@/views/mall/blog'
+import MallBlogDetails from '@/views/mall/blog/details'
 import ProductCoupon from '@/views/product/coupon'
 import ProductList from '@/views/product/list'
 import ProductListDetails from '@/views/product/list/details'
@@ -42,9 +44,6 @@ const AuthRoute = () => {
       {checkAuthCode('product-rule-manager') && (
         <Route path="/product/rule" element={<ProductRule />} />
       )}
-      {checkAuthCode('mall-banner-manager') && (
-        <Route path="/mall/banner" element={<MallBanner />} />
-      )}
       {checkAuthCode('trade-customer-manager') && (
         <Route path="/trade/customer" element={<TradeCustomer />} />
       )}
@@ -56,6 +55,13 @@ const AuthRoute = () => {
       )}
       {checkAuthCode('edit-order') && (
         <Route path="/trade/order/details/:orderId" element={<TradeOrderDetails />} />
+      )}
+      {checkAuthCode('mall-banner-manager') && (
+        <Route path="/mall/banner" element={<MallBanner />} />
+      )}
+      {checkAuthCode('mall-banner-manager') && <Route path="/mall/blog" element={<MallBlog />} />}
+      {checkAuthCode('mall-banner-manager') && (
+        <Route path="/mall/blog/details/:blogId?" element={<MallBlogDetails />} />
       )}
     </Routes>
   ) : (

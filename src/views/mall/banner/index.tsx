@@ -72,6 +72,22 @@ function Banner() {
       className: 'drag-visible'
     },
     {
+      title: '轮播图',
+      dataIndex: 'url',
+      hideInSearch: true,
+      render: (url: any, _row: any) => {
+        return (
+          <Image
+            width={80}
+            src={url}
+            preview={{
+              toolbarRender: () => <span></span>
+            }}
+          />
+        )
+      }
+    },
+    {
       title: '轮播图名',
       dataIndex: 'name'
     },
@@ -96,7 +112,7 @@ function Banner() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 140,
+      width: 100,
       render: (_, record) => {
         return [
           perms.includes('edit-perm') && (
@@ -143,18 +159,6 @@ function Banner() {
               {record.isActive ? '停用' : '启用'}
             </a>
           ),
-
-          <a
-            key="preview"
-            onClick={() => {
-              setPreviewInfo({
-                visible: true,
-                url: record.url
-              })
-            }}
-          >
-            预览
-          </a>,
 
           perms.includes('delete-banner') && (
             <a

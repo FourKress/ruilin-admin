@@ -78,6 +78,7 @@ function Order() {
         return (
           <Space direction={'vertical'}>
             <Space size={'large'}>
+              <Badge dot={record.isNotify} offset={[0, 5]} style={{ marginLeft: '-5px' }} />
               <span>
                 订单编号: {record.orderNo}{' '}
                 <CopyOutlined
@@ -89,7 +90,7 @@ function Order() {
             </Space>
             {goodsList.map((d: any) => {
               return (
-                <div className={'sku-info'} key={d.productId}>
+                <div className={'sku-info'} style={{ paddingLeft: '20px' }} key={d.productId}>
                   <div className={'title'}>{d.productName}</div>
                   <div className="details">
                     {d.children?.length > 1 ? (
