@@ -46,8 +46,8 @@ function MyEditor({
           console.log([...uploadImageList, objectKey])
           setUploadImageList([...uploadImageList, objectKey])
           setLoading(true)
-          await uploadFile(file, objectKey, 'blog')
-          const src = `https://assets.vinnhair.com/blog/${objectKey}`
+          await uploadFile(file, objectKey, 'mall')
+          const src = `https://assets.vinnhair.com/mall/${objectKey}`
           insertFn(src, objectKey, src)
         }
       },
@@ -86,7 +86,8 @@ function MyEditor({
           onCreated={setEditor}
           onChange={(editor) => {
             const imageKeys = editor.getElemsByType('image')?.map((d: any) => d.alt)
-            onUpdate(editor.getHtml(), editor?.getText(), imageKeys)
+            const text = editor.getText()
+            onUpdate(text ? editor.getHtml() : '', text, imageKeys)
           }}
           mode="default"
           style={{ height: '400px', overflowY: 'hidden' }}

@@ -32,7 +32,7 @@ const whitelist = [
   '/auth/adminLogin',
   'assets.vinnhair.com/dev',
   'assets.vinnhair.com/prod',
-  'assets.vinnhair.com/blog',
+  'assets.vinnhair.com/mall',
   'assets.vinnhair.com/static'
 ]
 

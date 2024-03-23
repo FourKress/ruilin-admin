@@ -75,7 +75,7 @@ const menuList = [
         authCode: 'mall-banner-manager'
       },
       {
-        path: '/mall/problem',
+        path: '/mall/question',
         name: '常见问题管理',
         authCode: 'mall-banner-manager'
       },

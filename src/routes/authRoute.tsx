@@ -5,6 +5,8 @@ import MallBanner from '@/views/mall/banner'
 import MallBlog from '@/views/mall/blog'
 import MallBlogDetails from '@/views/mall/blog/details'
 import MallInfo from '@/views/mall/info'
+import MallQuestion from '@/views/mall/question'
+import MallQuestionDetails from '@/views/mall/question/details'
 import ProductCoupon from '@/views/product/coupon'
 import ProductList from '@/views/product/list'
 import ProductListDetails from '@/views/product/list/details'
@@ -65,6 +67,12 @@ const AuthRoute = () => {
         <Route path="/mall/blog/details/:blogId?" element={<MallBlogDetails />} />
       )}
       {checkAuthCode('mall-info-manager') && <Route path="/mall/info" element={<MallInfo />} />}
+      {checkAuthCode('mall-blog-manager') && (
+        <Route path="/mall/question" element={<MallQuestion />} />
+      )}
+      {checkAuthCode('edit-blog') && (
+        <Route path="/mall/question/details/:questionId?" element={<MallQuestionDetails />} />
+      )}
     </Routes>
   ) : (
     <Navigate to="/login" />

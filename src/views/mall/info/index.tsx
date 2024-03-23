@@ -14,7 +14,6 @@ import { checkFileSize, uploadFile } from '@/utils/fileUtils.ts'
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
-console.log(perms)
 
 const Info: FC<Record<string, any>> = () => {
   const [fileList, setFileList] = useState<any>([])
