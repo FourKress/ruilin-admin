@@ -1,57 +1,36 @@
 import { FC, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
 import { PlusOutlined } from '@ant-design/icons'
 import {
   FooterToolbar,
   PageContainer,
   ProForm,
   ProFormItem,
-  ProFormSwitch,
   ProFormText
 } from '@ant-design/pro-components'
-import { Button, Col, Descriptions, Form, Image, message, Modal, Row, Space, Upload } from 'antd'
+import { Button, Col, Descriptions, Form, Image, message, Row, Upload } from 'antd'
 
-import MyEditor from '@/components/MyEditor.tsx'
 import axios from '@/utils/axios.ts'
 import { checkFileSize, uploadFile } from '@/utils/fileUtils.ts'
-
-const { confirm } = Modal
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
 console.log(perms)
 
-const BlogDetails: FC<Record<string, any>> = () => {
-  const navigate = useNavigate()
-  const { blogId } = useParams()
-
-  const [loading, setLoading] = useState<boolean>(false)
+const Info: FC<Record<string, any>> = () => {
   const [fileList, setFileList] = useState<any>([])
-  const [htmlContent, setHtmlContent] = useState<any>('')
-  const [htmlText, setHtmlText] = useState<any>('')
-  const [objectKeys, setObjectKeys] = useState<string[]>([])
   const [form] = Form.useForm()
   const [previewInfo, setPreviewInfo] = useState({
     visible: false,
     url: ''
   })
 
+  const [loading, setLoading] = useState<boolean>(false)
+
   return (
     <PageContainer
       breadcrumbRender={false}
       header={{
-        title: '博客详情',
-        extra: [
-          <Button
-            key={'back'}
-            type="primary"
-            onClick={() => {
-              navigate(`/mall/blog`)
-            }}
-          >
-            返回
-          </Button>
-        ]
+        title: '基本信息'
       }}
     >
       <Row>
@@ -60,42 +39,30 @@ const BlogDetails: FC<Record<string, any>> = () => {
             form={form}
             layout={'horizontal'}
             request={async () => {
-              if (blogId) {
-                const res: any = await axios.get(`/blog/details/${blogId}`)
-                const { isActive, name, content, text, objectKeys } = res
+              const res: any = await axios.get(`/mall/details`)
+              if (!res?.id) return {}
 
-                const newFileList = [
-                  {
-                    id: res.id,
-                    uid: res.uid,
-                    name: res.fileName,
-                    type: res.fileType,
-                    status: 'done',
-                    url: res.url
-                  }
-                ]
-                form.setFieldsValue({
-                  ...res,
-                  fileInfo: { fileList: newFileList }
-                })
-                setHtmlContent(content)
-                setHtmlText(text)
-                setObjectKeys(objectKeys)
-                setFileList(newFileList)
-
-                return {
-                  isActive,
-                  name,
-                  content
+              const newFileList = [
+                {
+                  id: res.id,
+                  uid: res.uid,
+                  name: res.fileName,
+                  type: res.fileType,
+                  status: 'done',
+                  url: `https://assets.vinnhair.com/static/${res.objectKey}`
                 }
-              }
-              return {
-                isActive: true,
-                content: ''
-              }
+              ]
+              form.setFieldsValue({
+                ...res,
+                fileInfo: { fileList: newFileList }
+              })
+              setFileList(newFileList)
+
+              return res
             }}
             onFinish={async (data) => {
               setLoading(true)
+              const id = form.getFieldValue('id')
               const {
                 fileInfo: {
                   fileList: [file]
@@ -109,15 +76,13 @@ const BlogDetails: FC<Record<string, any>> = () => {
               const isUploadFile = file.status !== 'done'
 
               if (isUploadFile) {
-                await uploadFile(file.originFileObj, objectKey)
+                await uploadFile(file.originFileObj, objectKey, 'static')
               }
 
-              const res: any = await axios
-                .post(`/blog/${blogId ? 'update' : 'create'}`, {
-                  id: blogId || undefined,
+              await axios
+                .post(`/mall/${id ? 'update' : 'create'}`, {
+                  id: id || undefined,
                   ...other,
-                  text: htmlText,
-                  objectKeys: objectKeys,
                   objectKey,
                   fileName: name,
                   uid,
@@ -127,42 +92,14 @@ const BlogDetails: FC<Record<string, any>> = () => {
                   setLoading(false)
                 })
 
-              if (!blogId) {
-                navigate(`/mall/blog/details/${res.id}`)
-              }
-
-              message.success(`博客${blogId ? '编辑' : '新建'}成功`)
-
-              return true
+              message.success(`基本信息编辑成功`)
             }}
             submitter={
               perms.includes('edit-perm')
                 ? {
                     render: (props: any, _dom: any) => {
                       return (
-                        <FooterToolbar
-                          extra={
-                            <Space size={'middle'}>
-                              <Button
-                                type="primary"
-                                danger
-                                onClick={() => {
-                                  confirm({
-                                    title: '确认操作',
-                                    content: '确认删除该博客吗?',
-                                    onOk: async () => {
-                                      await axios.get(`/blog/delete/${blogId}`)
-                                      message.success('博客删除成功')
-                                      navigate('/mall/blog')
-                                    }
-                                  })
-                                }}
-                              >
-                                删除
-                              </Button>
-                            </Space>
-                          }
-                        >
+                        <FooterToolbar>
                           <Button
                             type="primary"
                             loading={loading}
@@ -182,17 +119,28 @@ const BlogDetails: FC<Record<string, any>> = () => {
             <ProFormText
               width={500}
               name="name"
-              label="标题"
+              label="品牌名称"
               rules={[
                 {
                   required: true,
-                  message: '请输入标题'
+                  message: '请输入品牌名称'
+                }
+              ]}
+            />
+            <ProFormText
+              width={500}
+              name="introduce"
+              label="品牌介绍"
+              rules={[
+                {
+                  required: true,
+                  message: '请输入品牌介绍'
                 }
               ]}
             />
             <ProFormItem
               name="fileInfo"
-              label="头图"
+              label="品牌logo"
               rules={[
                 {
                   required: true,
@@ -210,7 +158,7 @@ const BlogDetails: FC<Record<string, any>> = () => {
             >
               <Descriptions title="">
                 <Descriptions.Item label="素材限制" contentStyle={{ color: 'rgba(0, 0, 0, 0.45)' }}>
-                  图片宽高比例为16:9。图片宽高均大于1200px，大小10M以内
+                  图片宽高比例为2:1。图片宽高均大于1200px，大小10M以内
                 </Descriptions.Item>
               </Descriptions>
               <Upload
@@ -247,39 +195,42 @@ const BlogDetails: FC<Record<string, any>> = () => {
                 )}
               </Upload>
             </ProFormItem>
-            <ProFormSwitch
-              name="isActive"
-              label="状态"
+            <ProFormText
+              width={500}
+              name="email"
+              label="联系邮箱"
               rules={[
                 {
                   required: true,
-                  message: ''
+                  message: '请输入联系邮箱'
                 }
               ]}
             />
             <ProFormText
-              name="content"
-              label="正文"
+              width={500}
+              name="phone"
+              label="联系电话"
               rules={[
                 {
                   required: true,
-                  message: '请编辑正文'
+                  message: '请输入联系电话'
                 }
               ]}
-            >
-              <MyEditor
-                content={htmlContent}
-                onUpdate={(html, text, objectKeys) => {
-                  const oldContent = form.getFieldValue('content')
-                  form.setFieldValue('content', html)
-                  setHtmlText(text)
-                  setObjectKeys(objectKeys)
-                  if (oldContent !== html) {
-                    form.validateFields(['content'])
-                  }
-                }}
-              />
-            </ProFormText>
+              fieldProps={{
+                prefix: <span>+86</span>
+              }}
+            ></ProFormText>
+            <ProFormText
+              width={500}
+              name="address"
+              label="联系地址"
+              rules={[
+                {
+                  required: true,
+                  message: '请输入联系地址'
+                }
+              ]}
+            ></ProFormText>
           </ProForm>
 
           <Image
@@ -303,4 +254,4 @@ const BlogDetails: FC<Record<string, any>> = () => {
   )
 }
 
-export default BlogDetails
+export default Info

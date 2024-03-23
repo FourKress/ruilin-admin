@@ -2,11 +2,12 @@ import { message } from 'antd'
 
 import axios from '@/utils/axios.ts'
 
-const uploadFile = async (file: any, objectKey: string) => {
+const uploadFile = async (file: any, objectKey: string, bucket?: string) => {
   const size = file.type.includes('image') ? 10 : 50
   const res: Record<string, any> = await axios.post('/file/auth', {
     objectKey,
-    size
+    size,
+    bucket: bucket || undefined
   })
 
   const formData = new FormData()

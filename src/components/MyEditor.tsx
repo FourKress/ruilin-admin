@@ -1,35 +1,68 @@
 import { useEffect, useState } from 'react'
 import { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
 import { Editor, Toolbar } from '@wangeditor/editor-for-react'
+import { Spin } from 'antd'
 
-import '@wangeditor/editor/dist/css/style.css' // 引入 css
+import { uploadFile } from '@/utils/fileUtils.ts'
+
+import '@wangeditor/editor/dist/css/style.css'
 
 function MyEditor({
   onUpdate,
   content
 }: {
-  onUpdate: (html: string, text: string | undefined) => void
+  onUpdate: (html: string, text: string | undefined, imageKeys: string[]) => void
   content: string
 }) {
-  // editor 实例
+  const [loading, setLoading] = useState<boolean>(false)
   const [editor, setEditor] = useState<IDomEditor | null>(null) // TS 语法
-  // 编辑器内容
   const [html, setHtml] = useState<string>(content)
+  const [uploadImageList, setUploadImageList] = useState<string[]>([])
 
-  // 工具栏配置
   const toolbarConfig: Partial<IToolbarConfig> = {} // TS 语法
-  toolbarConfig.excludeKeys = ['fullScreen', 'emotion', 'group-video']
+  toolbarConfig.excludeKeys = [
+    'fullScreen',
+    'emotion',
+    'group-video',
+    'blockquote',
+    'code',
+    'codeBlock',
+    'insertTable',
+    'group-more-style'
+  ]
+  toolbarConfig.insertKeys = {
+    index: 6,
+    keys: ['through', 'sup', 'sub', 'clearStyle']
+  }
 
-  // 编辑器配置
   const editorConfig: Partial<IEditorConfig> = {
-    placeholder: '请输入内容...'
+    placeholder: '请输入内容...',
+    MENU_CONF: {
+      uploadImage: {
+        customUpload: async (file: File, insertFn: any) => {
+          const { name } = file
+          const objectKey = `${Date.now()}_${name}`
+          console.log(objectKey)
+          console.log([...uploadImageList, objectKey])
+          setUploadImageList([...uploadImageList, objectKey])
+          setLoading(true)
+          await uploadFile(file, objectKey, 'blog')
+          const src = `https://assets.vinnhair.com/blog/${objectKey}`
+          insertFn(src, objectKey, src)
+        }
+      },
+      insertImage: {
+        onInsertedImage: async () => {
+          setLoading(false)
+        }
+      }
+    }
   }
 
   useEffect(() => {
     setHtml(content)
   }, [content])
 
-  // 及时销毁 editor ，重要！
   useEffect(() => {
     return () => {
       if (editor == null) return
@@ -38,12 +71,8 @@ function MyEditor({
     }
   }, [editor])
 
-  useEffect(() => {
-    onUpdate(html, editor?.getText())
-  }, [html])
-
   return (
-    <>
+    <Spin spinning={loading}>
       <div style={{ border: '1px solid #ddd', zIndex: 9 }}>
         <Toolbar
           editor={editor}
@@ -56,13 +85,14 @@ function MyEditor({
           value={html}
           onCreated={setEditor}
           onChange={(editor) => {
-            onUpdate(editor.getHtml(), editor?.getText())
+            const imageKeys = editor.getElemsByType('image')?.map((d: any) => d.alt)
+            onUpdate(editor.getHtml(), editor?.getText(), imageKeys)
           }}
           mode="default"
           style={{ height: '400px', overflowY: 'hidden' }}
         />
       </div>
-    </>
+    </Spin>
   )
 }
 
