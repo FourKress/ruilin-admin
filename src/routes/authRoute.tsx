@@ -60,11 +60,11 @@ const AuthRoute = () => {
       {checkAuthCode('mall-banner-manager') && (
         <Route path="/mall/banner" element={<MallBanner />} />
       )}
-      {checkAuthCode('mall-banner-manager') && <Route path="/mall/blog" element={<MallBlog />} />}
-      {checkAuthCode('mall-banner-manager') && (
+      {checkAuthCode('mall-blog-manager') && <Route path="/mall/blog" element={<MallBlog />} />}
+      {checkAuthCode('edit-blog') && (
         <Route path="/mall/blog/details/:blogId?" element={<MallBlogDetails />} />
       )}
-      {checkAuthCode('mall-banner-manager') && <Route path="/mall/info" element={<MallInfo />} />}
+      {checkAuthCode('mall-info-manager') && <Route path="/mall/info" element={<MallInfo />} />}
     </Routes>
   ) : (
     <Navigate to="/login" />

@@ -19,7 +19,6 @@ const { confirm } = Modal
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
-console.log(perms)
 
 const BlogDetails: FC<Record<string, any>> = () => {
   const navigate = useNavigate()
@@ -136,7 +135,7 @@ const BlogDetails: FC<Record<string, any>> = () => {
               return true
             }}
             submitter={
-              perms.includes('edit-perm')
+              perms.includes('edit-blog')
                 ? {
                     render: (props: any, _dom: any) => {
                       return (

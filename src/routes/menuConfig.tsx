@@ -67,7 +67,7 @@ const menuList = [
       {
         path: '/mall/blog',
         name: '博客管理',
-        authCode: 'mall-banner-manager'
+        authCode: 'mall-blog-manager'
       },
       {
         path: '/mall/service',
@@ -82,7 +82,7 @@ const menuList = [
       {
         path: '/mall/info',
         name: '基本信息管理',
-        authCode: 'mall-banner-manager'
+        authCode: 'mall-info-manager'
       }
     ]
   },

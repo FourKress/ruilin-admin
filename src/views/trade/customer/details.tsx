@@ -283,7 +283,7 @@ const CustomerDetails: FC<Record<string, any>> = () => {
         const status = record.status
         return (
           <Space direction={'vertical'}>
-            {perms.includes('edit-customer') && status === 1 && (
+            {perms.includes('edit-order') && perms.includes('details-customer') && status === 1 && (
               <a
                 key="price"
                 onClick={() => {
@@ -301,7 +301,7 @@ const CustomerDetails: FC<Record<string, any>> = () => {
                 确认订单
               </a>
             )}
-            {perms.includes('edit-customer') && status === 2 && (
+            {perms.includes('edit-order') && perms.includes('details-customer') && status === 2 && (
               <a
                 key="price"
                 onClick={() => {
@@ -318,23 +318,25 @@ const CustomerDetails: FC<Record<string, any>> = () => {
                 标记发货
               </a>
             )}
-            {perms.includes('edit-customer') && record.fexExNumber && (
-              <a
-                key="price"
-                onClick={() => {
-                  confirm({
-                    title: '确认操作',
-                    content: '确认更改客户状态吗?',
-                    onOk: async () => {
-                      console.log('查看物流')
-                    }
-                  })
-                }}
-              >
-                查看物流
-              </a>
-            )}
-            {perms.includes('edit-customer') && (
+            {perms.includes('edit-order') &&
+              perms.includes('details-customer') &&
+              record.fexExNumber && (
+                <a
+                  key="price"
+                  onClick={() => {
+                    confirm({
+                      title: '确认操作',
+                      content: '确认更改客户状态吗?',
+                      onOk: async () => {
+                        console.log('查看物流')
+                      }
+                    })
+                  }}
+                >
+                  查看物流
+                </a>
+              )}
+            {perms.includes('edit-order') && perms.includes('details-customer') && (
               <a
                 key="details"
                 onClick={async () => {
@@ -344,7 +346,7 @@ const CustomerDetails: FC<Record<string, any>> = () => {
                 详情
               </a>
             )}
-            {perms.includes('edit-customer') && status === 0 && (
+            {perms.includes('edit-order') && perms.includes('details-customer') && status === 0 && (
               <ModalForm<{
                 modifyAmount: string
               }>
@@ -410,7 +412,7 @@ const CustomerDetails: FC<Record<string, any>> = () => {
                 </Space>
               </ModalForm>
             )}
-            {perms.includes('edit-customer') && (
+            {perms.includes('edit-order') && perms.includes('details-customer') && (
               <ModalForm<{
                 remark: string
               }>

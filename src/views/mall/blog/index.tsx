@@ -108,7 +108,7 @@ function BlogPage() {
       width: 100,
       render: (_, record) => {
         return [
-          perms.includes('delete-coupon') && (
+          perms.includes('delete-blog') && (
             <a
               key="delete"
               onClick={() => {
@@ -124,7 +124,7 @@ function BlogPage() {
               删除
             </a>
           ),
-          perms.includes('edit-perm') && (
+          perms.includes('edit-blog') && (
             <a
               key="active"
               onClick={() => {
@@ -140,7 +140,7 @@ function BlogPage() {
               {record.isActive ? '下架' : '上架'}
             </a>
           ),
-          perms.includes('delete-coupon') && (
+          perms.includes('edit-blog') && (
             <a
               key="details"
               onClick={() => {
@@ -166,7 +166,7 @@ function BlogPage() {
         actionRef={actionRef}
         columns={columns}
         toolBarRender={() => [
-          perms.includes('add-coupon') && (
+          perms.includes('add-blog') && (
             <Button
               type="primary"
               key="primary"

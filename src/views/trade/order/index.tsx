@@ -243,7 +243,7 @@ function Order() {
         const status = record.status
         return (
           <Space direction={'vertical'}>
-            {perms.includes('edit-customer') && status === 1 && (
+            {perms.includes('edit-order') && status === 1 && (
               <a
                 key="price"
                 onClick={() => {
@@ -261,7 +261,7 @@ function Order() {
                 确认订单
               </a>
             )}
-            {perms.includes('edit-customer') && status === 2 && (
+            {perms.includes('edit-order') && status === 2 && (
               <a
                 key="price"
                 onClick={() => {
@@ -278,7 +278,7 @@ function Order() {
                 标记发货
               </a>
             )}
-            {perms.includes('edit-customer') && record.fexExNumber && (
+            {perms.includes('edit-order') && record.fexExNumber && (
               <a
                 key="price"
                 onClick={() => {
@@ -294,7 +294,7 @@ function Order() {
                 查看物流
               </a>
             )}
-            {perms.includes('edit-customer') && (
+            {perms.includes('edit-order') && (
               <a
                 key="details"
                 onClick={async () => {
@@ -304,7 +304,7 @@ function Order() {
                 详情
               </a>
             )}
-            {perms.includes('edit-customer') && status === 0 && (
+            {perms.includes('edit-order') && status === 0 && (
               <ModalForm<{
                 modifyAmount: string
               }>
@@ -370,7 +370,7 @@ function Order() {
                 </Space>
               </ModalForm>
             )}
-            {perms.includes('edit-customer') && (
+            {perms.includes('edit-order') && (
               <ModalForm<{
                 remark: string
               }>

@@ -95,7 +95,7 @@ const Info: FC<Record<string, any>> = () => {
               message.success(`基本信息编辑成功`)
             }}
             submitter={
-              perms.includes('edit-perm')
+              perms.includes('edit-info')
                 ? {
                     render: (props: any, _dom: any) => {
                       return (
