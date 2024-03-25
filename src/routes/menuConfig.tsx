@@ -83,6 +83,11 @@ const menuList = [
         path: '/mall/info',
         name: '基本信息管理',
         authCode: 'mall-info-manager'
+      },
+      {
+        path: '/mall/about',
+        name: '关于我们管理',
+        authCode: 'mall-banner-manager'
       }
     ]
   },

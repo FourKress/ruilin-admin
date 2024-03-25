@@ -66,6 +66,7 @@ const Info: FC<Record<string, any>> = () => {
                 fileInfo: {
                   fileList: [file]
                 },
+                phone,
                 ...other
               } = data
 
@@ -82,6 +83,7 @@ const Info: FC<Record<string, any>> = () => {
                 .post(`/mall/${id ? 'update' : 'create'}`, {
                   id: id || undefined,
                   ...other,
+                  phone: `+86 ${phone}`,
                   objectKey,
                   fileName: name,
                   uid,

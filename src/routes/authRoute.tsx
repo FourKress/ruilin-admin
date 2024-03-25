@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import Dashboard from '@/views/dashboard'
+import MallAbout from '@/views/mall/about'
 import MallBanner from '@/views/mall/banner'
 import MallBlog from '@/views/mall/blog'
 import MallBlogDetails from '@/views/mall/blog/details'
@@ -73,6 +74,7 @@ const AuthRoute = () => {
       {checkAuthCode('edit-blog') && (
         <Route path="/mall/question/details/:questionId?" element={<MallQuestionDetails />} />
       )}
+      {checkAuthCode('mall-blog-manager') && <Route path="/mall/about" element={<MallAbout />} />}
     </Routes>
   ) : (
     <Navigate to="/login" />
