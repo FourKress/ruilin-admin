@@ -69,11 +69,11 @@ const menuList = [
         name: '博客管理',
         authCode: 'mall-blog-manager'
       },
-      {
-        path: '/mall/service',
-        name: '客户服务管理',
-        authCode: 'mall-banner-manager'
-      },
+      // {
+      //   path: '/mall/service',
+      //   name: '客户服务管理',
+      //   authCode: 'mall-banner-manager'
+      // },
       {
         path: '/mall/question',
         name: '常见问题管理',

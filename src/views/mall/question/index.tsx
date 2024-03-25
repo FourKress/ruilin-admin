@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons'
 import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components'
-import { Badge, Button, DatePicker, message, Modal, Select } from 'antd'
+import { Badge, Button, DatePicker, Image, message, Modal, Select } from 'antd'
 import dayjs from 'dayjs'
 import lodash from 'lodash'
 
@@ -40,6 +40,7 @@ function QuestionPage() {
     {
       title: '关键词',
       dataIndex: 'keywords',
+      ellipsis: true,
       hideInTable: true
     },
     {
@@ -48,8 +49,27 @@ function QuestionPage() {
       hideInSearch: true
     },
     {
+      title: '图片',
+      dataIndex: 'url',
+      hideInSearch: true,
+      ellipsis: true,
+      render: (_: any, row: any) => {
+        return row?.url ? (
+          <Image
+            width={80}
+            src={row.url}
+            preview={{
+              toolbarRender: () => <span></span>
+            }}
+          />
+        ) : (
+          '-'
+        )
+      }
+    },
+    {
       title: '回答',
-      dataIndex: 'text',
+      dataIndex: 'content',
       hideInSearch: true
     },
     {
