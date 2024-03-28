@@ -260,7 +260,7 @@ const Banner = forwardRef<DetailsRef>((_props, ref) => {
                   {videoFileList.length >= 1 ? null : uploadButton}
                 </Upload>
               ) : (
-                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                <Empty className={'banner-empty'} image={Empty.PRESENTED_IMAGE_SIMPLE} />
               )}
             </Spin>
           </Space>

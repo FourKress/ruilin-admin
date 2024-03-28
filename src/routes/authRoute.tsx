@@ -19,6 +19,8 @@ import TradeCustomer from '@/views/trade/customer'
 import TradeCustomerDetails from '@/views/trade/customer/details'
 import TradeOrder from '@/views/trade/order'
 import TradeOrderDetails from '@/views/trade/order/details'
+import TradeReview from '@/views/trade/review'
+import TradeReviewDetails from '@/views/trade/review/details'
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [], isSuperAdmin = false } = userInfo
@@ -59,6 +61,12 @@ const AuthRoute = () => {
       )}
       {checkAuthCode('edit-order') && (
         <Route path="/trade/order/details/:orderId" element={<TradeOrderDetails />} />
+      )}
+      {checkAuthCode('trade-order-manager') && (
+        <Route path="/trade/review" element={<TradeReview />} />
+      )}
+      {checkAuthCode('edit-order') && (
+        <Route path="/trade/review/details/:reviewId?" element={<TradeReviewDetails />} />
       )}
       {checkAuthCode('mall-banner-manager') && (
         <Route path="/mall/banner" element={<MallBanner />} />

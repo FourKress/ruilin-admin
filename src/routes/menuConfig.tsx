@@ -24,6 +24,11 @@ const menuList = [
         authCode: 'trade-order-manager'
       },
       {
+        path: '/trade/review',
+        name: '评论管理',
+        authCode: 'trade-customer-manager'
+      },
+      {
         path: '/trade/customer',
         name: '客户管理',
         authCode: 'trade-customer-manager'

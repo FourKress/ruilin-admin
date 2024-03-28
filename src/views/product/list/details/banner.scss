@@ -18,4 +18,18 @@
   .ant-pro-card-body {
     padding: 0;
   }
+
+  .banner-empty {
+    margin: 4px 0 0;
+    width: 52px;
+    height: 52px;
+
+    .ant-empty-image {
+      height: 28px;
+    }
+
+    .ant-empty-description {
+      font-size: 12px;
+    }
+  }
 }

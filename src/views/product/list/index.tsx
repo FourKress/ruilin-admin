@@ -2,20 +2,7 @@ import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons'
 import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components'
-import {
-  Badge,
-  Button,
-  Col,
-  Descriptions,
-  Flex,
-  message,
-  Modal,
-  Row,
-  Select,
-  Space,
-  Tag,
-  Tooltip
-} from 'antd'
+import { Badge, Button, Descriptions, message, Modal, Select, Space, Tag, Tooltip } from 'antd'
 import lodash from 'lodash'
 
 import axios from '@/utils/axios.ts'
@@ -33,42 +20,31 @@ function ProductList() {
     {
       title: '商品名称',
       dataIndex: 'name',
-      width: 140,
+      width: 400,
       render: (_, record: Record<string, any>) => {
         const { code = '', name, id } = record
         return (
-          <Row style={{ height: '60px' }}>
-            <Space size={'middle'}>
-              <Col style={{ height: '60px' }}>
-                <Flex
-                  style={{ height: '60px' }}
-                  vertical={true}
-                  justify={'space-around'}
-                  align={'start'}
-                >
-                  <Tooltip title={name}>
-                    <Button
-                      type="link"
-                      style={{ padding: 0 }}
-                      onClick={() => {
-                        navigate(`/product/list/details/0/${id}`)
-                      }}
-                    >
-                      {name}
-                    </Button>
-                  </Tooltip>
+          <Space size={'small'} direction={'vertical'}>
+            <Tooltip title={name}>
+              <Button
+                type="link"
+                style={{ padding: 0, textWrap: 'wrap', textAlign: 'left', wordBreak: 'break-all' }}
+                onClick={() => {
+                  navigate(`/product/list/details/0/${id}`)
+                }}
+              >
+                {name}
+              </Button>
+            </Tooltip>
 
-                  <Descriptions title="">
-                    <Descriptions.Item label="商品编码">
-                      <Tooltip title={code}>
-                        <span>{code.length > 9 ? `${code.slice(0, 20)}...` : code}</span>
-                      </Tooltip>
-                    </Descriptions.Item>
-                  </Descriptions>
-                </Flex>
-              </Col>
-            </Space>
-          </Row>
+            <Descriptions title="">
+              <Descriptions.Item label="商品编码">
+                <Tooltip title={code}>
+                  <span>{code.length > 9 ? `${code.slice(0, 20)}...` : code}</span>
+                </Tooltip>
+              </Descriptions.Item>
+            </Descriptions>
+          </Space>
         )
       }
     },

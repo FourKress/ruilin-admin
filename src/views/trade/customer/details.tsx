@@ -457,7 +457,7 @@ const CustomerDetails: FC<Record<string, any>> = () => {
             key={'back'}
             type="primary"
             onClick={() => {
-              navigate(`/trade/customer`)
+              navigate(-1)
             }}
           >
             返回

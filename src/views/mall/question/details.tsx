@@ -60,8 +60,9 @@ const QuestionDetails: FC<Record<string, any>> = () => {
                 const res: any = await axios.get(`/question/details/${questionId}`)
                 const { isActive, name, content } = res
 
+                let newFileList: any[] = []
                 if (res?.uid) {
-                  const newFileList = [
+                  newFileList = [
                     {
                       id: res.id,
                       uid: res.uid,
@@ -71,12 +72,14 @@ const QuestionDetails: FC<Record<string, any>> = () => {
                       url: res.url
                     }
                   ]
-                  form.setFieldsValue({
-                    ...res,
-                    fileInfo: { fileList: newFileList }
-                  })
+
                   setFileList(newFileList)
                 }
+
+                form.setFieldsValue({
+                  ...res,
+                  fileInfo: { fileList: newFileList }
+                })
 
                 return {
                   isActive,

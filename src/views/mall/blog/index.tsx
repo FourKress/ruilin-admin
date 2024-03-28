@@ -66,7 +66,8 @@ function BlogPage() {
     {
       title: '正文',
       dataIndex: 'text',
-      hideInSearch: true
+      hideInSearch: true,
+      ellipsis: true
     },
     {
       title: '发布时间',
