@@ -157,7 +157,7 @@ function ReviewList() {
       render: (_, record: Record<string, any>) => {
         return (
           <Space direction={'vertical'}>
-            {perms.includes('edit-product') && (
+            {perms.includes('edit-review') && (
               <a
                 key="active"
                 onClick={() => {
@@ -173,7 +173,7 @@ function ReviewList() {
                 {record.isActive ? '下架' : '上架'}
               </a>
             )}
-            {perms.includes('edit-product') && (
+            {perms.includes('edit-review') && (
               <a
                 key="top"
                 onClick={() => {
@@ -189,7 +189,7 @@ function ReviewList() {
                 {record.isTop ? '取消推荐' : '推荐'}
               </a>
             )}
-            {perms.includes('delete-product') && (
+            {perms.includes('delete-review') && (
               <a
                 key="delete"
                 onClick={() => {
@@ -207,7 +207,7 @@ function ReviewList() {
                 删除
               </a>
             )}
-            {perms.includes('edit-product') && (
+            {perms.includes('edit-review') && (
               <a
                 key="modify"
                 onClick={async () => {
@@ -258,7 +258,7 @@ function ReviewList() {
           labelWidth: 'auto'
         }}
         toolBarRender={() => [
-          perms.includes('add-product') && (
+          perms.includes('add-review') && (
             <Button
               type="primary"
               key="primary"

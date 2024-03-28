@@ -26,7 +26,7 @@ const menuList = [
       {
         path: '/trade/review',
         name: '评论管理',
-        authCode: 'trade-customer-manager'
+        authCode: 'trade-review-manager'
       },
       {
         path: '/trade/customer',
@@ -82,7 +82,7 @@ const menuList = [
       {
         path: '/mall/question',
         name: '常见问题管理',
-        authCode: 'mall-banner-manager'
+        authCode: 'mall-question-manager'
       },
       {
         path: '/mall/info',
@@ -92,7 +92,7 @@ const menuList = [
       {
         path: '/mall/about',
         name: '关于我们管理',
-        authCode: 'mall-banner-manager'
+        authCode: 'mall-about-manager'
       }
     ]
   },

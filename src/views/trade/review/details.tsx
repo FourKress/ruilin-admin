@@ -171,7 +171,7 @@ const ReviewDetails: FC<Record<string, any>> = () => {
               return true
             }}
             submitter={
-              perms.includes('edit-question')
+              perms.includes('edit-review')
                 ? {
                     render: (props: any, _dom: any) => {
                       return (

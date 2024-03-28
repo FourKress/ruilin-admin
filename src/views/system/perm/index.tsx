@@ -224,7 +224,7 @@ function SystemPerm() {
           }
         }}
         onFinish={async (values) => {
-          handleUpdate(values)
+          await handleUpdate(values)
         }}
       >
         <ProFormText

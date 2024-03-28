@@ -63,7 +63,7 @@ const About: FC<Record<string, any>> = () => {
               message.success(`关于我们编辑成功`)
             }}
             submitter={
-              perms.includes('edit-info')
+              perms.includes('edit-about')
                 ? {
                     render: (props: any, _dom: any) => {
                       return (

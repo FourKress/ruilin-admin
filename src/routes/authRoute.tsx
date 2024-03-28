@@ -62,10 +62,10 @@ const AuthRoute = () => {
       {checkAuthCode('edit-order') && (
         <Route path="/trade/order/details/:orderId" element={<TradeOrderDetails />} />
       )}
-      {checkAuthCode('trade-order-manager') && (
+      {checkAuthCode('trade-review-manager') && (
         <Route path="/trade/review" element={<TradeReview />} />
       )}
-      {checkAuthCode('edit-order') && (
+      {checkAuthCode('edit-review') && (
         <Route path="/trade/review/details/:reviewId?" element={<TradeReviewDetails />} />
       )}
       {checkAuthCode('mall-banner-manager') && (
@@ -76,13 +76,13 @@ const AuthRoute = () => {
         <Route path="/mall/blog/details/:blogId?" element={<MallBlogDetails />} />
       )}
       {checkAuthCode('mall-info-manager') && <Route path="/mall/info" element={<MallInfo />} />}
-      {checkAuthCode('mall-blog-manager') && (
+      {checkAuthCode('mall-question-manager') && (
         <Route path="/mall/question" element={<MallQuestion />} />
       )}
-      {checkAuthCode('edit-blog') && (
+      {checkAuthCode('edit-question') && (
         <Route path="/mall/question/details/:questionId?" element={<MallQuestionDetails />} />
       )}
-      {checkAuthCode('mall-blog-manager') && <Route path="/mall/about" element={<MallAbout />} />}
+      {checkAuthCode('mall-about-manager') && <Route path="/mall/about" element={<MallAbout />} />}
     </Routes>
   ) : (
     <Navigate to="/login" />
