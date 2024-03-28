@@ -6,9 +6,21 @@ import {
   PageContainer,
   ProColumns,
   ProFormItem,
-  ProFormText
+  ProFormSwitch,
+  ProFormTextArea
 } from '@ant-design/pro-components'
-import { Badge, Button, Descriptions, Form, Image, message, Modal, Upload } from 'antd'
+import {
+  Badge,
+  Button,
+  Descriptions,
+  Form,
+  Image,
+  Input,
+  message,
+  Modal,
+  Space,
+  Upload
+} from 'antd'
 
 import axios from '@/utils/axios.ts'
 import { checkFileSize, uploadFile } from '@/utils/fileUtils.ts'
@@ -23,7 +35,10 @@ function Banner() {
     open: false,
     title: '编辑轮播图'
   })
-  const [fileList, setFileList] = useState<any>([])
+  const [pcFileList, setPcFileList] = useState<any>([])
+  const [mobileFileList, setMobileFileList] = useState<any>([])
+  const [bannerDetails, setBannerDetails] = useState<any>({})
+  const [btnList, setBtnList] = useState<any>([])
   const [form] = Form.useForm()
   const [previewInfo, setPreviewInfo] = useState({
     visible: false,
@@ -72,40 +87,62 @@ function Banner() {
       className: 'drag-visible'
     },
     {
-      title: '轮播图',
-      dataIndex: 'url',
+      title: '主标题',
+      dataIndex: 'name'
+    },
+    {
+      title: '副标题',
+      dataIndex: 'subtitle'
+    },
+    {
+      title: '移动端图片',
+      dataIndex: 'mobile_url',
       hideInSearch: true,
-      render: (url: any, _row: any) => {
-        return (
+      render: (_: any, row: any) => {
+        return row['mobile_url'] ? (
           <Image
             width={80}
-            src={url}
+            src={row['mobile_url']}
             preview={{
               toolbarRender: () => <span></span>
             }}
           />
+        ) : (
+          '-'
         )
       }
     },
     {
-      title: '轮播图名',
-      dataIndex: 'name'
+      title: 'PC端图片',
+      dataIndex: 'pc_url',
+      hideInSearch: true,
+      render: (_: any, row: any) => {
+        return row['pc_url'] ? (
+          <Image
+            width={80}
+            src={row['pc_url']}
+            preview={{
+              toolbarRender: () => <span></span>
+            }}
+          />
+        ) : (
+          '-'
+        )
+      }
     },
     {
-      title: '跳转链接',
-      dataIndex: 'link'
+      title: '发布时间',
+      dataIndex: 'createTime',
+      hideInSearch: true,
+      valueType: 'dateTime'
     },
     {
       title: '状态',
       dataIndex: 'isActive',
       render: (status) => {
         const color = status ? 'blue' : 'red'
-        return [<Badge key={color} color={color} text={status ? '使用中' : '已停用'} />]
+        return [<Badge key={color} color={color} text={status ? '上架' : '下架'} />]
       }
-    },
-    {
-      title: '描述',
-      dataIndex: 'desc'
     },
     {
       title: '操作',
@@ -113,27 +150,46 @@ function Banner() {
       valueType: 'option',
       ellipsis: false,
       width: 100,
-      render: (_, record) => {
+      render: (_, record: Record<string, any>) => {
         return [
-          perms.includes('edit-perm') && (
+          perms.includes('edit-banner') && (
             <a
               key="modify"
               onClick={() => {
-                const newFileList = [
-                  {
-                    id: record.id,
-                    uid: record.uid,
-                    name: record.fileName,
-                    type: record.fileType,
-                    status: 'done',
-                    url: record.url
-                  }
+                let mobileFileList: any[] = []
+                let pcFileList: any[] = []
+                let btnList: any[] = [
+                  { name: '', link: '' },
+                  { name: '', link: '' }
                 ]
+                if (record?.objectKeyMobile) {
+                  mobileFileList = [
+                    {
+                      status: 'done',
+                      url: record['mobile_url']
+                    }
+                  ]
+                }
+                if (record?.objectKeyPc) {
+                  pcFileList = [
+                    {
+                      status: 'done',
+                      url: record['pc_url']
+                    }
+                  ]
+                }
+                if (record?.btnList) {
+                  btnList = record?.btnList
+                }
+                setBannerDetails(record)
+                setBtnList(btnList)
+                setMobileFileList(mobileFileList)
+                setPcFileList(pcFileList)
                 form.setFieldsValue({
                   ...record,
-                  fileInfo: { fileList: newFileList }
+                  mobileFileInfo: { fileList: mobileFileList },
+                  pcFileInfo: { fileList: pcFileList }
                 })
-                setFileList(newFileList)
                 setModalInfo({
                   open: true,
                   title: '编辑轮播图'
@@ -143,7 +199,7 @@ function Banner() {
               编辑
             </a>
           ),
-          perms.includes('edit-perm') && (
+          perms.includes('edit-banner') && (
             <a
               key="active"
               onClick={() => {
@@ -156,7 +212,7 @@ function Banner() {
                 })
               }}
             >
-              {record.isActive ? '停用' : '启用'}
+              {record.isActive ? '下架' : '上架'}
             </a>
           ),
 
@@ -181,31 +237,39 @@ function Banner() {
     }
   ]
 
+  const handleUploadFile = async (file: any, key: string) => {
+    const isUploadFile = file.status !== 'done'
+    if (isUploadFile) {
+      const { uid, type } = file
+      const objectKey = `${uid}.${type.replace(/[\w\W]+\//, '')}`
+      await uploadFile(file.originFileObj, objectKey)
+      return objectKey
+    }
+
+    return key
+  }
+
   const handleUpdate = async (data: any) => {
     const id = form.getFieldValue('id')
-    const {
-      fileInfo: {
-        fileList: [file]
-      },
-      ...other
-    } = data
-
-    const { uid, type, name } = file
-    const objectKey = `${uid}.${type.replace(/[\w\W]+\//, '')}`
-
-    const isUploadFile = file.status !== 'done'
-
-    if (isUploadFile) {
-      await uploadFile(file.originFileObj, objectKey)
+    const { mobileFileInfo = {}, pcFileInfo = {}, ...other } = data
+    console.log(data)
+    let objectKeyMobile
+    if (mobileFileInfo?.fileList && mobileFileInfo.fileList?.length) {
+      const [file] = mobileFileInfo.fileList
+      objectKeyMobile = await handleUploadFile(file, bannerDetails.objectKeyMobile)
+    }
+    let objectKeyPc
+    if (pcFileInfo?.fileList && pcFileInfo.fileList?.length) {
+      const [file] = pcFileInfo.fileList
+      objectKeyPc = await handleUploadFile(file, bannerDetails.objectKeyPc)
     }
 
     await axios.post(`/banner/${id ? 'update' : 'create'}`, {
       id: id || undefined,
       ...other,
-      objectKey,
-      fileName: name,
-      uid,
-      fileType: type
+      objectKeyMobile,
+      objectKeyPc,
+      btnList: btnList
     })
     getBannerPage()
     message.success(`轮播图${id ? '编辑' : '新建'}成功`)
@@ -255,13 +319,19 @@ function Banner() {
                 form.resetFields()
                 form.setFieldsValue({
                   name: '',
-                  link: '',
-                  desc: '',
-                  fileInfo: null,
+                  subtitle: '',
+                  pcFileInfo: null,
+                  mobileFileInfo: null,
                   id: '',
-                  url: ''
+                  isActive: true
                 })
-                setFileList([])
+                setBannerDetails({})
+                setBtnList([
+                  { name: '', link: '' },
+                  { name: '', link: '' }
+                ])
+                setPcFileList([])
+                setMobileFileList([])
                 setModalInfo({
                   open: true,
                   title: '新建轮播图'
@@ -277,16 +347,16 @@ function Banner() {
 
       <ModalForm<{
         name: string
-        link: string
-        desc: string
-        fileInfo: any
+        subtitle: string
+        mobileFileInfo: any
+        pcFileInfo: any
       }>
         open={modalInfo.open}
         initialValues={{}}
         title={modalInfo.title}
         form={form}
         autoFocusFirstInput
-        width={420}
+        width={480}
         modalProps={{
           destroyOnClose: true,
           onCancel: () => {
@@ -294,94 +364,43 @@ function Banner() {
           }
         }}
         onFinish={async (values) => {
+          const { mobileFileInfo = {}, pcFileInfo = {} } = values
+
+          if (!mobileFileInfo?.fileList?.length && !pcFileInfo?.fileList?.length) {
+            message.error('PC端或移动端至少上传一张图片')
+            return
+          }
+
           await handleUpdate(values)
           setModalInfo({
             open: false
           })
           return true
         }}
-        onValuesChange={(values) => {
-          console.log(values)
-          if (values.fileInfo && values.fileInfo.file?.status === 'removed') {
-            form.setFieldValue('fileInfo', '')
-          }
-        }}
       >
-        <ProFormText
-          name="name"
-          label="轮播图名称"
-          placeholder={'请输入1-20位轮播图名称'}
-          fieldProps={{
-            maxLength: 20
-          }}
-          rules={[
-            () => ({
-              validator(_, value) {
-                if (value && value.length > 10) {
-                  return Promise.reject(new Error('请输入1-20位轮播图名称'))
-                }
-                return Promise.resolve()
-              }
-            })
-          ]}
-        />
-        <ProFormText name="link" label="跳转链接" placeholder={'请输入跳转链接'} />
-        <ProFormText
-          name="desc"
-          label="描述"
-          placeholder={'请输入描述'}
-          fieldProps={{
-            maxLength: 50
-          }}
-          rules={[
-            () => ({
-              validator(_, value) {
-                if (value && value.length > 50) {
-                  return Promise.reject(new Error('描述最多50个字'))
-                }
-                return Promise.resolve()
-              }
-            })
-          ]}
-        />
-        <ProFormItem
-          name="fileInfo"
-          label="图片"
-          rules={[
-            {
-              required: true,
-              message: '请选择图片'
-            },
-            () => ({
-              validator(_, value) {
-                if (value && !value.fileList.length) {
-                  return Promise.reject(new Error('请选择图片'))
-                }
-                return Promise.resolve()
-              }
-            })
-          ]}
-        >
+        <ProFormTextArea name="name" label="主标题" placeholder={'请输入主标题'} />
+        <ProFormTextArea name="subtitle" label="副标题" placeholder={'请输入副标题'} />
+        <ProFormItem name="mobileFileInfo" label="移动端图片">
           <Descriptions title="">
             <Descriptions.Item label="素材限制" contentStyle={{ color: 'rgba(0, 0, 0, 0.45)' }}>
-              图片宽高比例为4:3。图片宽高均大于1200px，大小10M以内
+              图片宽高比例为3:4。图片宽高均大于1200px，大小10M以内
             </Descriptions.Item>
           </Descriptions>
           <Upload
             accept={'.png,.jpg,.jpeg'}
             listType="picture-card"
-            fileList={fileList}
+            fileList={mobileFileList}
             maxCount={1}
             onChange={async ({ file, fileList: newFileList }) => {
               if (newFileList.length && !checkFileSize(file)) {
                 return
               }
-              form.setFieldValue('fileInfo', { fileList: [...newFileList] })
-              setFileList(newFileList)
+              form.setFieldValue('mobileFileInfo', { fileList: [...newFileList] })
+              setMobileFileList(newFileList)
               await form.validateFields()
             }}
             onRemove={() => {
-              setFileList([])
+              setMobileFileList([])
             }}
             beforeUpload={() => false}
             onPreview={(file) => {
@@ -393,7 +412,7 @@ function Banner() {
               })
             }}
           >
-            {fileList.length >= 1 ? null : (
+            {mobileFileList.length >= 1 ? null : (
               <button style={{ border: 0, background: 'none' }} type="button">
                 <PlusOutlined />
                 <div style={{ marginTop: 8 }}>上传</div>
@@ -401,6 +420,115 @@ function Banner() {
             )}
           </Upload>
         </ProFormItem>
+        <ProFormItem name="pcFileInfo" label="PC端图片">
+          <Descriptions title="">
+            <Descriptions.Item label="素材限制" contentStyle={{ color: 'rgba(0, 0, 0, 0.45)' }}>
+              图片宽高比例为16:9。图片宽高均大于1200px，大小10M以内
+            </Descriptions.Item>
+          </Descriptions>
+          <Upload
+            accept={'.png,.jpg,.jpeg'}
+            listType="picture-card"
+            fileList={pcFileList}
+            maxCount={1}
+            onChange={async ({ file, fileList: newFileList }) => {
+              if (newFileList.length && !checkFileSize(file)) {
+                return
+              }
+              form.setFieldValue('pcFileInfo', { fileList: [...newFileList] })
+              setPcFileList(newFileList)
+              await form.validateFields()
+            }}
+            onRemove={() => {
+              setPcFileList([])
+            }}
+            beforeUpload={() => false}
+            onPreview={(file) => {
+              const url = file.url || file.thumbUrl
+              if (!url) return
+              setPreviewInfo({
+                visible: true,
+                url
+              })
+            }}
+          >
+            {pcFileList.length >= 1 ? null : (
+              <button style={{ border: 0, background: 'none' }} type="button">
+                <PlusOutlined />
+                <div style={{ marginTop: 8 }}>上传</div>
+              </button>
+            )}
+          </Upload>
+        </ProFormItem>
+
+        <ProFormItem label="按钮设置">
+          <Space direction={'vertical'} style={{ width: '100%' }}>
+            {btnList.map((btn: any, index: number) => {
+              return (
+                <Space.Compact style={{ width: '100%' }} key={index}>
+                  <Input
+                    style={{ width: '50%' }}
+                    value={btn.name}
+                    onChange={(event) => {
+                      setBtnList([
+                        ...btnList.map((d: any, i: number) => {
+                          if (i === index)
+                            return {
+                              ...d,
+                              name: event.target.value
+                            }
+                          return {
+                            ...d
+                          }
+                        })
+                      ])
+                    }}
+                  />
+                  <Input
+                    value={btn.link}
+                    onChange={(event) => {
+                      setBtnList([
+                        ...btnList.map((d: any, i: number) => {
+                          if (i === index)
+                            return {
+                              ...d,
+                              link: event.target.value
+                            }
+                          return {
+                            ...d
+                          }
+                        })
+                      ])
+                    }}
+                  />
+                  <Button
+                    type="primary"
+                    danger
+                    onClick={() => {
+                      console.log(btnList)
+                      setBtnList([
+                        ...btnList.map((d: any, i: number) => {
+                          if (i === index)
+                            return {
+                              name: '',
+                              link: ''
+                            }
+                          return {
+                            ...d
+                          }
+                        })
+                      ])
+                    }}
+                  >
+                    清除
+                  </Button>
+                </Space.Compact>
+              )
+            })}
+          </Space>
+        </ProFormItem>
+
+        <ProFormSwitch name="isActive" label="状态" />
       </ModalForm>
 
       <Image
