@@ -604,6 +604,16 @@ const OrderDetails: FC<Record<string, any>> = () => {
                                       {d.status === 2 && <span>商家审核通过，等待仓库发货</span>}
                                       {d.status === 6 && <span>订单正在退款处理中...</span>}
                                       {d.status === 8 && <span>订单正在售后处理中...</span>}
+
+                                      {d.status === 3 && (
+                                        <span>
+                                          {
+                                            orderInfo['fexExDetails']['trackResults'][0][
+                                              'scanEvents'
+                                            ][0]['eventDescription']
+                                          }
+                                        </span>
+                                      )}
                                     </Space>
                                   )
                                 })}
@@ -952,14 +962,34 @@ const OrderDetails: FC<Record<string, any>> = () => {
                       </Button>
                     )}
                     {perms.includes('edit-order') && orderInfo.status === 2 && (
-                      <Button
-                        type="primary"
-                        onClick={async () => {
-                          console.log(123)
+                      <ModalForm<{
+                        fexExNumber: string
+                      }>
+                        width={400}
+                        title="标记发货"
+                        trigger={<Button type="primary">标记发货</Button>}
+                        autoFocusFirstInput
+                        modalProps={{
+                          destroyOnClose: true
+                        }}
+                        onFinish={async (values) => {
+                          await axios
+                            .post(`/order/shipStart/${orderId}`, {
+                              ...values
+                            })
+                            .then(async () => {
+                              message.success('订单标记发货成功')
+                              getOrderDetails()
+                            })
+                          return true
                         }}
                       >
-                        标记发货
-                      </Button>
+                        <ProFormText
+                          name="fexExNumber"
+                          label="Fedex追踪单号"
+                          initialValue={orderInfo.fexExNumber || ''}
+                        />
+                      </ModalForm>
                     )}
                   </FooterToolbar>
                 )}
@@ -1033,7 +1063,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                 setIisModalOpen(false)
               }}
             >
-              Submit
+              确定
             </Button>
           ]}
           onOk={() => {
@@ -1043,30 +1073,44 @@ const OrderDetails: FC<Record<string, any>> = () => {
             setIisModalOpen(false)
           }}
         >
-          {orderInfo.statusMap?.length && (
-            <Space direction={'vertical'}>
-              {[
-                ...orderInfo.statusMap.filter((d: any) => ![6, 7].includes(d.status)),
-                {
-                  status: orderInfo.status,
-                  time: orderInfo.updateTime
-                }
-              ]
-                .reverse()
-                .map((d: any) => {
-                  return (
-                    <Space key={d.time} size={'middle'}>
-                      <span>[{d.time}]</span>
-                      {d.status === 0 && <span>订单已提交，等待用户支付</span>}
-                      {d.status === 1 && <span>订单已支付，等待用户审核</span>}
-                      {d.status === 2 && <span>商家审核通过，等待仓库发货</span>}
-                      {d.status === 6 && <span>订单正在退款处理中...</span>}
-                      {d.status === 8 && <span>订单正在售后处理中...</span>}
-                    </Space>
-                  )
-                })}
-            </Space>
-          )}
+          <div style={{ height: '500px', overflowY: 'auto' }}>
+            {orderInfo.statusMap?.length && (
+              <Space direction={'vertical'}>
+                {orderInfo['fexExDetails']['trackResults'][0]['scanEvents'] &&
+                  orderInfo['fexExDetails']['trackResults'][0]['scanEvents'].map((d: any) => {
+                    return (
+                      <Space key={d.time} size={'middle'}>
+                        <span>[{d['date'].substring(0, 16).replace('T', ' ')}]</span>
+
+                        <span>{d['eventDescription']}</span>
+                      </Space>
+                    )
+                  })}
+                {[
+                  ...orderInfo.statusMap.filter((d: any) => ![6, 7].includes(d.status)),
+                  {
+                    status: orderInfo.status,
+                    time: orderInfo.updateTime
+                  }
+                ]
+                  .reverse()
+                  .map((d: any) => {
+                    return (
+                      <Space key={d.time} size={'middle'}>
+                        <span>[{d.time}]</span>
+                        {d.status === 0 && <span>订单已提交，等待用户支付</span>}
+                        {d.status === 1 && <span>订单已支付，等待用户审核</span>}
+                        {d.status === 2 && <span>商家审核通过，等待仓库发货</span>}
+                        {d.status === 6 && <span>订单正在退款处理中...</span>}
+                        {d.status === 8 && <span>订单正在售后处理中...</span>}
+
+                        {d.status === 3 && <span>发送到联邦快递</span>}
+                      </Space>
+                    )
+                  })}
+              </Space>
+            )}
+          </div>
         </Modal>
       </Spin>
     </PageContainer>

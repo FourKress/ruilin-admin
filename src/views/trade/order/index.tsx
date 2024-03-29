@@ -262,21 +262,34 @@ function Order() {
               </a>
             )}
             {perms.includes('edit-order') && status === 2 && (
-              <a
-                key="price"
-                onClick={() => {
-                  confirm({
-                    title: '确认操作',
-                    content: '确认审核通过订单吗?',
-                    onOk: async () => {
-                      await axios.get(`/order/review/${record.id}`)
-                      message.success('订单确认成功')
-                    }
-                  })
+              <ModalForm<{
+                fexExNumber: string
+              }>
+                width={400}
+                title="标记发货"
+                trigger={<a key="ship">标记发货</a>}
+                autoFocusFirstInput
+                modalProps={{
+                  destroyOnClose: true
+                }}
+                onFinish={async (values) => {
+                  await axios
+                    .post(`/order/shipStart/${record.id}`, {
+                      ...values
+                    })
+                    .then(async () => {
+                      message.success('订单标记发货成功')
+                      actionRef.current?.reloadAndRest?.()
+                    })
+                  return true
                 }}
               >
-                标记发货
-              </a>
+                <ProFormText
+                  name="fexExNumber"
+                  label="Fedex追踪单号"
+                  initialValue={record.fexExNumber || ''}
+                />
+              </ModalForm>
             )}
             {perms.includes('edit-order') && record.fexExNumber && (
               <a
