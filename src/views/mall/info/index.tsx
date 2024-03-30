@@ -53,6 +53,7 @@ const Info: FC<Record<string, any>> = () => {
               ]
               form.setFieldsValue({
                 ...res,
+                phone: res.phone.replace('+86', ''),
                 fileInfo: { fileList: newFileList }
               })
               setFileList(newFileList)
