@@ -1,20 +1,37 @@
 import { FC, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { EyeOutlined, PlusOutlined } from '@ant-design/icons'
 import {
   FooterToolbar,
   PageContainer,
   ProForm,
+  ProFormItem,
   ProFormText,
   ProFormTextArea
 } from '@ant-design/pro-components'
-import { Button, Card, Col, message, Modal, Row, Space, Spin } from 'antd'
+import {
+  Button,
+  Card,
+  Col,
+  Descriptions,
+  Form,
+  Image,
+  message,
+  Modal,
+  Row,
+  Space,
+  Spin,
+  Upload
+} from 'antd'
 
 import axios from '@/utils/axios.ts'
-import { uploadFile } from '@/utils/fileUtils.ts'
+import { checkFileSize, uploadFile } from '@/utils/fileUtils.ts'
 import Banner from '@/views/product/list/details/banner.tsx'
 import Color from '@/views/product/list/details/color.tsx'
 import Sku from '@/views/product/list/details/sku.tsx'
 import Unit from '@/views/product/list/details/unit.tsx'
+
+import './style.scss'
 
 const { confirm } = Modal
 
@@ -38,6 +55,13 @@ const ProductDetails: FC<Record<string, any>> = () => {
   const detailsRef = useRef<any>()
   const colorRef = useRef<any>()
   const skuRef = useRef<any>()
+
+  const [fileList, setFileList] = useState<any>([])
+  const [form] = Form.useForm()
+  const [previewInfo, setPreviewInfo] = useState({
+    visible: false,
+    url: ''
+  })
 
   const handleFileUpdate = async (file: any) => {
     const { uid, type, name } = file
@@ -82,7 +106,6 @@ const ProductDetails: FC<Record<string, any>> = () => {
       [...imageFileList, ...videoFileList].map(async (d: any) => {
         const { type } = d
         const result = await handleFileUpdate(d)
-        console.log(1111)
         if (type.includes('video')) {
           videoList.push(result)
         } else {
@@ -90,7 +113,6 @@ const ProductDetails: FC<Record<string, any>> = () => {
         }
       })
     )
-    console.log(2)
     await axios.post(`/product-banner/edit`, {
       imageList,
       videoList,
@@ -196,9 +218,22 @@ const ProductDetails: FC<Record<string, any>> = () => {
   }
 
   const handleUpdateProductInfo = async (values: any): Promise<any> => {
+    const { fileInfo } = values
+    const fileList = fileInfo?.fileList || []
+    let objectKey
+    if (fileList.length) {
+      const file = fileList[0]
+      if (file.status === 'done') {
+        objectKey = file.objectKey
+      } else {
+        const result = await handleFileUpdate(file)
+        objectKey = result.objectKey
+      }
+    }
     return await axios.post(`/product/${productId ? 'update' : 'create'}`, {
       ...values,
-      id: productId || undefined
+      id: productId || undefined,
+      objectKey
     })
   }
 
@@ -411,6 +446,13 @@ const ProductDetails: FC<Record<string, any>> = () => {
       })
   }
 
+  const uploadButton = isEdit && (
+    <button style={{ border: 0, background: 'none' }} type="button">
+      <PlusOutlined />
+      <div>上传</div>
+    </button>
+  )
+
   return (
     <PageContainer
       breadcrumbRender={false}
@@ -437,9 +479,10 @@ const ProductDetails: FC<Record<string, any>> = () => {
         spinning={loading}
       />
       <ProForm
-        className={'series-details'}
+        className={'product-details'}
         layout="horizontal"
-        initialValues={{ name: '', desc: '', code: '' }}
+        initialValues={{ name: '', desc: '', code: '', fileInfo: null }}
+        form={form}
         submitter={
           isEdit
             ? {
@@ -481,22 +524,21 @@ const ProductDetails: FC<Record<string, any>> = () => {
                       <Button
                         type="primary"
                         onClick={async () => {
-                          confirm({
-                            title: '确认操作',
-                            content: '确认保存并上架该商品吗?',
-                            onOk() {
-                              props.form
-                                ?.validateFields?.()
-                                .then(async (values: Record<string, any>) => {
-                                  console.log(values)
-                                  const saveStatus = await handleSave(values, true)
-                                  console.log(saveStatus)
-                                  if (!saveStatus) return
-                                  setLoading(true)
-                                  handleActive()
-                                })
-                            }
-                          })
+                          props.form
+                            ?.validateFields?.()
+                            .then(async (values: Record<string, any>) => {
+                              confirm({
+                                title: '确认操作',
+                                content: '确认保存并上架该商品吗?',
+                                onOk() {
+                                  handleSave(values, true).then((saveStatus) => {
+                                    if (!saveStatus) return
+                                    setLoading(true)
+                                    handleActive()
+                                  })
+                                }
+                              })
+                            })
                         }}
                       >
                         保存并上架
@@ -514,17 +556,30 @@ const ProductDetails: FC<Record<string, any>> = () => {
         request={async () => {
           if (productId) {
             const res: any = await axios.get(`/product/details/${productId}`)
-            const { code, name, desc, online_code, online_name, online_desc } = res
+            const { code, name, desc, online_code, online_name, online_desc, objectKey, url } = res
+            let newFileList: any[] = []
+            if (objectKey) {
+              newFileList = [
+                {
+                  status: 'done',
+                  objectKey,
+                  url
+                }
+              ]
+              setFileList(newFileList)
+            }
             if (isEdit)
               return {
                 name,
                 code,
-                desc
+                desc,
+                fileInfo: { fileList: newFileList }
               }
             return {
               code: online_code,
               name: online_name,
-              desc: online_desc
+              desc: online_desc,
+              fileInfo: { fileList: newFileList }
             }
           }
           return {}
@@ -567,6 +622,84 @@ const ProductDetails: FC<Record<string, any>> = () => {
                 placeholder="请输入商品编码"
               />
             </Col>
+            <Col>
+              <ProFormItem
+                name="fileInfo"
+                label="商品Banner"
+                rules={[
+                  {
+                    required: true,
+                    message: '请选择图片'
+                  },
+                  () => ({
+                    validator(_, value) {
+                      if (value && !value.fileList.length) {
+                        return Promise.reject(new Error('请选择图片'))
+                      }
+                      return Promise.resolve()
+                    }
+                  })
+                ]}
+              >
+                <Descriptions title="">
+                  <Descriptions.Item
+                    label="素材限制"
+                    contentStyle={{ color: 'rgba(0, 0, 0, 0.45)' }}
+                  >
+                    图片宽高比例建议为1920:400。大小10M以内
+                  </Descriptions.Item>
+                </Descriptions>
+                <Upload
+                  className={'banner-upload'}
+                  accept={'.png,.jpg,.jpeg'}
+                  listType="picture-card"
+                  fileList={fileList}
+                  maxCount={1}
+                  onChange={async ({ file, fileList: newFileList }) => {
+                    if (newFileList.length && !checkFileSize(file)) {
+                      return
+                    }
+                    form.setFieldValue('fileInfo', { fileList: [...newFileList] })
+                    setFileList(newFileList)
+                    await form.validateFields()
+                  }}
+                  onRemove={() => {
+                    setFileList([])
+                  }}
+                  beforeUpload={() => false}
+                  onPreview={(file) => {
+                    const url = file.url || file.thumbUrl
+                    if (!url) return
+                    setPreviewInfo({
+                      visible: true,
+                      url
+                    })
+                  }}
+                  itemRender={(originNode, file) => {
+                    return (
+                      <div className={originNode.props.className}>
+                        {originNode.props.children[0]}
+                        <div className={originNode.props.children[2].props.className}>
+                          <EyeOutlined
+                            onClick={() => {
+                              const url = file.url || file.thumbUrl
+                              if (!url) return
+                              setPreviewInfo({
+                                visible: true,
+                                url
+                              })
+                            }}
+                          />
+                          {isEdit && originNode.props.children[2].props.children[2]}
+                        </div>
+                      </div>
+                    )
+                  }}
+                >
+                  {fileList.length >= 1 ? null : uploadButton}
+                </Upload>
+              </ProFormItem>
+            </Col>
           </Row>
         </Card>
       </ProForm>
@@ -592,6 +725,22 @@ const ProductDetails: FC<Record<string, any>> = () => {
       <Card title="SKU管理" bordered={false}>
         <Sku ref={skuRef} colorList={colorList} unitList={unitList} />
       </Card>
+
+      <Image
+        width={200}
+        style={{ display: 'none' }}
+        preview={{
+          visible: previewInfo.visible,
+          src: previewInfo.url,
+          onVisibleChange: (value) => {
+            setPreviewInfo({
+              visible: value,
+              url: ''
+            })
+          },
+          toolbarRender: () => <span></span>
+        }}
+      />
     </PageContainer>
   )
 }

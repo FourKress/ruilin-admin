@@ -1,0 +1,17 @@
+.product-details {
+  margin-top: -10px;
+
+  .ant-pro-card-body {
+    padding: 0;
+  }
+
+  .banner-upload {
+    .ant-upload-list-item-container, .ant-upload-select {
+      width: 52px !important;
+      height: 52px !important;
+    }
+    .ant-upload-select, .ant-upload-list-item-container {
+      margin-bottom:  0 !important;
+    }
+  }
+}

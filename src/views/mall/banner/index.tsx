@@ -252,7 +252,6 @@ function Banner() {
   const handleUpdate = async (data: any) => {
     const id = form.getFieldValue('id')
     const { mobileFileInfo = {}, pcFileInfo = {}, ...other } = data
-    console.log(data)
     let objectKeyMobile
     if (mobileFileInfo?.fileList && mobileFileInfo.fileList?.length) {
       const [file] = mobileFileInfo.fileList
@@ -423,7 +422,7 @@ function Banner() {
         <ProFormItem name="pcFileInfo" label="PC端图片">
           <Descriptions title="">
             <Descriptions.Item label="素材限制" contentStyle={{ color: 'rgba(0, 0, 0, 0.45)' }}>
-              图片宽高比例为16:9。图片宽高均大于1200px，大小10M以内
+              图片宽高比例建议为1920:900。大小10M以内
             </Descriptions.Item>
           </Descriptions>
           <Upload

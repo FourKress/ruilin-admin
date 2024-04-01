@@ -314,7 +314,7 @@ const Sku = forwardRef<SkuRef, { colorList: any[]; unitList: any[] }>(
         {isEdit && (
           <ProForm
             form={form}
-            className={'series-details'}
+            className={'sku-details'}
             layout="inline"
             submitter={false}
             initialValues={{ isActive: undefined, stock: undefined, price: undefined }}
