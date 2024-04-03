@@ -218,7 +218,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
   }
 
   const handleUpdateProductInfo = async (values: any): Promise<any> => {
-    const { fileInfo } = values
+    const { fileInfo, ...other } = values
     const fileList = fileInfo?.fileList || []
     let objectKey
     if (fileList.length) {
@@ -231,7 +231,7 @@ const ProductDetails: FC<Record<string, any>> = () => {
       }
     }
     return await axios.post(`/product/${productId ? 'update' : 'create'}`, {
-      ...values,
+      ...other,
       id: productId || undefined,
       objectKey
     })
