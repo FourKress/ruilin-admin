@@ -88,10 +88,12 @@ function Banner() {
     },
     {
       title: '主标题',
+      ellipsis: true,
       dataIndex: 'name'
     },
     {
       title: '副标题',
+      ellipsis: true,
       dataIndex: 'subtitle'
     },
     {
