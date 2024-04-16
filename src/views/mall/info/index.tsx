@@ -160,7 +160,7 @@ const Info: FC<Record<string, any>> = () => {
             >
               <Descriptions title="">
                 <Descriptions.Item label="素材限制" contentStyle={{ color: 'rgba(0, 0, 0, 0.45)' }}>
-                  图片宽高比例为2:1。图片宽高均大于1200px，大小10M以内
+                  图片宽高比例为2:1。图片宽高均大于120px，大小1M以内
                 </Descriptions.Item>
               </Descriptions>
               <Upload
