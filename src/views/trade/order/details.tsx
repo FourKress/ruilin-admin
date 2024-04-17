@@ -599,6 +599,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                                   return (
                                     <Space key={index} size={'middle'}>
                                       <span>[{d.time}]</span>
+                                      {d.status === -1 && <span>订单已关闭</span>}
                                       {d.status === 0 && <span>订单已提交，等待用户支付</span>}
                                       {d.status === 1 && <span>订单已支付，等待用户审核</span>}
                                       {d.status === 2 && <span>商家审核通过，等待仓库发货</span>}
@@ -1074,7 +1075,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
           }}
         >
           <div style={{ height: '500px', overflowY: 'auto' }}>
-            {orderInfo.statusMap?.length && (
+            {orderInfo.statusMap?.length && orderInfo['fexExDetails'] && (
               <Space direction={'vertical'}>
                 {orderInfo['fexExDetails']['trackResults'][0]['scanEvents'] &&
                   orderInfo['fexExDetails']['trackResults'][0]['scanEvents'].map((d: any) => {
@@ -1098,6 +1099,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                     return (
                       <Space key={d.time} size={'middle'}>
                         <span>[{d.time}]</span>
+                        {d.status === -1 && <span>订单已关闭</span>}
                         {d.status === 0 && <span>订单已提交，等待用户支付</span>}
                         {d.status === 1 && <span>订单已支付，等待用户审核</span>}
                         {d.status === 2 && <span>商家审核通过，等待仓库发货</span>}
