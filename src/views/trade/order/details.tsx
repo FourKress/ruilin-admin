@@ -704,6 +704,11 @@ const OrderDetails: FC<Record<string, any>> = () => {
                         children: `$ ${orderInfo.totalAmount}`
                       },
                       {
+                        key: '91',
+                        label: '客户备注',
+                        children: orderInfo.customerRemark || '-'
+                      },
+                      {
                         key: '3',
                         label: '满减',
                         children: orderInfo.ruleAmount ? `$ ${orderInfo.ruleAmount}` : '-'

@@ -1,7 +1,7 @@
-import { useRef } from 'react'
+import React, { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons'
-import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components'
+import { ActionType, DragSortTable, PageContainer, ProColumns } from '@ant-design/pro-components'
 import { Badge, Button, Descriptions, message, Modal, Select, Space, Tag, Tooltip } from 'antd'
 import lodash from 'lodash'
 
@@ -16,7 +16,16 @@ function ProductList() {
   const actionRef = useRef<ActionType>()
   const navigate = useNavigate()
 
+  const [loading, setLoading] = React.useState<boolean>(false)
+
   const columns: ProColumns[] = [
+    {
+      title: '排序',
+      dataIndex: 'sort',
+      width: 60,
+      className: 'drag-visible',
+      hideInSearch: true
+    },
     {
       title: '商品名称',
       dataIndex: 'name',
@@ -249,9 +258,32 @@ function ProductList() {
       })
   }
 
+  const handleDragSortEnd = async (
+    _beforeIndex: number,
+    _afterIndex: number,
+    newDataSource: any
+  ) => {
+    setLoading(true)
+    const ids = newDataSource.map((d: any) => d.id)
+    axios
+      .post(`/product/batchSort`, {
+        ids
+      })
+      .then(async () => {
+        message.success('排序成功')
+        actionRef.current?.reloadAndRest?.()
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }
+
   return (
     <PageContainer breadcrumbRender={false}>
-      <ProTable
+      <DragSortTable
+        dragSortKey="sort"
+        onDragSortEnd={handleDragSortEnd}
+        loading={loading}
         rowKey="id"
         headerTitle="商品列表"
         actionRef={actionRef}
@@ -274,6 +306,7 @@ function ProductList() {
         ]}
         request={async (params) => {
           const { pageSize, current, ...other } = params
+          setLoading(true)
           const { records, total }: { records: any; total: number } = await axios.post(
             '/product/page',
             {
@@ -282,16 +315,14 @@ function ProductList() {
               ...lodash.omitBy(other, (value) => !value && value !== false)
             }
           )
+          setLoading(false)
           return {
             data: records,
             total,
             success: true
           }
         }}
-        pagination={{
-          pageSize: 20,
-          hideOnSinglePage: true
-        }}
+        pagination={false}
       />
     </PageContainer>
   )

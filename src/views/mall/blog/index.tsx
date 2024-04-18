@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CloseCircleFilled, PlusOutlined } from '@ant-design/icons'
 import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components'
-import { Badge, Button, DatePicker, Image, message, Modal, Select } from 'antd'
+import { Badge, Button, DatePicker, Image, message, Modal, Select, Space } from 'antd'
 import dayjs from 'dayjs'
 import lodash from 'lodash'
 
@@ -34,6 +34,18 @@ function BlogPage() {
       actionRef.current?.reloadAndRest?.()
       message.success('删除博客成功')
     })
+  }
+
+  const handleTop = async (data: any) => {
+    await axios
+      .post(`/blog/top`, {
+        id: data.id,
+        isTop: !data.isTop
+      })
+      .then(async () => {
+        message.success(`博客${data.isTop ? '取消置顶' : '置顶'}成功`)
+        actionRef.current?.reloadAndRest?.()
+      })
   }
 
   const columns: ProColumns[] = [
@@ -80,6 +92,29 @@ function BlogPage() {
       }
     },
     {
+      title: '是否置顶',
+      dataIndex: 'isTop',
+      defaultFilteredValue: null,
+      render: (status) => {
+        const color = status ? 'blue' : 'red'
+        return [<Badge key={color} color={color} text={status ? '已置顶' : '未置顶'} />]
+      },
+      renderFormItem: () => {
+        return (
+          <Select
+            placeholder={'请选择'}
+            allowClear={{
+              clearIcon: <CloseCircleFilled />
+            }}
+            options={[
+              { value: true, label: '已置顶' },
+              { value: false, label: '未置顶' }
+            ]}
+          />
+        )
+      }
+    },
+    {
       title: '状态',
       dataIndex: 'isActive',
       render: (status) => {
@@ -106,52 +141,70 @@ function BlogPage() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 100,
+      width: 60,
       render: (_, record) => {
-        return [
-          perms.includes('delete-blog') && (
-            <a
-              key="delete"
-              onClick={() => {
-                confirm({
-                  title: '确认操作',
-                  content: '确认删除博客吗?',
-                  onOk: async () => {
-                    await handleDelete(record)
-                  }
-                })
-              }}
-            >
-              删除
-            </a>
-          ),
-          perms.includes('edit-blog') && (
-            <a
-              key="active"
-              onClick={() => {
-                confirm({
-                  title: '确认操作',
-                  content: '确认更改博客状态吗?',
-                  onOk: async () => {
-                    await handleActive(record)
-                  }
-                })
-              }}
-            >
-              {record.isActive ? '下架' : '上架'}
-            </a>
-          ),
-          perms.includes('edit-blog') && (
-            <a
-              key="details"
-              onClick={() => {
-                navigate(`/mall/blog/details/${record.id}`)
-              }}
-            >
-              详情
-            </a>
-          )
-        ]
+        return (
+          <Space direction={'vertical'}>
+            {perms.includes('delete-blog') && (
+              <a
+                key="delete"
+                onClick={() => {
+                  confirm({
+                    title: '确认操作',
+                    content: '确认删除博客吗?',
+                    onOk: async () => {
+                      await handleDelete(record)
+                    }
+                  })
+                }}
+              >
+                删除
+              </a>
+            )}
+            {perms.includes('edit-review') && (
+              <a
+                key="top"
+                onClick={() => {
+                  confirm({
+                    title: '确认操作',
+                    content: '确认更改博客置顶状态吗?',
+                    onOk: async () => {
+                      await handleTop(record)
+                    }
+                  })
+                }}
+              >
+                {record.isTop ? '取消置顶' : '置顶'}
+              </a>
+            )}
+            {perms.includes('edit-blog') && (
+              <a
+                key="active"
+                onClick={() => {
+                  confirm({
+                    title: '确认操作',
+                    content: '确认更改博客状态吗?',
+                    onOk: async () => {
+                      await handleActive(record)
+                    }
+                  })
+                }}
+              >
+                {record.isActive ? '下架' : '上架'}
+              </a>
+            )}
+            {perms.includes('edit-blog') && (
+              <a
+                key="details"
+                onClick={() => {
+                  navigate(`/mall/blog/details/${record.id}`)
+                }}
+              >
+                详情
+              </a>
+            )}
+          </Space>
+        )
       }
     }
   ]

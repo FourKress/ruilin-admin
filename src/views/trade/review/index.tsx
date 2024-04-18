@@ -153,7 +153,7 @@ function ReviewList() {
       dataIndex: 'option',
       valueType: 'option',
       ellipsis: false,
-      width: 100,
+      width: 60,
       render: (_, record: Record<string, any>) => {
         return (
           <Space direction={'vertical'}>

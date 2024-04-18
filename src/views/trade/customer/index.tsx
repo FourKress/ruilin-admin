@@ -35,6 +35,10 @@ function Customer() {
       }
     },
     {
+      title: '地址',
+      dataIndex: 'address'
+    },
+    {
       title: '订单数',
       hideInSearch: true,
       dataIndex: 'orderList',

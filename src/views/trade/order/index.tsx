@@ -207,6 +207,15 @@ function Order() {
       }
     },
     {
+      title: '客户备注',
+      dataIndex: 'customerRemark',
+      hideInSearch: true,
+      width: 200,
+      render: (_, record: Record<string, any>) => {
+        return <span>{record.customerRemark || '--'}</span>
+      }
+    },
+    {
       title: '订单状态',
       dataIndex: 'status',
       hideInSearch: true,
