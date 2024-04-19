@@ -258,11 +258,10 @@ const Dashboard: FC<Record<string, any>> = () => {
                   formatter={() => {
                     return details?.orderList ? (
                       <span>
-                        $
                         {details?.orderList
                           .filter((d: any) => [1, 2, 3, 4, 5].includes(d.status))
                           .reduce((sum: any, cur: any) => {
-                            return currency(sum).add(cur['payAmount']).value
+                            return currency(sum).add(cur['payAmount']).format()
                           }, 0)}
                       </span>
                     ) : (
@@ -282,7 +281,7 @@ const Dashboard: FC<Record<string, any>> = () => {
               </ProCard>
               <ProCard>
                 <Statistic
-                  title={'转换率'}
+                  title={'转化率'}
                   precision={0}
                   formatter={() => {
                     return <span>{proportion * 100}%</span>
