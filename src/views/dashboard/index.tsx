@@ -265,7 +265,7 @@ const Dashboard: FC<Record<string, any>> = () => {
                           }, 0)}
                       </span>
                     ) : (
-                      <span>0</span>
+                      <span>$0.00</span>
                     )
                   }}
                 />
