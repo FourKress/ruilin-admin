@@ -262,7 +262,7 @@ const Dashboard: FC<Record<string, any>> = () => {
                           .filter((d: any) => [1, 2, 3, 4, 5].includes(d.status))
                           .reduce((sum: any, cur: any) => {
                             return currency(sum).add(cur['payAmount']).format()
-                          }, 0)}
+                          }, 0) || '$0.00'}
                       </span>
                     ) : (
                       <span>$0.00</span>
