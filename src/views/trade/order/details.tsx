@@ -28,6 +28,7 @@ import {
   Steps
 } from 'antd'
 import currency from 'currency.js'
+import dayjs from 'dayjs'
 
 import axios from '@/utils/axios.ts'
 
@@ -672,7 +673,9 @@ const OrderDetails: FC<Record<string, any>> = () => {
                         {
                           key: '3',
                           label: '发货时间',
-                          children: orderInfo.shippingTime || '-'
+                          children: orderInfo.shippingTime
+                            ? dayjs(Number(orderInfo.shippingTime)).format('YYYY-MM-DD HH:mm:ss')
+                            : '-'
                         },
                         {
                           key: '4',
@@ -1083,15 +1086,17 @@ const OrderDetails: FC<Record<string, any>> = () => {
             {orderInfo.statusMap?.length && orderInfo['fexExDetails'] && (
               <Space direction={'vertical'}>
                 {orderInfo['fexExDetails']['trackResults'][0]['scanEvents'] &&
-                  orderInfo['fexExDetails']['trackResults'][0]['scanEvents'].map((d: any) => {
-                    return (
-                      <Space key={d.time} size={'middle'}>
-                        <span>[{d['date'].substring(0, 16).replace('T', ' ')}]</span>
+                  orderInfo['fexExDetails']['trackResults'][0]['scanEvents'].map(
+                    (d: any, index: number) => {
+                      return (
+                        <Space key={index} size={'middle'}>
+                          <span>[{d['date'].substring(0, 16).replace('T', ' ')}]</span>
 
-                        <span>{d['eventDescription']}</span>
-                      </Space>
-                    )
-                  })}
+                          <span>{d['eventDescription']}</span>
+                        </Space>
+                      )
+                    }
+                  )}
                 {[
                   ...orderInfo.statusMap.filter((d: any) => ![6, 7].includes(d.status)),
                   {
