@@ -12,7 +12,7 @@ import {
   ProTable
 } from '@ant-design/pro-components'
 import { useSessionStorageState } from 'ahooks'
-import { Badge, Descriptions, message, Modal, Space, Statistic, Tag } from 'antd'
+import { Badge, Button, Descriptions, message, Space, Statistic, Tag } from 'antd'
 import currency from 'currency.js'
 import dayjs from 'dayjs'
 import lodash from 'lodash'
@@ -21,8 +21,6 @@ import axios from '@/utils/axios.ts'
 import { getPriceRange, handleCopy, orderStatusTipsMap } from '@/views/trade/utils.ts'
 
 import '../style.scss'
-
-const { confirm } = Modal
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
@@ -252,24 +250,6 @@ function Order() {
         const status = record.status
         return (
           <Space direction={'vertical'}>
-            {perms.includes('edit-order') && status === 1 && (
-              <a
-                key="price"
-                onClick={() => {
-                  confirm({
-                    title: '确认操作',
-                    content: '确认审核通过订单吗?',
-                    onOk: async () => {
-                      await axios.get(`/order/review/${record.id}`)
-                      message.success('订单确认成功')
-                      actionRef.current?.reloadAndRest?.()
-                    }
-                  })
-                }}
-              >
-                确认订单
-              </a>
-            )}
             {perms.includes('edit-order') && status === 2 && (
               <ModalForm<{
                 fexExNumber: string
@@ -301,20 +281,42 @@ function Order() {
               </ModalForm>
             )}
             {perms.includes('edit-order') && record.fexExNumber && (
-              <a
-                key="price"
-                onClick={() => {
-                  confirm({
-                    title: '确认操作',
-                    content: '确认更改客户状态吗?',
-                    onOk: async () => {
-                      console.log('查看物流')
-                    }
-                  })
+              <ModalForm
+                width={500}
+                title="物流详情"
+                trigger={
+                  <span style={{ color: '#1677ff', fontSize: '12px', cursor: 'pointer' }}>
+                    查看物流
+                  </span>
+                }
+                modalProps={{
+                  destroyOnClose: true,
+                  footer: (
+                    <Button key="submit" type="primary">
+                      确定
+                    </Button>
+                  )
                 }}
               >
-                查看物流
-              </a>
+                <div style={{ height: '500px', overflowY: 'auto' }}>
+                  {record.statusMap?.length && record['fexExDetails'] && (
+                    <Space direction={'vertical'}>
+                      {record['fexExDetails']['trackResults'][0]['scanEvents'] &&
+                        record['fexExDetails']['trackResults'][0]['scanEvents'].map(
+                          (d: any, index: number) => {
+                            return (
+                              <Space key={index} size={'middle'}>
+                                <span>[{d['date'].substring(0, 16).replace('T', ' ')}]</span>
+
+                                <span>{d['eventDescription']}</span>
+                              </Space>
+                            )
+                          }
+                        )}
+                    </Space>
+                  )}
+                </div>
+              </ModalForm>
             )}
             {perms.includes('edit-order') && (
               <a
@@ -434,7 +436,6 @@ function Order() {
 
   const statisticList = [
     { status: 0, count: 0, notifyCount: 0, title: '待支付' },
-    { status: 1, count: 0, notifyCount: 0, title: '待审核' },
     { status: 2, count: 0, notifyCount: 0, title: '待发货' },
     { status: 3, count: 0, notifyCount: 0, title: '运输中' },
     { status: 4, count: 0, notifyCount: 0, title: '待收货' },
@@ -535,10 +536,6 @@ function Order() {
               {
                 key: '0',
                 label: <span>待支付</span>
-              },
-              {
-                key: '1',
-                label: <span>待审核</span>
               },
               {
                 key: '2',

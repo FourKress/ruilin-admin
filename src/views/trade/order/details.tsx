@@ -45,7 +45,6 @@ const { perms = [] } = userInfo
 const orderStatusTipsMap: Record<any, any> = {
   '-1': '已关闭', // 已关闭
   0: '待支付', // 待支付
-  1: '待审核', // 待审核
   2: '待发货', //待发货
   3: '运输中', // 运输中
   4: '待收货', //待收货
@@ -69,10 +68,6 @@ const OrderDetails: FC<Record<string, any>> = () => {
     {
       title: '支付',
       value: 0
-    },
-    {
-      title: '审核',
-      value: 1
     },
     {
       title: '发货',
@@ -602,10 +597,11 @@ const OrderDetails: FC<Record<string, any>> = () => {
                                       <span>[{d.time}]</span>
                                       {d.status === -1 && <span>订单已关闭</span>}
                                       {d.status === 0 && <span>订单已提交，等待用户支付</span>}
-                                      {d.status === 1 && <span>订单已支付，等待用户审核</span>}
-                                      {d.status === 2 && <span>商家审核通过，等待仓库发货</span>}
+                                      {d.status === 2 && <span>订单已支付，等待仓库发货</span>}
                                       {d.status === 6 && <span>订单正在退款处理中...</span>}
                                       {d.status === 8 && <span>订单正在售后处理中...</span>}
+                                      {d.status === 4 && <span>订单已送达, 待收货</span>}
+                                      {d.status === 5 && <span>订单已收货</span>}
 
                                       {d.status === 3 && (
                                         <span>
@@ -922,31 +918,25 @@ const OrderDetails: FC<Record<string, any>> = () => {
                       </Space>
                     }
                   >
-                    {perms.includes('edit-order') && [1, 8].includes(orderInfo.status) && (
+                    {perms.includes('edit-order') && 8 === orderInfo.status && (
                       <Button
                         type="primary"
                         onClick={async () => {
                           confirm({
                             title: '确认操作',
-                            content: `确认${orderInfo.status === 1 ? '审核通过订单' : '退款'}吗?`,
+                            content: `确认退款吗?`,
                             onOk: async () => {
-                              if (orderInfo.status === 1) {
-                                await axios.get(`/order/review/${orderId}`)
-                                message.success('订单审核成功')
-                              } else {
-                                await axios.post(`/order/refundAction`, {
-                                  id: orderId,
-                                  status: true
-                                })
-                                message.success('确认退款成功')
-                              }
-
+                              await axios.post(`/order/refundAction`, {
+                                id: orderId,
+                                status: true
+                              })
+                              message.success('确认退款成功')
                               navigate('/trade/order')
                             }
                           })
                         }}
                       >
-                        {orderInfo.status === 1 ? '通过审核' : '确认退款'}
+                        确认退款
                       </Button>
                     )}
                     {perms.includes('edit-order') && orderInfo.status === 8 && (
@@ -1085,6 +1075,24 @@ const OrderDetails: FC<Record<string, any>> = () => {
           <div style={{ height: '500px', overflowY: 'auto' }}>
             {orderInfo.statusMap?.length && orderInfo['fexExDetails'] && (
               <Space direction={'vertical'}>
+                {[
+                  ...orderInfo.statusMap,
+                  {
+                    status: orderInfo.status,
+                    time: orderInfo.updateTime
+                  }
+                ]
+                  .filter((d: any) => [4, 5].includes(d.status))
+                  .reverse()
+                  .map((d: any) => {
+                    return (
+                      <Space key={d.time} size={'middle'}>
+                        <span>[{d.time}]</span>
+                        {d.status === 4 && <span>订单已送达, 待收货</span>}
+                        {d.status === 5 && <span>订单已收货</span>}
+                      </Space>
+                    )
+                  })}
                 {orderInfo['fexExDetails']['trackResults'][0]['scanEvents'] &&
                   orderInfo['fexExDetails']['trackResults'][0]['scanEvents'].map(
                     (d: any, index: number) => {
@@ -1098,12 +1106,13 @@ const OrderDetails: FC<Record<string, any>> = () => {
                     }
                   )}
                 {[
-                  ...orderInfo.statusMap.filter((d: any) => ![6, 7].includes(d.status)),
+                  ...orderInfo.statusMap,
                   {
                     status: orderInfo.status,
                     time: orderInfo.updateTime
                   }
                 ]
+                  .filter((d: any) => ![4, 5, 6, 7].includes(d.status))
                   .reverse()
                   .map((d: any) => {
                     return (
@@ -1111,8 +1120,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
                         <span>[{d.time}]</span>
                         {d.status === -1 && <span>订单已关闭</span>}
                         {d.status === 0 && <span>订单已提交，等待用户支付</span>}
-                        {d.status === 1 && <span>订单已支付，等待用户审核</span>}
-                        {d.status === 2 && <span>商家审核通过，等待仓库发货</span>}
+                        {d.status === 2 && <span>订单已支付，等待仓库发货</span>}
                         {d.status === 6 && <span>订单正在退款处理中...</span>}
                         {d.status === 8 && <span>订单正在售后处理中...</span>}
 

@@ -27,7 +27,6 @@ export const handleCopy = (text: string) => {
 export const orderStatusTipsMap: Record<any, any> = {
   '-1': '已关闭', // 已关闭
   0: '待支付', // 待支付
-  1: '待审核', // 待审核
   2: '待发货', //待发货
   3: '运输中', // 运输中
   4: '待收货', //待收货

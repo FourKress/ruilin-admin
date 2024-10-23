@@ -18,7 +18,6 @@ import {
   Descriptions,
   Flex,
   message,
-  Modal,
   Select,
   Space,
   Spin,
@@ -32,8 +31,6 @@ import axios from '@/utils/axios.ts'
 import { getPriceRange, handleCopy, orderStatusTipsMap } from '@/views/trade/utils.ts'
 
 import '../style.scss'
-
-const { confirm } = Modal
 
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const { perms = [] } = userInfo
@@ -236,10 +233,6 @@ const CustomerDetails: FC<Record<string, any>> = () => {
                 label: <span>待支付</span>
               },
               {
-                value: '1',
-                label: <span>待审核</span>
-              },
-              {
                 value: '2',
                 label: <span>待发货</span>
               },
@@ -283,59 +276,78 @@ const CustomerDetails: FC<Record<string, any>> = () => {
         const status = record.status
         return (
           <Space direction={'vertical'}>
-            {perms.includes('edit-order') && perms.includes('details-customer') && status === 1 && (
-              <a
-                key="price"
-                onClick={() => {
-                  confirm({
-                    title: '确认操作',
-                    content: '确认审核通过订单吗?',
-                    onOk: async () => {
-                      await axios.get(`/order/review/${record.id}`)
-                      message.success('订单确认成功')
-                      actionRef.current?.reloadAndRest?.()
-                    }
-                  })
-                }}
-              >
-                确认订单
-              </a>
-            )}
             {perms.includes('edit-order') && perms.includes('details-customer') && status === 2 && (
-              <a
-                key="price"
-                onClick={() => {
-                  confirm({
-                    title: '确认操作',
-                    content: '确认审核通过订单吗?',
-                    onOk: async () => {
-                      await axios.get(`/order/review/${record.id}`)
-                      message.success('订单确认成功')
-                    }
-                  })
+              <ModalForm<{
+                fexExNumber: string
+              }>
+                width={400}
+                title="标记发货"
+                trigger={<a key="ship">标记发货</a>}
+                autoFocusFirstInput
+                modalProps={{
+                  destroyOnClose: true
+                }}
+                onFinish={async (values) => {
+                  await axios
+                    .post(`/order/shipStart/${record.id}`, {
+                      ...values
+                    })
+                    .then(async () => {
+                      message.success('订单标记发货成功')
+                      actionRef.current?.reloadAndRest?.()
+                    })
+                  return true
                 }}
               >
-                标记发货
-              </a>
+                <ProFormText
+                  name="fexExNumber"
+                  label="Fedex追踪单号"
+                  initialValue={record.fexExNumber || ''}
+                />
+              </ModalForm>
             )}
+
             {perms.includes('edit-order') &&
               perms.includes('details-customer') &&
               record.fexExNumber && (
-                <a
-                  key="price"
-                  onClick={() => {
-                    confirm({
-                      title: '确认操作',
-                      content: '确认更改客户状态吗?',
-                      onOk: async () => {
-                        console.log('查看物流')
-                      }
-                    })
+                <ModalForm
+                  width={500}
+                  title="物流详情"
+                  trigger={
+                    <span style={{ color: '#1677ff', fontSize: '12px', cursor: 'pointer' }}>
+                      查看物流
+                    </span>
+                  }
+                  modalProps={{
+                    destroyOnClose: true,
+                    footer: (
+                      <Button key="submit" type="primary">
+                        确定
+                      </Button>
+                    )
                   }}
                 >
-                  查看物流
-                </a>
+                  <div style={{ height: '500px', overflowY: 'auto' }}>
+                    {record.statusMap?.length && record['fexExDetails'] && (
+                      <Space direction={'vertical'}>
+                        {record['fexExDetails']['trackResults'][0]['scanEvents'] &&
+                          record['fexExDetails']['trackResults'][0]['scanEvents'].map(
+                            (d: any, index: number) => {
+                              return (
+                                <Space key={index} size={'middle'}>
+                                  <span>[{d['date'].substring(0, 16).replace('T', ' ')}]</span>
+
+                                  <span>{d['eventDescription']}</span>
+                                </Space>
+                              )
+                            }
+                          )}
+                      </Space>
+                    )}
+                  </div>
+                </ModalForm>
               )}
+
             {perms.includes('edit-order') && perms.includes('details-customer') && (
               <a
                 key="details"
