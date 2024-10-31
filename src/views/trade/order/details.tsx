@@ -613,10 +613,10 @@ const OrderDetails: FC<Record<string, any>> = () => {
                                     </Space>
                                   )
                                 })}
-                              {orderInfo.statusMap?.length > 2 && (
+                              {orderInfo.statusMap?.length >= 2 && (
                                 <EllipsisOutlined style={{ fontSize: '24px' }} />
                               )}
-                              {orderInfo.statusMap?.length > 2 && (
+                              {orderInfo.statusMap?.length >= 2 && (
                                 <Button
                                   style={{ color: '#1677ff' }}
                                   onClick={() => {
