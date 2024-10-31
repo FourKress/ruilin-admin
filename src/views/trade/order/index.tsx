@@ -461,12 +461,6 @@ function Order() {
           let count = target?.count || d.count
           let notifyCount = target?.notifyCount || d.notifyCount
 
-          if (d.status === 0) {
-            const awaitItem: any = statistics?.find((s: any) => s.status === 7) || {}
-            count = Number(count) + Number(awaitItem.count || 0)
-            notifyCount = Number(notifyCount) + Number(awaitItem.notifyCount || 0)
-          }
-
           if (d.status === 8) {
             const awaitItem: any = statistics?.find((s: any) => s.status === 6) || {}
             count = Number(count) + Number(awaitItem.count || 0)

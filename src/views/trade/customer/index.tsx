@@ -53,7 +53,7 @@ function Customer() {
       render: (_, record: Record<string, any>) => {
         const orderList = record.orderList
         const totalPrice = orderList
-          .filter((d: any) => [1, 2, 3, 4, 5].includes(d.status))
+          .filter((d: any) => [2, 3, 4, 5].includes(d.status))
           .reduce((pre: number, cur: any) => {
             return currency(pre).add(cur['payAmount']).value
           }, 0)

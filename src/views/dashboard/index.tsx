@@ -68,7 +68,7 @@ const Dashboard: FC<Record<string, any>> = () => {
             return dayjs(d).add(index, 'day').format('MM-DD')
           })
 
-        const realOrder = res?.orderList.filter((d: any) => [1, 2, 3, 4, 5].includes(d.status))
+        const realOrder = res?.orderList.filter((d: any) => [2, 3, 4, 5].includes(d.status))
 
         const priceSeriesData = xAxisData.map((d: string) => {
           const targetList = realOrder.filter(
@@ -259,7 +259,7 @@ const Dashboard: FC<Record<string, any>> = () => {
                     return details?.orderList ? (
                       <span>
                         {details?.orderList
-                          .filter((d: any) => [1, 2, 3, 4, 5].includes(d.status))
+                          .filter((d: any) => [2, 3, 4, 5].includes(d.status))
                           .reduce((sum: any, cur: any) => {
                             return currency(sum).add(cur['payAmount']).format()
                           }, 0) || '$0.00'}
