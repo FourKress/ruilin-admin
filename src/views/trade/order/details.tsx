@@ -112,7 +112,9 @@ const OrderDetails: FC<Record<string, any>> = () => {
         setGoodsList(Object.values(grouped))
 
         if ([-1, 6, 8].includes(res.status)) {
-          const lastStatus = res.statusMap.filter((d: any) => ![6].includes(d.status)).at(-1).status
+          const lastStatus = res.statusMap
+            .filter((d: any) => ![6, 7].includes(d.status))
+            .at(-1).status
           const items = [...stepsItems].splice(0, lastStatus + 1)
           const addItems = [
             {
@@ -128,7 +130,7 @@ const OrderDetails: FC<Record<string, any>> = () => {
           }
           items.push(...addItems)
           const current = items.findIndex((d) => d.value === res.status)
-          setStepsCurrent(current)
+          setStepsCurrent(current === 7 ? 0 : current)
           setStepsItems(items)
         } else {
           setStepsCurrent(stepsItems.findIndex((d) => d.value === res.status))
